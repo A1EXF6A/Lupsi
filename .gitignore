@@ -1,0 +1,17 @@
+node_modules/
+pnpm-lock.yaml
+dist/
+build/
+.turbo/
+.pnpm-store/
+coverage/
+*.log
+*.pid
+.env
+.env.*
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.tsbuildinfo
+tmp/
