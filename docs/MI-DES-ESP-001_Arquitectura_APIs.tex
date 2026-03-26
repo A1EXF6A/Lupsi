@@ -1,0 +1,678 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[spanish, es-noshorthands]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage[table]{xcolor}
+\usepackage[T1]{fontenc}
+\usepackage{tabularx}
+\usepackage{amssymb}   % \checkmark
+\usepackage{pifont}    % \ding para símbolos alternativos
+\usepackage{listings}
+
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+
+\definecolor{SKTPrimary}{HTML}{3F4A4F}
+\definecolor{SKTDark}{HTML}{242B2E}
+\definecolor{SKTAccent}{HTML}{979C9D}
+\definecolor{SKTLight}{HTML}{CDCFD2}
+\definecolor{SKTMid}{HTML}{6E7375}
+
+% Colores para tabla de endpoints
+\definecolor{rowGET}{HTML}{DFF0D8}
+\definecolor{rowPOST}{HTML}{D9EDF7}
+\definecolor{rowPATCH}{HTML}{FCF8E3}
+\definecolor{rowDELETE}{HTML}{F2DEDE}
+
+\geometry{
+top=2.5cm,
+bottom=2.5cm,
+left=3cm,
+right=3cm,
+includehead,
+headheight=130pt,
+headsep=1cm
+}
+
+% ---------------- ENCABEZADO ----------------
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+
+\fancyhead[C]{
+\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.1}
+
+\begin{tabular}{|m{3cm}|m{7.5cm}|m{3.8cm}|}
+\hline
+\multirow{5}{*}{
+\parbox[c][3.5cm][c]{2.5cm}{
+\centering
+\includegraphics[width=2.2cm]{SKTLogo.png}
+}
+}
+& \centering\textbf{EMPRESA DE DESARROLLO E INNOVACIÓN}
+& \parbox[c]{\linewidth}{\centering
+\textbf{CÓDIGO:}\\
+MI-DES-ESP-001
+\vspace{3pt}
+} \\ \cline{2-3}
+
+& \centering\textbf{PROCESO: DESARROLLO DE SOFTWARE}
+& \parbox[c]{\linewidth}{\centering
+\textbf{VERSIÓN:}\\
+1.0
+\vspace{3pt}
+} \\ \cline{2-3}
+
+& \centering Desarrollo del Sistema LUPSI
+& \parbox[c]{\linewidth}{\centering
+\textbf{ELABORACIÓN:}\\
+25/03/2026
+} \\ \cline{2-3}
+
+& \centering Especificación de Arquitectura REST y Contratos de API
+& \parbox[c]{\linewidth}{\centering
+\textbf{ÚLTIMA REVISIÓN:}\\
+25/03/2026
+} \\ \hline
+\end{tabular}
+}
+
+\fancyfoot[R]{\small Página \thepage\ de \pageref{LastPage}}
+
+% --------------------------------------------------
+\begin{document}
+\raggedbottom
+
+% ==========================================
+\section{Título}
+% ==========================================
+\textbf{Definición de Arquitectura REST y Contratos de API del Sistema Web Progresivo (PWA) de Gestión Médica LUPSI: Módulos de Identidad, Agendamiento Clínico y Control de Acceso Basado en Roles}
+
+% ==========================================
+\section{Introducción}
+% ==========================================
+El presente documento especifica formalmente la arquitectura orientada a servicios REST del backend del proyecto PWA Gestión Médica LUPSI, desarrollado para el Centro de Especialidades Médicas y Psicológicas LUPSI con sede en la ciudad de Ambato, Ecuador.
+
+La solución propuesta migra un modelo de gestión 100\% manual — basado en WhatsApp, papel e intervención directa de una Psicóloga Clínica como recepcionista — hacia una plataforma de autoservicio digital de \textit{fricción cero} (\textit{Zero Friction Self-Service}). El sistema automatiza el ciclo completo de agendamiento médico, valida algorítmicamente la identidad de los pacientes mediante el \textbf{Algoritmo Módulo 10} de la cédula ecuatoriana, y garantiza el aislamiento de los datos clínicos sensibles mediante políticas de seguridad a nivel de base de datos.
+
+El backend está construido sobre \textbf{NestJS} con TypeScript estricto, conectado a una base de datos \textbf{PostgreSQL administrada en Supabase}, aplicando \textbf{Row Level Security (RLS)} y \textbf{Control de Acceso Basado en Roles (RBAC)} para garantizar que los datos médicos sean inaccesibles al personal administrativo, incluso si la solicitud proviene de actores autenticados dentro del mismo sistema.
+
+Este documento sirve como contrato técnico vinculante entre el equipo de backend (Daniel Luisa y Sebastián Ortiz) y el equipo de frontend (Alex Guachi), asegurando que ambas capas operen sobre acuerdos explícitos de interfaz, formato de datos y reglas de seguridad, alineados con el cronograma de 73 días laborables definido en la planificación del proyecto.
+
+% ==========================================
+\section{Objetivo}
+% ==========================================
+Especificar formalmente los contratos de interfaz REST (endpoints, métodos HTTP, DTOs de solicitud/respuesta, códigos de estado y requisitos de autorización) que expone el backend NestJS del sistema LUPSI, con el fin de garantizar una integración coherente, segura y predecible con la capa de presentación Angular PWA y cumplir con los requerimientos funcionales y de seguridad definidos en el Sprint Backlog del proyecto.
+
+% ==========================================
+\section{Alcance}
+% ==========================================
+Este documento comprende:
+
+\begin{itemize}
+\item Descripción de la arquitectura de módulos del backend NestJS.
+\item Especificación de los endpoints REST organizados por módulo funcional.
+\item Definición de los roles de acceso (RBAC) y niveles de autorización por endpoint.
+\item Descripción de los contratos de datos de entrada (DTOs de solicitud).
+\item Descripción de los contratos de datos de salida (DTOs de respuesta).
+\item Códigos de respuesta HTTP aplicables y descripción de errores estandarizados.
+\item Consideraciones de seguridad y restricciones de acceso para datos clínicos sensibles.
+\end{itemize}
+
+Quedan fuera del alcance de este documento:
+\begin{itemize}
+\item El diseño de vistas y componentes Angular (documentado por separado en el documento de Wireframes y Navegación).
+\item La configuración de infraestructura DevOps y despliegue en Render.
+\end{itemize}
+
+% ==========================================
+\section{Definiciones}
+% ==========================================
+
+\textbf{API REST:} Interfaz de programación de aplicaciones que sigue los principios de la arquitectura representacional de transferencia de estado (REST), usando HTTP como protocolo de comunicación.
+
+\textbf{NestJS:} Framework de Node.js basado en TypeScript que implementa patrones de diseño orientados a objetos y programación modular para construir backends escalables.
+
+\textbf{DTO (Data Transfer Object):} Objeto de datos que define la estructura exacta de los datos que viajan entre capas del sistema (solicitud/respuesta HTTP).
+
+\textbf{JWT (JSON Web Token):} Token firmado criptográficamente que Supabase Auth emite al autenticarse. Contiene el identificador único del usuario (\texttt{auth.uid()}) y los \textit{Custom Claims} de rol.
+
+\textbf{RBAC (Role-Based Access Control):} Modelo de control de acceso donde los permisos se otorgan en función del rol asignado al usuario (PATIENT, DOCTOR, RECEPTIONIST, ADMIN).
+
+\textbf{RLS (Row Level Security):} Característica de PostgreSQL que aplica políticas de filtrado a nivel de fila de tabla basadas en la identidad del usuario JWT activo.
+
+\textbf{Guard (NestJS):} Clase que implementa \texttt{CanActivate} e intercepta la ejecución de un controlador para verificar autorización antes de procesar la solicitud.
+
+\textbf{Módulo 10:} Algoritmo matemático utilizado por el Registro Civil del Ecuador para validar la veracidad de los 10 dígitos de la cédula de identidad de personas naturales.
+
+\textbf{Slot de disponibilidad:} Bloque de tiempo libre en la agenda de un doctor, sin cita activa (\texttt{status = 'SCHEDULED'}), calculado dinámicamente por el motor de agendamiento.
+
+\textbf{Endpoint:} URL específica expuesta por la API REST a la cual los clientes envían solicitudes HTTP.
+
+% ==========================================
+\section{Arquitectura de Módulos NestJS}
+% ==========================================
+
+\subsection{Diagrama de Organización de Módulos}
+
+El backend se organiza en módulos de dominio siguiendo el principio \textit{Single Responsibility} de SOLID y el patrón de \textit{Feature Modules} de NestJS. Cada módulo encapsula su propio controlador, servicio(s) y acceso a datos, y se conecta al módulo raíz \texttt{AppModule}.
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|p{3.2cm}|p{8.8cm}|p{2.2cm}|}
+\hline
+\rowcolor{SKTPrimary}
+\textcolor{white}{\textbf{Módulo}} &
+\textcolor{white}{\textbf{Responsabilidad Principal}} &
+\textcolor{white}{\textbf{Dev}} \\
+\hline
+\texttt{IamModule} & Validación de cédula (Módulo 10), Guards JWT y RBAC, estrategias de autenticación con Supabase Auth. & Daniel L. \\
+\hline
+\texttt{AuthModule} & Endpoints de registro, login y logout. Orquesta la comunicación con \texttt{supabase.auth.*} y la escritura en \texttt{public.profiles}. & Daniel L. \\
+\hline
+\texttt{ProfilesModule} & CRUD de perfiles de pacientes y doctores (datos no clínicos). Consume \texttt{public.patients} y \texttt{public.doctors}. & Daniel L. \& Sebas. O. \\
+\hline
+\texttt{SchedulingModule} & Motor de agendamiento concurrente. Gestión de disponibilidad, creación y cancelación de citas. Aplica restricción GiST. & Sebas. O. \& Daniel L. \\
+\hline
+\texttt{ClinicalModule} & Gestión de historias clínicas, subida de PDFs a Cloudinary y lectura restringida por rol \texttt{DOCTOR/PATIENT}. & Daniel L. \& Sebas. O. \\
+\hline
+\texttt{StorageModule} & Integración con Cloudinary SDK. Recibe archivos, sube el binario y retorna la URL estática al módulo solicitante. & Daniel L. \\
+\hline
+\end{tabular}
+\caption*{Tabla 1: Organización de módulos funcionales del backend LUPSI.}
+\end{table}
+
+\subsection{Convenciones Globales de la API}
+
+\begin{itemize}
+\item \textbf{Base URL Local:} \texttt{http://localhost:3000}
+\item \textbf{Base URL Producción:} \texttt{https://lupsi-api.onrender.com}
+\item \textbf{Prefijo global:} \texttt{/api/v1}
+\item \textbf{Formato de datos:} JSON (\texttt{Content-Type: application/json})
+\item \textbf{Autenticación:} Header \texttt{Authorization: Bearer \{jwt\_token\}}
+\item \textbf{Zona Horaria:} Todas las fechas se manejan en formato \textbf{ISO 8601 UTC} (\texttt{TIMESTAMP WITH TIME ZONE}).
+\item \textbf{Idioma de errores:} Español. Mensajes descriptivos orientados al equipo frontend para traducción a la UI.
+\end{itemize}
+
+% ==========================================
+\section{Especificación de Endpoints por Módulo}
+% ==========================================
+
+\subsection{Módulo de Autenticación — \texttt{/api/v1/auth}}
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.6}
+\begin{tabular}{|p{1.6cm}|p{2.4cm}|p{5.8cm}|p{3.4cm}|}
+\hline
+\rowcolor{SKTPrimary}
+\textcolor{white}{\textbf{Método}} &
+\textcolor{white}{\textbf{Ruta}} &
+\textcolor{white}{\textbf{Descripción}} &
+\textcolor{white}{\textbf{Acceso / Código}} \\
+\hline
+\rowcolor{rowPOST}
+POST & \texttt{/register} & Registra un nuevo usuario. Valida el DNI con Módulo 10, crea usuario en Supabase Auth e inserta en \texttt{public.profiles} y \texttt{public.patients}. & Público — \textbf{201} \\
+\hline
+\rowcolor{rowPOST}
+POST & \texttt{/login} & Autentica un usuario existente. Retorna JWT de Supabase con Custom Claims de rol. & Público — \textbf{200} \\
+\hline
+\rowcolor{rowPOST}
+POST & \texttt{/logout} & Invalida la sesión activa del usuario en Supabase Auth. & JWT válido — \textbf{200} \\
+\hline
+\end{tabular}
+\caption*{Tabla 2: Endpoints del módulo de autenticación.}
+\end{table}
+
+\subsubsection{POST \texttt{/auth/register} — Contrato de Datos}
+
+\textbf{Request Body (DTO):}
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.4}
+\begin{tabularx}{\linewidth}{|l|l|l|X|}
+\hline
+\rowcolor{SKTLight}
+\textbf{Campo} & \textbf{Tipo} & \textbf{Requerido} & \textbf{Descripción / Validación} \\
+\hline
+\texttt{email} & string & Sí & Email válido. Será el identificador primario de Supabase Auth. \\
+\hline
+\texttt{password} & string & Sí & Mínimo 8 caracteres, al menos 1 mayúscula y 1 número. \\
+\hline
+\texttt{dni} & string & Sí & 10 dígitos numéricos. Validado con Algoritmo Módulo 10 antes de cualquier escritura en DB. \\
+\hline
+\texttt{first\_name} & string & Sí & Máximo 100 caracteres. \\
+\hline
+\texttt{last\_name} & string & Sí & Máximo 100 caracteres. \\
+\hline
+\texttt{phone} & string & No & Formato libre. Recomendado E.164 (\texttt{+593...}). \\
+\hline
+\texttt{date\_of\_birth} & string & No & Fecha en formato \texttt{YYYY-MM-DD}. \\
+\hline
+\end{tabularx}
+\caption*{Tabla 3: DTO de solicitud para registro de paciente.}
+\end{table}
+
+\textbf{Response Body (201 Created):}
+\begin{verbatim}
+{
+  "message": "Registro exitoso. Verifica tu correo electrónico.",
+  "userId": "uuid-del-usuario"
+}
+\end{verbatim}
+
+\textbf{Errores posibles:}
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.4}
+\begin{tabularx}{\linewidth}{|l|X|}
+\hline
+\rowcolor{SKTLight}
+\textbf{Código HTTP} & \textbf{Mensaje de error} \\
+\hline
+400 & \texttt{El DNI es matemáticamente inconsistente (Algoritmo Módulo 10).} \\
+\hline
+400 & \texttt{El DNI no pertenece a una persona natural.} \\
+\hline
+409 & \texttt{El correo electrónico ya está registrado en el sistema.} \\
+\hline
+409 & \texttt{El DNI ya se encuentra asociado a un perfil existente.} \\
+\hline
+\end{tabularx}
+\caption*{Tabla 4: Códigos de error del endpoint de registro.}
+\end{table}
+
+% -----------------------------------------------
+\subsection{Módulo de Perfiles — \texttt{/api/v1/profiles}}
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.6}
+\begin{tabular}{|p{1.6cm}|p{2.4cm}|p{5.8cm}|p{3.4cm}|}
+\hline
+\rowcolor{SKTPrimary}
+\textcolor{white}{\textbf{Método}} &
+\textcolor{white}{\textbf{Ruta}} &
+\textcolor{white}{\textbf{Descripción}} &
+\textcolor{white}{\textbf{Acceso / Código}} \\
+\hline
+\rowcolor{rowGET}
+GET & \texttt{/me} & Retorna los datos del perfil del usuario autenticado actualmente. & Cualquier rol — \textbf{200} \\
+\hline
+\rowcolor{rowPATCH}
+PATCH & \texttt{/me} & Actualiza datos del perfil propio (teléfono, fecha de nacimiento). & PATIENT — \textbf{200} \\
+\hline
+\rowcolor{rowGET}
+GET & \texttt{/patients} & Lista todos los pacientes registrados. & RECEPTIONIST, DOCTOR — \textbf{200} \\
+\hline
+\rowcolor{rowGET}
+GET & \texttt{/patients/:id} & Retorna el perfil de un paciente específico por su UUID. & RECEPTIONIST, DOCTOR — \textbf{200} \\
+\hline
+\rowcolor{rowGET}
+GET & \texttt{/doctors} & Lista todos los doctores disponibles con su especialidad. & Autenticado — \textbf{200} \\
+\hline
+\end{tabular}
+\caption*{Tabla 5: Endpoints del módulo de perfiles.}
+\end{table}
+
+% -----------------------------------------------
+\subsection{Módulo de Agendamiento — \texttt{/api/v1/appointments}}
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.6}
+\begin{tabular}{|p{1.6cm}|p{2.8cm}|p{5.4cm}|p{3.4cm}|}
+\hline
+\rowcolor{SKTPrimary}
+\textcolor{white}{\textbf{Método}} &
+\textcolor{white}{\textbf{Ruta}} &
+\textcolor{white}{\textbf{Descripción}} &
+\textcolor{white}{\textbf{Acceso / Código}} \\
+\hline
+\rowcolor{rowGET}
+GET & \texttt{/slots} & Retorna horarios disponibles de un doctor en una fecha. Parámetros: \texttt{doctorId}, \texttt{date}. & PATIENT — \textbf{200} \\
+\hline
+\rowcolor{rowPOST}
+POST & \texttt{/} & Crea una nueva cita. El backend calcula \texttt{appointment\_end\_time} y ejecuta la restricción GiST anti-solapamiento. & PATIENT — \textbf{201} \\
+\hline
+\rowcolor{rowGET}
+GET & \texttt{/my} & Lista todas las citas del paciente autenticado, ordenadas por fecha. & PATIENT — \textbf{200} \\
+\hline
+\rowcolor{rowGET}
+GET & \texttt{/daily} & Retorna las citas del día al panel de la recepcionista (sin datos clínicos: nombre, hora, estado). & RECEPTIONIST — \textbf{200} \\
+\hline
+\rowcolor{rowPATCH}
+PATCH & \texttt{/:id/cancel} & Cancela una cita. Cambia \texttt{status} a \texttt{CANCELLED} y libera el slot automáticamente. & PATIENT (propio), RECEPTIONIST — \textbf{200} \\
+\hline
+\rowcolor{rowPATCH}
+PATCH & \texttt{/:id/complete} & Marca la cita como \texttt{COMPLETED}. Solo el doctor que la atiende puede ejecutarlo. & DOCTOR — \textbf{200} \\
+\hline
+\end{tabular}
+\caption*{Tabla 6: Endpoints del módulo de agendamiento (motor concurrente).}
+\end{table}
+
+\subsubsection{POST \texttt{/appointments} — Contrato de Datos}
+
+\textbf{Request Body (DTO):}
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.4}
+\begin{tabularx}{\linewidth}{|l|l|l|X|}
+\hline
+\rowcolor{SKTLight}
+\textbf{Campo} & \textbf{Tipo} & \textbf{Requerido} & \textbf{Descripción} \\
+\hline
+\texttt{doctor\_id} & string (UUID) & Sí & ID del doctor seleccionado. \\
+\hline
+\texttt{appointment\_time} & string (ISO 8601) & Sí & Fecha y hora de inicio de la cita. Ej: \texttt{2026-04-01T10:00:00Z}. \\
+\hline
+\texttt{duration\_minutes} & number & No & Duración en minutos. Default: 45. El backend calcula \texttt{appointment\_end\_time}. \\
+\hline
+\end{tabularx}
+\caption*{Tabla 7: DTO de solicitud para creación de cita médica.}
+\end{table}
+
+\textbf{Lógica de concurrencia:} Si dos solicitudes simultáneas intentan agendar al mismo doctor en el mismo rango horario, PostgreSQL devolverá una excepción de exclusión GiST y el backend retornará \texttt{HTTP 409 Conflict} con el mensaje: \textit{"El horario seleccionado ya no está disponible. Por favor elige otro slot."} La primera solicitud que haya comprometido la transacción ganará el slot.
+
+% -----------------------------------------------
+\subsection{Módulo Clínico — \texttt{/api/v1/clinical}}
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.6}
+\begin{tabular}{|p{1.6cm}|p{3.2cm}|p{5.0cm}|p{3.4cm}|}
+\hline
+\rowcolor{SKTPrimary}
+\textcolor{white}{\textbf{Método}} &
+\textcolor{white}{\textbf{Ruta}} &
+\textcolor{white}{\textbf{Descripción}} &
+\textcolor{white}{\textbf{Acceso / Código}} \\
+\hline
+\rowcolor{rowPOST}
+POST & \texttt{/records} & Crea una nueva historia clínica con diagnóstico y tratamiento. Almacena los datos estructurados para su visualización nativa en la PWA. & DOCTOR — \textbf{201} \\
+\hline
+\rowcolor{rowGET}
+GET & \texttt{/records/} \texttt{patient/:id} & Lista todas las historias clínicas de un paciente específico. & DOCTOR, PATIENT (propio) — \textbf{200} \\
+\hline
+\rowcolor{rowGET}
+GET & \texttt{/records/:id} & Retorna los detalles de una historia clínica, incluyendo diagnóstico, posología y firma digital SHA-256. & DOCTOR, PATIENT (propio) — \textbf{200} \\
+\hline
+\end{tabular}
+\caption*{Tabla 8: Endpoints del módulo clínico (acceso restringido, RECEPTIONIST bloqueada).}
+\end{table}
+
+\textbf{Nota de Seguridad Crítica:} El rol \texttt{RECEPTIONIST} no tiene ninguna política RLS ni Guard que le permita acceder a estos endpoints. Una solicitud con JWT de recepcionista recibirá \texttt{HTTP 403 Forbidden}: \textit{"Acceso denegado. No tiene permisos para visualizar información clínica."} Este bloqueo opera en doble capa: Guard NestJS (capa de aplicación) y política RLS de PostgreSQL (capa de datos).
+
+% ==========================================
+\section{Modelo de Respuesta de Error Estándar}
+% ==========================================
+
+Todos los errores del backend siguen el siguiente formato JSON unificado para facilitar el manejo en el frontend Angular:
+
+\begin{verbatim}
+{
+  "statusCode": 400,
+  "error": "Bad Request",
+  "message": "El DNI es matemáticamente inconsistente (Algoritmo Módulo 10).",
+  "timestamp": "2026-04-01T10:00:00.000Z",
+  "path": "/api/v1/auth/register"
+}
+\end{verbatim}
+
+% ==========================================
+\section{Responsabilidades y Recursos}
+% ==========================================
+
+\subsection{Responsabilidades}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{Rol} & \textbf{Responsabilidades} \\
+\hline
+Angel Ayuquina – Gestor del Proyecto &
+Aprobación del contrato de API, seguimiento de cumplimiento durante los Sprints y gestión de cambios de alcance que afecten los endpoints definidos. \\
+\hline
+Sebastián Ortiz – Arquitectura BD y Cloud &
+Diseño del esquema de tablas PostgreSQL, configuración de Supabase, definición de políticas RLS y revisión técnica de los DTOs que interactúan con la base de datos. \\
+\hline
+Daniel Luisa – Backend y QA &
+Implementación de todos los controladores y servicios NestJS, codificación de Guards RBAC, pruebas unitarias e integración de la API con Supabase Auth y Cloudinary. \\
+\hline
+Alex Guachi – Frontend y UX/UI &
+Consumo de todos los endpoints especificados en este documento desde Angular. Responsable de reportar inconsistencias entre el contrato y el comportamiento real de la API. \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Recursos}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{Categoría} & \textbf{Detalle} \\
+\hline
+Humanos & Equipo de 4 desarrolladores organizados bajo metodología Scrum híbrida. \\
+\hline
+Tecnológicos &
+\begin{itemize}
+\item NestJS 10 + TypeScript 5 (Backend).
+\item Angular 21 (Frontend PWA).
+\item Supabase (PostgreSQL + Auth + RLS).
+\item Cloudinary (Storage de PDFs clínicos).
+\item Docker + Render (Despliegue en producción).
+\item Postman (Testing manual y PenTesting de endpoints).
+\end{itemize} \\
+\hline
+Normativos &
+\begin{itemize}
+\item ISO/IEC 25010 (Calidad de producto software).
+\item ISO/IEC 27001 (Seguridad de la información).
+\item OWASP API Security Top 10 2023.
+\item Ley Orgánica de Protección de Datos Personales (LOPDP) — Ecuador.
+\end{itemize} \\
+\hline
+Presupuesto & Infraestructura acotada a \$150 USD. Los servicios Supabase Free Tier y Render Free Tier cubren el tráfico estimado del MVP. \\
+\hline
+\end{tabular}
+\end{table}
+
+% ==========================================
+\section{Normativa Legal y Técnica Aplicable}
+% ==========================================
+
+\subsection{OWASP API Security Top 10 (2023)}
+
+El diseño de cada endpoint fue evaluado contra el listado OWASP API Security Top 10 en sus categorías más críticas para este sistema:
+
+\begin{itemize}
+\item \textbf{API1 — Broken Object Level Authorization:} Mitigado mediante Guards RBAC en NestJS y políticas RLS en PostgreSQL (doble barrera). Un paciente jamás puede solicitar el perfil clínico de otro paciente.
+\item \textbf{API2 — Broken Authentication:} Mitigado delegando completamente la emisión y verificación de JWT a Supabase Auth, que implementa estándares modernos de seguridad sin dependencia de código propio.
+\item \textbf{API3 — Broken Object Property Level Authorization:} Mitigado mediante DTOs de respuesta estrictos que nunca exponen campos internos de la base de datos (como \texttt{auth.uid()} crudo o el hash de contraseña).
+\item \textbf{API8 — Security Misconfiguration:} Mitigado mediante la separación de \texttt{SUPABASE\_ANON\_KEY} (frontend) y \texttt{SUPABASE\_SERVICE\_ROLE\_KEY} (backend exclusivo), almacenadas como variables de entorno y nunca en repositorio.
+\end{itemize}
+
+\subsection{Ley Orgánica de Protección de Datos Personales — LOPDP (Ecuador)}
+
+Los artículos 7 y 19 de la LOPDP exigen que los datos de salud sean tratados como datos sensibles de categoría especial, requiriendo consentimiento explícito del titular y controles técnicos de acceso. Este sistema implementa cumplimiento mediante:
+
+\begin{itemize}
+\item Aceptación explícita de términos en el flujo de registro (\texttt{POST /auth/register}).
+\item Aislamiento técnico de las tablas \texttt{medical\_records} mediante RLS que bloquea al rol \texttt{RECEPTIONIST} incluso con credenciales válidas.
+\item Almacenamiento de PDFs clínicos en Cloudinary (fuera de la base de datos) con URLs de acceso privado no indexables.
+\end{itemize}
+
+% ==========================================
+\section{Método / Políticas}
+% ==========================================
+
+\subsection{Política de Versionado de la API}
+
+\begin{itemize}
+\item La API usa versionado en la URL (\texttt{/api/v1/}). Cualquier cambio que rompa la compatibilidad hacia atrás requerirá incrementar a \texttt{/api/v2/} y ser aprobado por el Gestor del Proyecto.
+\item Los cambios aditivos (nuevos campos opcionales en respuesta) no requieren cambio de versión.
+\item Cualquier modificación en los contratos de este documento debe registrarse en la sección de Control de Cambios.
+\end{itemize}
+
+\subsection{Política de Testing de Endpoints}
+
+\begin{itemize}
+\item Antes de cada Pull Request al repositorio \texttt{lupsi-api-backend}, los endpoints afectados deben tener al menos una prueba unitaria del servicio y una prueba de integración del controlador.
+\item El módulo Clínico y los Guards RBAC son objetivo de PenTesting manual con Postman en el Sprint 4, simulando tokens falsificados con roles incorrectos.
+\end{itemize}
+
+% ==========================================
+\section{Firmas de Responsabilidad}
+% ==========================================
+
+\renewcommand{\arraystretch}{2}
+
+\noindent
+\begin{tabular}{
+p{0.28\textwidth}
+p{0.30\textwidth}
+>{\centering\arraybackslash}p{0.22\textwidth}
+>{\centering\arraybackslash}p{0.12\textwidth}
+}
+\hline
+\textbf{Rol} &
+\textbf{Nombre / Representante} &
+\textbf{Firma (QR)} &
+\textbf{Fecha} \\
+\hline
+
+Gestor del Proyecto
+& Angel Ayuquina
+& \includegraphics[width=3.2cm]{QR_Sello_Angel_Ayuquina.png}
+& 25/03/2026 \\[0.6cm]
+
+Arquitecto BD y Cloud
+& Sebastián Ortiz
+& \includegraphics[width=3.2cm]{QR_Sello_Sebastían_Ortiz.png}
+& 25/03/2026 \\[0.6cm]
+
+Desarrollador Backend y QA
+& Daniel Luisa
+& \includegraphics[width=3.2cm]{QR_Sello_Daniel_Luisa.png}
+& 25/03/2026 \\[0.6cm]
+
+Desarrollador Frontend y UX/UI
+& Alex Huachi
+& \includegraphics[width=3.2cm]{QR_Sello_Alex_Huachi.png}
+& 25/03/2026 \\[0.6cm]
+
+\hline
+\end{tabular}
+
+% ==========================================
+\section{Control de Cambios}
+% ==========================================
+
+\renewcommand{\arraystretch}{1.5}
+
+\noindent
+\begin{tabular}{|p{1.5cm}|p{2.5cm}|p{6.5cm}|p{3.2cm}|}
+\hline
+\rowcolor{SKTLight}
+\textbf{Versión} &
+\textbf{Fecha} &
+\textbf{Descripción del Cambio} &
+\textbf{Responsable} \\
+\hline
+1.0 & 25/03/2026 & Creación inicial del documento de Arquitectura y APIs. Definición de los 4 módulos principales y sus contratos de datos. & Sebastián Ortiz \\
+\hline
+\end{tabular}
+
+% ==========================================
+\section{Anexos}
+% ==========================================
+
+\section*{A. Codificación del Documento}
+
+\subsection*{A.1 Referencia de Codificación}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|p{4.5cm}|p{9.0cm}|}
+\hline
+\rowcolor{SKTLight}
+\textbf{Campo} & \textbf{Valor} \\
+\hline
+Código documento & \texttt{MI-DES-ESP-001} \\
+\hline
+Título & Especificación de Arquitectura REST y Contratos de API \\
+\hline
+Versión & 1.0 \\
+\hline
+Fecha emisión & 2026-03-25 \\
+\hline
+Autor / Responsable & Sebastián Ortiz (Arquitectura BD y Cloud) \\
+\hline
+Motivo de emisión & Definición inicial del contrato de integración Backend/Frontend \\
+\hline
+Aprobación & Angel Ayuquina / 25-03-2026 \\
+\hline
+Ubicación archivo & \texttt{/docs/MI-DES-ESP-001\_Arquitectura\_APIs.tex} \\
+\hline
+\end{tabular}
+\end{table}
+
+\section*{B. Resumen de Roles y Permisos por Endpoint}
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.5}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{|p{3.8cm}|>{\centering\arraybackslash}p{2.2cm}|>{\centering\arraybackslash}p{2.0cm}|>{\centering\arraybackslash}p{3.0cm}|>{\centering\arraybackslash}p{2.0cm}|}
+\hline
+\rowcolor{SKTPrimary}
+\textcolor{white}{\textbf{Endpoint}} &
+\textcolor{white}{\textbf{PATIENT}} &
+\textcolor{white}{\textbf{DOCTOR}} &
+\textcolor{white}{\textbf{RECEPTIONIST}} &
+\textcolor{white}{\textbf{ADMIN}} \\
+\hline
+\texttt{POST /auth/register}         & $\checkmark$ & ---          & ---                  & ---           \\ \hline
+\texttt{POST /auth/login}            & $\checkmark$ & $\checkmark$ & $\checkmark$         & $\checkmark$  \\ \hline
+\texttt{GET /profiles/me}            & $\checkmark$ & $\checkmark$ & $\checkmark$         & $\checkmark$  \\ \hline
+\texttt{GET /profiles/patients}      & ---          & $\checkmark$ & $\checkmark$         & $\checkmark$  \\ \hline
+\texttt{GET /profiles/doctors}       & $\checkmark$ & $\checkmark$ & $\checkmark$         & $\checkmark$  \\ \hline
+\texttt{GET /appointments/slots}     & $\checkmark$ & ---          & ---                  & $\checkmark$  \\ \hline
+\texttt{POST /appointments}          & $\checkmark$ & ---          & ---                  & $\checkmark$  \\ \hline
+\texttt{GET /appointments/my}        & $\checkmark$ & $\checkmark$ & ---                  & $\checkmark$  \\ \hline
+\texttt{GET /appointments/daily}     & ---          & ---          & $\checkmark$         & $\checkmark$  \\ \hline
+\texttt{PATCH /:id/cancel}           & $\checkmark$ {\scriptsize(propio)} & --- & $\checkmark$  & $\checkmark$  \\ \hline
+\texttt{PATCH /:id/complete}         & ---          & $\checkmark$ {\scriptsize(propio)} & ---      & $\checkmark$  \\ \hline
+\texttt{POST /clinical/records}      & ---          & $\checkmark$ & \textbf{BLOQUEADO}   & $\checkmark$  \\ \hline
+\texttt{GET /clinical/records/...}   & $\checkmark$ {\scriptsize(propio)} & $\checkmark$ & \textbf{BLOQUEADO} & $\checkmark$ \\ \hline
+\end{tabular}
+\caption*{Tabla B.1: Matriz de acceso por rol (RBAC). \textbf{BLOQUEADO} = HTTP 403 en Guard NestJS + RLS PostgreSQL.}
+\end{table}
+
+\end{document}
+

@@ -1,0 +1,192 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[spanish, es-noshorthands]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage[table]{xcolor}
+\usepackage[T1]{fontenc}
+\usepackage{enumitem}
+
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+
+% ---------------- COLORES SKT ----------------
+\definecolor{SKTPrimary}{HTML}{3F4A4F}
+\definecolor{SKTDark}{HTML}{242B2E}
+\definecolor{SKTAccent}{HTML}{979C9D}
+\definecolor{SKTLight}{HTML}{CDCFD2}
+
+\geometry{
+top=2.5cm,
+bottom=2.5cm,
+left=3cm,
+right=3cm,
+includehead,
+headheight=130pt,
+headsep=1cm
+}
+
+% ---------------- ENCABEZADO ----------------
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+
+\fancyhead[C]{
+\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{|m{3cm}|m{7.5cm}|m{3.8cm}|}
+\hline
+\multirow{5}{*}{
+\parbox[c][3.5cm][c]{2.5cm}{
+\centering
+\includegraphics[width=2.2cm]{SKTLogo.png}
+}
+}
+& \centering\textbf{EMPRESA DE DESARROLLO E INNOVACIÓN}
+& \parbox[c]{\linewidth}{\centering
+\textbf{CÓDIGO:}\\
+MI-DES-WIR-002
+\vspace{3pt}
+} \\ \cline{2-3}
+
+& \centering\textbf{PROCESO: DESARROLLO DE SOFTWARE}
+& \parbox[c]{\linewidth}{\centering
+\textbf{VERSIÓN:}\\
+1.2
+\vspace{3pt}
+} \\ \cline{2-3}
+
+& \centering Desarrollo del Sistema LUPSI
+& \parbox[c]{\linewidth}{\centering
+\textbf{ELABORACIÓN:}\\
+26/03/2026
+} \\ \cline{2-3}
+
+& \centering Diseño de Wireframes y Navegación Detallados
+& \parbox[c]{\linewidth}{\centering
+\textbf{ÚLTIMA REVISIÓN:}\\
+26/03/2026
+} \\ \hline
+\end{tabular}
+}
+
+\fancyfoot[R]{\small Página \thepage\ de \pageref{LastPage}}
+
+\begin{document}
+\raggedbottom
+
+\section{Introducción}
+Este documento define la arquitectura de información y la disposición estructural (Wireframes) del sistema LUPSI. Se utiliza el enfoque de \textbf{Skeleton-Wireframing} de baja fidelidad para priorizar la jerarquía de contenidos sobre la estética visual, facilitando la validación de flujos clínicos críticos con los interesados antes de la implementación del prototipo de alta fidelidad.
+
+\section{Principios Estructurales Médicos}
+\begin{itemize}
+    \item \textbf{Cero Fricción (Zero-Friction):} Eliminación de pasos innecesarios mediante validación automática (Cédula Módulo 10).
+    \item \textbf{Jerarquía Táctica:} Uso de iconos y estados (ej. ``ACTIVA'') para facilitar la lectura rápida en dispositivos móviles.
+    \item \textbf{Resiliencia Offline:} Selección de datos dinámicos en lugar de archivos estáticos para garantizar el acceso en zonas de baja conectividad.
+\end{itemize}
+
+\section{Wireframes PWA Paciente (Móvil)}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=1\textwidth]{mockups/wireframes_mobile.png}
+  \caption{Secuencia de pantallas (1. Login, 2. Dashboard, 3. Recetas, 4. Confirmación).}
+\end{figure}
+
+\subsection{Descripción Operativa por Pantalla}
+\begin{enumerate}
+    \item \textbf{Login (Acceso):} Contenedor para logotipo central, dos campos de entrada estructurados en tarjeta y botón primario. Validación Módulo 10 en tiempo real.
+    \item \textbf{Dashboard (Agendamiento):} Saludo personalizado, tarjeta de selección central con calendario (formato D-L-M-M-J-V-S) y bloque inferior para selección de horarios específicos.
+    \item \textbf{Recetas (Visor Dinámico):} Botón de retorno, listado de prescripciones en tarjetas; cada elemento incluye un indicador visual de estado marcado como \textbf{``ACTIVA''}.
+    \item \textbf{Confirmación (Validación):} Pantalla con ícono de check superior, resumen estructurado de los datos de la cita y botones de navegación final.
+\end{enumerate}
+
+\section{Dashboard Administrativo (Escritorio)}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=1\textwidth]{mockups/wireframes_desktop.png}
+  \caption{Esquema estructural del Dashboard del Centro Médico.}
+\end{figure}
+
+\subsection{Distribución de Funciones}
+\begin{itemize}
+    \item \textbf{Sidebar Lateral:} Menú global con contadores de pacientes en espera (badges verdes).
+    \item \textbf{Tablero de Métricas:} Cuatro bloques superiores para visualización de carga operacional del día.
+    \item \textbf{Sala de Espera Virtual:} Tabla central de gestión de pacientes y triaje.
+    \item \textbf{Módulo de Receta Digital:} Formulario estructurado para generación de diagnósticos y tratamientos sin dependencia de PDFs.
+\end{itemize}
+
+\section{Flujo de Navegación Longitudinal}
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{2.2}
+\begin{tabular}{|p{0.5cm}|p{5.5cm}|p{7.5cm}|}
+\hline
+\rowcolor{SKTPrimary}
+\textcolor{white}{\textbf{\#}} &
+\textcolor{white}{\textbf{Pantalla / Ruta}} &
+\textcolor{white}{\textbf{Acción que desencadena la siguiente}} \\
+\hline
+1 & \textbf{Login}\newline{\footnotesize\texttt{/login}} & Validación de Cédula $\rightarrow$ Generación JWT $\rightarrow$ Dashboard \\ \hline
+2 & \textbf{Dashboard}\newline{\footnotesize\texttt{/appointments/calendar}} & Selección de Slot Horario $\rightarrow$ Reservación en Memoria \\ \hline
+3 & \textbf{Confirmación}\newline{\footnotesize\texttt{/appointments/confirm}} & Verificación RLS/RBAC $\rightarrow$ Registro en Base de Datos \\ \hline
+4 & \textbf{Recetas}\newline{\footnotesize\texttt{/my-records}} & Consulta de datos dinámicos $\rightarrow$ Acceso Offline Garantizado \\ \hline
+\end{tabular}
+\end{table}
+
+\newpage
+% ==========================================
+\section{Firmas de Responsabilidad}
+% ==========================================
+
+\renewcommand{\arraystretch}{2}
+\noindent
+\begin{tabular}{
+p{0.28\textwidth}
+p{0.30\textwidth}
+>{\centering\arraybackslash}p{0.22\textwidth}
+>{\centering\arraybackslash}p{0.12\textwidth}
+}
+\hline
+\textbf{Rol} &
+\textbf{Nombre / Representante} &
+\textbf{Firma (QR)} &
+\textbf{Fecha} \\
+\hline
+
+Gestor del Proyecto
+& Angel Ayuquina
+& \includegraphics[width=3.2cm]{QR_Sello_Angel_Ayuquina.png}
+& 26/03/2026 \\[0.6cm]
+
+Arquitecto BD y Cloud
+& Sebastián Ortiz
+& \includegraphics[width=3.2cm]{QR_Sello_Sebastían_Ortiz.png}
+& 26/03/2026 \\[0.6cm]
+
+Desarrollador Backend y QA
+& Daniel Luisa
+& \includegraphics[width=3.2cm]{QR_Sello_Daniel_Luisa.png}
+& 26/03/2026 \\[0.6cm]
+
+Desarrollador Frontend y UX/UI
+& Alex Huachi
+& \includegraphics[width=3.2cm]{QR_Sello_Alex_Huachi.png}
+& 26/03/2026 \\[0.6cm]
+
+\hline
+\end{tabular}
+
+\end{document}
