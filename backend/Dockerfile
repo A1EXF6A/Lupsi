@@ -1,6 +1,6 @@
-# Stage 1: Dependency resolution
 FROM node:22.13.1-alpine AS deps
 WORKDIR /app
+ENV CI=true
 RUN npm install -g pnpm
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY backend/package.json ./backend/

@@ -1,6 +1,7 @@
 # Stage 1: Build
 FROM node:22.13.1-alpine AS builder
 WORKDIR /app
+ENV CI=true
 
 # Instalamos pnpm globalmente
 RUN npm install -g pnpm
