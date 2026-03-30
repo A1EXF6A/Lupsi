@@ -4,6 +4,7 @@ WORKDIR /app
 RUN npm install -g pnpm
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY backend/package.json ./backend/
+COPY frontend/package.json ./frontend/
 RUN pnpm install --filter backend... --frozen-lockfile
 
 # Stage 2: Builder

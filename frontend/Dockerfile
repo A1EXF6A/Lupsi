@@ -11,6 +11,7 @@ RUN npm install -g pnpm
 # Sin embargo, el manual MI-DES-GUI-001 sugiere Dockerfiles dentro de cada carpeta.
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY backend/package.json ./backend/
 COPY frontend/package.json ./frontend/
 RUN pnpm install --filter frontend... --frozen-lockfile
 
