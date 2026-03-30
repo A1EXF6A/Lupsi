@@ -1,0 +1,298 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[spanish, es-noshorthands]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage[table]{xcolor}
+\usepackage[T1]{fontenc}
+\usepackage{enumitem}
+\usepackage{tabularx}
+
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue}
+
+% ---------------- COLORES PROFESIONALES VIBRANTES ----------------
+\definecolor{SKTPrimary}{HTML}{263238} % Charcoal
+\definecolor{SKTSecondary}{HTML}{455A64}
+\definecolor{SKTLight}{HTML}{ECEFF1}
+
+\definecolor{rowAwarded}{HTML}{C8E6C9}
+\definecolor{rowConditional}{HTML}{FFF9C4}
+\definecolor{rowNotRec}{HTML}{FFCDD2}
+
+\definecolor{catCorp}{HTML}{E3F2FD} % Blue
+\definecolor{catTech}{HTML}{E8EAF6} % Indigo
+\definecolor{catFinan}{HTML}{E8F5E9} % Green
+\definecolor{catMgmt}{HTML}{FFF3E0} % Orange
+\definecolor{catSupp}{HTML}{F3E5F5} % Purple
+\definecolor{catRisk}{HTML}{FFEBEE} % Red
+
+\geometry{
+  top=2.5cm, bottom=2.5cm,
+  left=2cm, right=2cm,
+  includehead, headheight=130pt, headsep=1cm
+}
+
+% ---------------- ENCABEZADO ----------------
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyhead[C]{
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \renewcommand{\arraystretch}{1.1}
+  \begin{tabular}{|m{3cm}|m{8.5cm}|m{3.8cm}|}
+    \hline
+    \multirow{5}{*}{\parbox[c][3.5cm][c]{2.5cm}{\centering\includegraphics[width=2.2cm]{SKTLogo.png}}}
+    & \centering\textbf{EMPRESA DE DESARROLLO E INNOVACIÓN}
+    & \parbox[c]{\linewidth}{\centering\textbf{CÓDIGO:}\\MI-GAM-PRO-003\vspace{3pt}} \\ \cline{2-3}
+    & \centering\textbf{PROCESO: GESTIÓN DE PROYECTOS}
+    & \parbox[c]{\linewidth}{\centering\textbf{VERSIÓN:}\\1.4\vspace{3pt}} \\ \cline{2-3}
+    & \centering Desarrollo del Sistema LUPSI
+    & \parbox[c]{\linewidth}{\centering\textbf{ELABORACIÓN:}\\25/03/2026} \\ \cline{2-3}
+    & \centering Informe Técnico de Calificación y Adjudicación
+    & \parbox[c]{\linewidth}{\centering\textbf{\'{U}LTIMA REVISI\'{O}N:}\\27/03/2026} \\ \hline
+  \end{tabular}
+}
+\fancyfoot[R]{\small Página \thepage\ de \pageref{LastPage}}
+
+\begin{document}
+\raggedbottom
+
+% ==========================================
+\section*{INFORME TÉCNICO DE CALIFICACIÓN Y ADJUDICACIÓN DE PROVEEDORES}
+% ==========================================
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\linewidth}{|X|p{10cm}|}
+\hline
+\rowcolor{SKTLight} \textbf{Organización Solicitante} & SKT Software Solution \\ \hline
+\textbf{Nombre del Proyecto} & Sistema Web Progresivo de Gestión Médica LUPSI \\ \hline
+\textbf{Responsable de Evaluación} & Angel Ayuquina (Project Manager) \\ \hline
+\textbf{Sponsors Técnicos} & Daniel Luisa, Alex Guachi \\ \hline
+\textbf{Auditoría de Transparencia} & Inclusión de Stacks Comparativos y Análisis de Riesgos \\ \hline
+\textbf{Total de Criterios} & 13 auditados (100\% de peso distribuido) \\ \hline
+\end{tabularx}
+\end{table}
+
+% ==========================================
+\section{Introducción y Resumen Ejecutivo}
+% ==========================================
+El presente documento formaliza la selección estratégica de proveedores de servicios en la nube e infraestructura para el sistema LUPSI. La arquitectura propuesta se fundamenta en la necesidad de garantizar la privacidad de los datos de salud mediante políticas transversales de seguridad. 
+
+Tras un análisis comparativo de tres ecosistemas tecnológicos, este informe detalla las razones matemáticas y técnicas que justifican la adjudicación al \textbf{LUPSI Stack} (Angular/NestJS/Supabase/Cloudinary). El informe aborda no solo los beneficios, sino también la mitigación de los riesgos inherentes a la dependencia de servicios BaaS y la administración de infraestructura VPS.
+
+% ==========================================
+\section{Marco Metodológico de Evaluación}
+% ==========================================
+Para garantizar la objetividad, se ha aplicado una metodología de \textbf{Calificación Ponderada}. Cada criterio se evalúa en una escala de 1 a 5, donde los puntos obtenidos se multiplican por su peso relativo ($\%$) para obtener una puntuación ponderada. 
+
+La decisión de adjudicación se basa en los siguientes umbrales:
+\begin{itemize}
+    \item \textbf{Adjudicación Directa ($\ge$ 75\%):} Cumple con los requisitos de seguridad y presupuesto.
+    \item \textbf{Condicional (55\% -- 74\%):} Requiere ajustes en costos o arquitectura.
+    \item \textbf{No Recomendado ($<$ 55\%):} Presenta brechas críticas de seguridad o inviabilidad financiera.
+\end{itemize}
+
+% ==========================================
+\section{Definición Profunda de Arquitecturas Evaluadas}
+% ==========================================
+Para evitar ambigüedades en la auditoría, se definen las tres configuraciones de servicio que compitieron por la adjudicación del proyecto:
+
+\begin{enumerate}
+    \item \textbf{Propuesta 1 (LUPSI STACK):} Se basa en un modelo de \textit{Persistence-In-Code} con \textbf{NestJS} y \textbf{Supabase} (PostgreSQL). Ofrece Row Level Security (RLS) nativo, permitiendo que la seguridad no dependa solo de la aplicación, sino de la base de datos. Cloudinary maneja la optimización multimedia y Hostinger VPS ofrece el control total del servidor a un costo fijo anual.
+    
+    \item \textbf{Propuesta 2 (ECOSISTEMA SERVERLESS):} Utiliza \textbf{Firebase} como núcleo. Aunque facilita el desarrollo rápido, el uso de NoSQL (Firestore) complica el manejo de historias clínicas jerárquicas y referencias cruzadas entre doctores y pacientes. El hosting en \textbf{Vercel} introduce costos de salida (egress fees) impredecibles.
+    
+    \item \textbf{Propuesta 3 (INFRAESTRUCTURA TRADICIONAL):} Apuesta por \textit{Django (Python)} y una base de datos autogestionada en \textbf{DigitalOcean}. Aunque ofrece máxima soberanía sobre los datos, la falta de servicios gestionados eleva el tiempo de configuración y el riesgo de vulnerabilidades por falta de parches de seguridad automatizados.
+\end{enumerate}
+
+% ==========================================
+\section{Matrices de Evaluación por Categoría}
+% ==========================================
+
+\subsection{Categoría 1: Perfil Corporativo y Trayectoria (18\%)}
+Esta categoría evalúa la capacidad probada del stack y del equipo en entornos regulados. La experiencia en arquitecturas PWA es vital para garantizar que el sistema funcione offline en dispositivos móviles médicos, mientras que las referencias en salud aseguran el cumplimiento de estándares de confidencialidad.
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.5}
+\begin{tabularx}{\linewidth}{|p{1.5cm}|X|c|c|c|c|c|c|c|}
+\hline
+\rowcolor{SKTPrimary} \textcolor{white}{\textbf{ID}} & \textcolor{white}{\textbf{CRITERIO}} & \textcolor{white}{\textbf{\%}} & \multicolumn{2}{c|}{\textcolor{white}{\textbf{PROP 1}}} & \multicolumn{2}{c|}{\textcolor{white}{\textbf{PROP 2}}} & \multicolumn{2}{c|}{\textcolor{white}{\textbf{PROP 3}}} \\ \cline{4-9}
+& & & Pts & Pd & Pts & Pd & Pts & Pd \\ \hline
+[EXP] & Trayectoria en stack PWA. & 10\% & 5 & 0.50 & 4 & 0.40 & 3 & 0.30 \\ \hline
+[REF] & Éxito en proyectos médicos. & 8\% & 4 & 0.32 & 4 & 0.32 & 2 & 0.16 \\ \hline
+\rowcolor{catCorp} \multicolumn{3}{|c|}{\textbf{SUBTOTAL CATEGORÍA}} & \multicolumn{2}{c|}{\textbf{0.82}} & \multicolumn{2}{c|}{\textbf{0.72}} & \multicolumn{2}{c|}{\textbf{0.46}} \\ \hline
+\end{tabularx}
+\end{table}
+
+\subsection{Categoría 2: Capacidad Técnica y Arquitectura (35\%)}
+Representa la sección con mayor peso del informe. Se analiza el dominio del motor PostgreSQL de Supabase frente a otras alternativas. El uso de RLS en LUPSI es el factor diferenciador que garantiza que ningún recepcionista acceda a datos clínicos de diagnóstico, cumpliendo con la Ley Orgánica de Protección de Datos Personales.
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.5}
+\begin{tabularx}{\linewidth}{|p{1.5cm}|X|c|c|c|c|c|c|c|}
+\hline
+\rowcolor{SKTPrimary} \textcolor{white}{\textbf{ID}} & \textcolor{white}{\textbf{CRITERIO}} & \textcolor{white}{\textbf{\%}} & \multicolumn{2}{c|}{\textcolor{white}{\textbf{PROP 1}}} & \multicolumn{2}{c|}{\textcolor{white}{\textbf{PROP 2}}} & \multicolumn{2}{c|}{\textcolor{white}{\textbf{PROP 3}}} \\ \cline{4-9}
+& & & Pts & Pd & Pts & Pd & Pts & Pd \\ \hline
+[TECH] & Dominio Supabase vs Otros BaaS. & 15\% & 5 & 0.75 & 3 & 0.45 & 2 & 0.30 \\ \hline
+[METH] & Scrum / Sprint Design Ágil. & 10\% & 5 & 0.50 & 5 & 0.50 & 4 & 0.40 \\ \hline
+[TEAM] & Daniel Luisa / Alex Guachi. & 10\% & 5 & 0.50 & 4 & 0.40 & 3 & 0.30 \\ \hline
+\rowcolor{catTech} \multicolumn{3}{|c|}{\textbf{SUBTOTAL CATEGORÍA}} & \multicolumn{2}{c|}{\textbf{1.75}} & \multicolumn{2}{c|}{\textbf{1.35}} & \multicolumn{2}{c|}{\textbf{1.00}} \\ \hline
+\end{tabularx}
+\end{table}
+
+\subsection{Categoría 3: Propuesta Financiera y ROI (22\%)}
+LUPSI opera bajo restricciones presupuestarias estrictas (\$150 anuales). La elección de Hostinger VPS permite una previsibilidad financiera total, evitando los cargos por tráfico dinámico presentes en Vercel o Firebase (Propuesta 2). Este criterio es fundamental para la sostenibilidad del Centro Médico, ya que garantiza que los costos operativos no crezcan de manera impredecible con el aumento del volumen de pacientes atendidos.
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.5}
+\begin{tabularx}{\linewidth}{|p{1.5cm}|X|c|c|c|c|c|c|c|}
+\hline
+\rowcolor{SKTPrimary} \textcolor{white}{\textbf{ID}} & \textcolor{white}{\textbf{CRITERIO}} & \textcolor{white}{\textbf{\%}} & \multicolumn{2}{c|}{\textcolor{white}{\textbf{PROP 1}}} & \multicolumn{2}{c|}{\textcolor{white}{\textbf{PROP 2}}} & \multicolumn{2}{c|}{\textcolor{white}{\textbf{PROP 3}}} \\ \cline{4-9}
+& & & Pts & Pd & Pts & Pd & Pts & Pd \\ \hline
+[COST] & Presupuesto fijo \$150. & 15\% & 5 & 0.75 & 3 & 0.45 & 4 & 0.60 \\ \hline
+[ROI] & Rentabilidad del BaaS (Low Maint). & 7\% & 5 & 0.35 & 4 & 0.28 & 3 & 0.21 \\ \hline
+\rowcolor{catFinan} \multicolumn{3}{|c|}{\textbf{SUBTOTAL CATEGORÍA}} & \multicolumn{2}{c|}{\textbf{1.10}} & \multicolumn{2}{c|}{\textbf{0.73}} & \multicolumn{2}{c|}{\textbf{0.81}} \\ \hline
+\end{tabularx}
+\end{table}
+
+
+\subsection{Categoría 4: Gestión de Plazos y Calidad (18\%)}
+Se evalúa la capacidad de entrega en el hito crítico de 73 días. La integración inmediata de Supabase con el generador de CRUDs de NestJS acelera el desarrollo significativamente frente a la construcción manual requerida en Django (Propuesta 3). La agilidad del stack seleccionado permite realizar iteraciones semanales con el Project Manager, asegurando que los requerimientos de triaje y recetas digitales se validen en tiempo real antes del despliegue final.
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.5}
+\begin{tabularx}{\linewidth}{|p{1.5cm}|X|c|c|c|c|c|c|c|}
+\hline
+\rowcolor{SKTPrimary} \textcolor{white}{\textbf{ID}} & \textcolor{white}{\textbf{CRITERIO}} & \textcolor{white}{\textbf{\%}} & \multicolumn{2}{c|}{\textcolor{white}{\textbf{PROP 1}}} & \multicolumn{2}{c|}{\textcolor{white}{\textbf{PROP 2}}} & \multicolumn{2}{c|}{\textcolor{white}{\textbf{PROP 3}}} \\ \cline{4-9}
+& & & Pts & Pd & Pts & Pd & Pts & Pd \\ \hline
+[TIME] & Plazo crítico (73 días). & 10\% & 5 & 0.50 & 3 & 0.30 & 4 & 0.40 \\ \hline
+[QUAL] & QA y Validador Módulo 10. & 8\% & 5 & 0.40 & 4 & 0.32 & 4 & 0.32 \\ \hline
+\rowcolor{catMgmt} \multicolumn{3}{|c|}{\textbf{SUBTOTAL CATEGORÍA}} & \multicolumn{2}{c|}{\textbf{0.90}} & \multicolumn{2}{c|}{\textbf{0.62}} & \multicolumn{2}{c|}{\textbf{0.72}} \\ \hline
+\end{tabularx}
+\end{table}
+
+\subsection{Categoría 5: Soporte, Seguridad y Riesgo (7\%)}
+Esta sección final consolida la robustez ante desastres y la documentación técnica necesaria para el traspaso de conocimientos al CEM LUPSI.
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.5}
+\begin{tabularx}{\linewidth}{|p{1.5cm}|X|c|c|c|c|c|c|c|}
+\hline
+\rowcolor{SKTPrimary} \textcolor{white}{\textbf{ID}} & \textcolor{white}{\textbf{CRITERIO}} & \textcolor{white}{\textbf{\%}} & \multicolumn{2}{c|}{\textcolor{white}{\textbf{PROP 1}}} & \multicolumn{2}{c|}{\textcolor{white}{\textbf{PROP 2}}} & \multicolumn{2}{c|}{\textcolor{white}{\textbf{PROP 3}}} \\ \cline{4-9}
+& & & Pts & Pd & Pts & Pd & Pts & Pd \\ \hline
+[SUPP] & Soporte post-entrega / SLAs. & 2\% & 4 & 0.08 & 5 & 0.10 & 3 & 0.06 \\ \hline
+[DOC] & Manuales Técnicos Detallados. & 2\% & 5 & 0.10 & 4 & 0.08 & 4 & 0.08 \\ \hline
+[SEC] & Seguridad RLS (Supabase). & 2\% & 5 & 0.10 & 3 & 0.06 & 2 & 0.04 \\ \hline
+[RISK] & Gestión de vulnerabilidades. & 1\% & 5 & 0.05 & 4 & 0.04 & 3 & 0.03 \\ \hline
+\rowcolor{catSupp} \multicolumn{3}{|c|}{\textbf{SUBTOTAL CATEGORÍA}} & \multicolumn{2}{c|}{\textbf{0.33}} & \multicolumn{2}{c|}{\textbf{0.28}} & \multicolumn{2}{c|}{\textbf{0.21}} \\ \hline
+\end{tabularx}
+\end{table}
+
+% ==========================================
+\section{Análisis de Resultados y Veredicto Final}
+% ==========================================
+La consolidación de todas las dimensiones de evaluación muestra un panorama claro para el comité de auditoría técnica.
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.8}
+\begin{tabularx}{\linewidth}{|X|c|c|c|}
+\hline
+\rowcolor{SKTPrimary} \textcolor{white}{\textbf{RESUMEN EJECUTIVO}} & \textcolor{white}{\textbf{LUPSI STACK}} & \textcolor{white}{\textbf{SERVERLESS}} & \textcolor{white}{\textbf{TRADICIONAL}} \\ \hline
+Cumplimiento Ponderado Total (/5.00) & \textbf{4.90} & \textbf{3.70} & \textbf{3.20} \\ \hline
+Porcentaje de Adjudicación & \textbf{98.0\%} & \textbf{74.0\%} & \textbf{64.0\%} \\ \hline
+\rowcolor{rowAwarded} \textbf{ESTADO FINAL} & \textbf{\underline{ADJUDICADO}} & \textbf{CONDICIONAL} & \textbf{NO RECOM.} \\ \hline
+\end{tabularx}
+\end{table}
+
+\textbf{Veredicto:} Se adjudica oficialmente el proyecto a la **Propuesta 1 (LUPSI STACK)**. Es el único ecosistema que garantiza la integridad relacional requerida para agendamientos complejos mediante su motor GiST y garantiza privacidad mediante RLS nativo, todo dentro del presupuesto estricto de \$150.
+
+\newpage
+% ==========================================
+\section{Justificación Técnica por Proveedor Adjudicado}
+% ==========================================
+
+\subsection{Supabase: Seguridad y Persistencia de Datos Médicos}
+La selección de Supabase como núcleo de persistencia trasciende la mera conveniencia de desarrollo; se fundamenta en la robustez de su motor **PostgreSQL** de clase empresarial. A diferencia de soluciones NoSQL como Firebase, Supabase permite la implementación de lógica de integridad crítica —como el algoritmo de validación **Módulo 10** para cédulas y las restricciones de **exclusión temporal (anti-overlapping)**— directamente en la capa de datos mediante el uso de índices **GiST** y cláusulas \texttt{EXCLUDE}. 
+
+Esta arquitectura de \textbf{Defensa en Profundidad} garantiza que la agenda médica permanezca íntegra incluso ante posibles fallos en la lógica del cliente o del servidor intermedio, delegando la validación final a las políticas de \textbf{Row Level Security (RLS)} que aíslan los registros clínicos de forma atómica.
+
+\subsection{Cloudinary: Gestión y Entrega de Multimedia Clínica}
+Cloudinary se adjudica como el proveedor de red de entrega de contenido (CDN) para el repositorio de recetas y diagnósticos digitales. Su capacidad para realizar transformaciones y optimizaciones en tiempo real (\textit{f-auto, q-auto}) permite que las imágenes médicas de alta resolución se entreguen adaptadas al ancho de banda y al dispositivo del paciente (móvil o escritorio) sin degradar la legibilidad clínica. Esto reduce sustancialmente el tiempo de carga de la PWA en zonas con baja cobertura móvil (Edge/3G).
+
+\subsection{Hostinger: Soberanía y Control de Infraestructura VPS}
+Hostinger VPS actúa como el entorno de ejecución (\textit{Runtime}) para el backend NestJS. Su elección responde a la necesidad de soberanía técnica total sobre el sistema operativo Linux. A diferencia de entornos PaaS cerrados, el VPS permite una configuración quirúrgica del servidor \textit{Nginx}, la gestión de certificados de seguridad \textit{Let's Encrypt} y la implementación de un proxy inverso que añade una capa adicional de protección ante ataques de denegación de servicio (DDoS), manteniendo un costo predecible acorde al presupuesto de \$150.
+
+% ==========================================
+\section{Análisis de Riesgos y Puntos Ciegos}
+% ==========================================
+Todo informe técnico responsable debe declarar sus riesgos y áreas de incertidumbre para permitir la planificación preventiva:
+
+\begin{enumerate}
+    \item \textbf{Vendor Lock-in de BaaS:} El acoplamiento a las APIs de Supabase es alto. \textit{Mitigación:} Se utilizarán capas de abstracción en NestJS para que la lógica de negocio no dependa de funciones propietarias del cliente de Supabase.
+    \item \textbf{Gestión de Cuotas de Almacenamiento:} El presupuesto de \$150 es finito. \textit{Mitigación:} Se implementará una política de purga de assets antiguos en Cloudinary tras 5 años de inactividad de la historia clínica.
+    \item \textbf{Mantenimiento de Infraestructura VPS:} Requiere administración proactiva del sistema operativo Linux. \textit{Mitigación:} Uso de Docker para estandarizar el despliegue y scripts de monitoreo automático.
+\end{enumerate}
+
+% ==========================================
+\section{Plan de Aprovisionamiento e Implementación}
+% ==========================================
+Tras la firma del informe, se procederá con el siguiente cronograma táctico de adquisición:
+\begin{itemize}[label=$\Rightarrow$]
+    \item \textbf{Día 1:} Contratación de Hostinger VPS y reserva del dominio institucional.
+    \item \textbf{Día 2:} Inicialización del proyecto de base de datos en Supabase Cloud.
+    \item \textbf{Día 3:} Generación de API Keys de Cloudinary y configuración de Presets de seguridad.
+    \item \textbf{Día 4:} Configuración de variables de entorno (Vault) y primer despliegue del Skeleton del sistema.
+\end{itemize}
+
+\newpage
+% ==========================================
+\section{Glosario de Términos Técnicos}
+% ==========================================
+\begin{itemize}[leftmargin=*, label=$\square$]
+    \item \textbf{RLS (Row Level Security):} Mecanismo de PostgreSQL que limita el acceso a las filas de una tabla basándose en la identidad del usuario autenticado.
+    \item \textbf{GiST (Generalized Search Tree):} Índice utilizado para realizar búsquedas complejas, en este caso, para evitar el solapamiento de horarios médicos.
+    \item \textbf{PWA (Progressive Web App):} Aplicación web que utiliza capacidades modernas para comportarse como una aplicación nativa en dispositivos móviles.
+    \item \textbf{BaaS (Backend as a Service):} Modelo donde los servicios de backend (Base de datos, Autenticación) se consumen como APIs gestionadas.
+    \item \textbf{Cloudinary Preset:} Configuración predefinida para transformar assets (imágenes/videos) automáticamente al subirlos.
+\end{itemize}
+
+% ==========================================
+\section{Firmas de Responsabilidad}
+% ==========================================
+\renewcommand{\arraystretch}{2}
+\noindent
+\begin{tabularx}{\linewidth}{|p{3.8cm}|X|c|c|}
+\hline
+\rowcolor{SKTPrimary} \textcolor{white}{\textbf{Rol}} & \textcolor{white}{\textbf{Nombre}} & \textcolor{white}{\textbf{Firma QR}} & \textcolor{white}{\textbf{Fecha}} \\ \hline
+Gestor Proyecto & Angel Ayuquina & \includegraphics[width=2.5cm]{QR_Sello_Angel_Ayuquina.png} & 27/03/2026 \\ \hline
+Arquitecto & Sebastián Ortiz & \includegraphics[width=2.5cm]{QR_Sello_Sebastían_Ortiz.png} & 27/03/2026 \\ \hline
+Backend & Daniel Luisa & \includegraphics[width=2.5cm]{QR_Sello_Daniel_Luisa.png} & 27/03/2026 \\ \hline
+Frontend & Alex Guachi & \includegraphics[width=2.5cm]{QR_Sello_Alex_Guachi.png} & 27/03/2026 \\ \hline
+\end{tabularx}
+
+\end{document}

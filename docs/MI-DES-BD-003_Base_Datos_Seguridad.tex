@@ -1,0 +1,430 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[spanish, es-noshorthands]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage[table]{xcolor}
+\usepackage[T1]{fontenc}
+\usepackage{enumitem}
+\usepackage{amssymb}
+
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue}
+
+% ---------------- COLORES ----------------
+\definecolor{SKTPrimary}{HTML}{3F4A4F}
+\definecolor{SKTDark}{HTML}{242B2E}
+\definecolor{SKTLight}{HTML}{CDCFD2}
+\definecolor{rowGET}{HTML}{E8F5E9}
+\definecolor{rowPOST}{HTML}{E3F2FD}
+\definecolor{rowRED}{HTML}{FFEBEE}
+
+\geometry{
+  top=2.5cm, bottom=2.5cm,
+  left=3cm, right=3cm,
+  includehead, headheight=130pt, headsep=1cm
+}
+
+% ---------------- ENCABEZADO ----------------
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyhead[C]{
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \renewcommand{\arraystretch}{1.1}
+  \begin{tabular}{|m{3cm}|m{7.5cm}|m{3.8cm}|}
+    \hline
+    \multirow{5}{*}{\parbox[c][3.5cm][c]{2.5cm}{\centering\includegraphics[width=2.2cm]{SKTLogo.png}}}
+    & \centering\textbf{EMPRESA DE DESARROLLO E INNOVACIÓN}
+    & \parbox[c]{\linewidth}{\centering\textbf{CÓDIGO:}\\MI-DES-BD-003\vspace{3pt}} \\ \cline{2-3}
+    & \centering\textbf{PROCESO: DESARROLLO DE SOFTWARE}
+    & \parbox[c]{\linewidth}{\centering\textbf{VERSIÓN:}\\1.0\vspace{3pt}} \\ \cline{2-3}
+    & \centering Desarrollo del Sistema LUPSI
+    & \parbox[c]{\linewidth}{\centering\textbf{ELABORACIÓN:}\\27/03/2026} \\ \cline{2-3}
+    & \centering Creación de Base de Datos y Política de Seguridad
+    & \parbox[c]{\linewidth}{\centering\textbf{ÚLTIMA REVISIÓN:}\\27/03/2026} \\ \hline
+  \end{tabular}
+}
+\fancyfoot[R]{\small Página \thepage\ de \pageref{LastPage}}
+
+\begin{document}
+\raggedbottom
+
+% ==========================================
+\section{Título}
+% ==========================================
+\textbf{Creación de Base de Datos Relacional y Política de Seguridad para el Sistema Web Progresivo LUPSI}
+
+% ==========================================
+\section{Introducción}
+% ==========================================
+Este documento formaliza la implementación del modelo de datos relacional del sistema LUPSI sobre PostgreSQL, desplegado mediante la plataforma Supabase. Se detallan la arquitectura del esquema, las extensiones habilitadas, la estrategia de seguridad mediante Row Level Security (RLS) y los mecanismos de integridad que previenen colisiones de agendamiento médico.
+
+La base de datos constituye el núcleo del sistema: toda lectura y escritura pasa por sus políticas de seguridad antes de ser entregada al cliente, garantizando que ninguna capa de la aplicación pueda eludir los controles de privacidad definidos.
+
+% ==========================================
+\section{Tecnología Utilizada}
+% ==========================================
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|p{4cm}|p{9.5cm}|}
+\hline
+\rowcolor{SKTPrimary}
+\textcolor{white}{\textbf{Componente}} & \textcolor{white}{\textbf{Descripción}} \\
+\hline
+PostgreSQL 15 & Motor de base de datos relacional objeto, alojado en Supabase Cloud. \\
+\hline
+Supabase & Plataforma BaaS (Backend as a Service) que provee PostgreSQL gestionado, Auth, y Data API automática. \\
+\hline
+uuid-ossp v1.1 & Extensión para generación de identificadores únicos universales (UUID v4) como claves primarias. \\
+\hline
+btree\_gist v1.7 & Extensión que habilita índices GIST sobre tipos de datos escalares, necesaria para la restricción de exclusión de rangos temporales. \\
+\hline
+Row Level Security (RLS) & Mecanismo nativo de PostgreSQL que aplica reglas de acceso a nivel de fila, garantizando que cada rol vea únicamente los datos que le corresponden. \\
+\hline
+\end{tabular}
+\caption*{Tabla 1: Stack tecnológico de la base de datos LUPSI.}
+\end{table}
+
+% ==========================================
+\section{Modelo Relacional}
+% ==========================================
+El esquema de datos está compuesto por cinco tablas en el esquema \texttt{public} de PostgreSQL, vinculadas mediante claves foráneas en cascada. La tabla \texttt{profiles} actúa como raíz de identidad, vinculada directamente con el sistema de autenticación de Supabase (\texttt{auth.users}).
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{mockups/bd_diagrama_relacional.png}
+  \caption{Diagrama relacional del esquema \texttt{public} — Supabase Schema Visualizer.}
+\end{figure}
+
+% ==========================================
+\section{Descripción de Tablas y Campos}
+% ==========================================
+
+\subsection{Tabla: \texttt{profiles} (Identidad y Control de Acceso)}
+Centraliza los datos de identidad de todos los actores del sistema. Su campo \texttt{role} determina los privilegios de acceso en toda la aplicación.
+
+\begin{table}[H]
+\centering\small\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|p{3.2cm}|p{2.5cm}|p{7.8cm}|}
+\hline
+\rowcolor{SKTPrimary}
+\textcolor{white}{\textbf{Campo}} & \textcolor{white}{\textbf{Tipo}} & \textcolor{white}{\textbf{Descripción}} \\
+\hline
+\texttt{id} & UUID (PK) & Referencia directa a \texttt{auth.users.id}. CASCADE en eliminación. \\
+\hline
+\texttt{role} & ENUM \texttt{user\_role} & Rol del usuario: \texttt{PATIENT}, \texttt{DOCTOR}, \texttt{RECEPTIONIST}, \texttt{ADMIN}. \\
+\hline
+\texttt{email} & VARCHAR(255) & Correo electrónico único. Requerido. \\
+\hline
+\texttt{first\_name} & VARCHAR(100) & Nombre del usuario. \\
+\hline
+\texttt{last\_name} & VARCHAR(100) & Apellido del usuario. \\
+\hline
+\texttt{created\_at} & TIMESTAMPTZ & Fecha de registro automática. \\
+\hline
+\end{tabular}
+\caption*{Tabla 2: Campos de \texttt{profiles}.}
+\end{table}
+
+\subsection{Tabla: \texttt{patients} (Datos del Paciente)}
+Extiende \texttt{profiles} con información médica específica del paciente ecuatoriano.
+
+\begin{table}[H]
+\centering\small\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|p{3.2cm}|p{2.5cm}|p{7.8cm}|}
+\hline
+\rowcolor{SKTPrimary}
+\textcolor{white}{\textbf{Campo}} & \textcolor{white}{\textbf{Tipo}} & \textcolor{white}{\textbf{Descripción}} \\
+\hline
+\texttt{id} & UUID (PK/FK) & Referencia a \texttt{profiles.id}. \\
+\hline
+\texttt{dni} & VARCHAR(10) & Cédula ecuatoriana. Único, validado con expresión regular \texttt{\^{}[0-9]\{10\}\$}. \\
+\hline
+\texttt{phone} & VARCHAR(20) & Teléfono de contacto. Opcional. \\
+\hline
+\texttt{date\_of\_birth} & DATE & Fecha de nacimiento. Opcional. \\
+\hline
+\texttt{created\_at} & TIMESTAMPTZ & Fecha de registro automática. \\
+\hline
+\end{tabular}
+\caption*{Tabla 3: Campos de \texttt{patients}.}
+\end{table}
+
+\subsection{Tabla: \texttt{doctors} (Perfil Médico)}
+Complementa a \texttt{profiles} con las credenciales profesionales del médico.
+
+\begin{table}[H]
+\centering\small\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|p{3.2cm}|p{2.5cm}|p{7.8cm}|}
+\hline
+\rowcolor{SKTPrimary}
+\textcolor{white}{\textbf{Campo}} & \textcolor{white}{\textbf{Tipo}} & \textcolor{white}{\textbf{Descripción}} \\
+\hline
+\texttt{id} & UUID (PK/FK) & Referencia a \texttt{profiles.id}. \\
+\hline
+\texttt{specialty} & VARCHAR(100) & Especialidad médica. Requerido. \\
+\hline
+\texttt{medical\_license} & VARCHAR(50) & Número de licencia médica. Único. \\
+\hline
+\texttt{created\_at} & TIMESTAMPTZ & Fecha de registro automática. \\
+\hline
+\end{tabular}
+\caption*{Tabla 4: Campos de \texttt{doctors}.}
+\end{table}
+
+\subsection{Tabla: \texttt{appointments} (Citas Médicas)}
+Núcleo del motor de agendamiento. Incluye la restricción de exclusión temporal anti double-booking.
+
+\begin{table}[H]
+\centering\small\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|p{3.8cm}|p{2.5cm}|p{7.2cm}|}
+\hline
+\rowcolor{SKTPrimary}
+\textcolor{white}{\textbf{Campo}} & \textcolor{white}{\textbf{Tipo}} & \textcolor{white}{\textbf{Descripción}} \\
+\hline
+\texttt{id} & UUID (PK) & Generado automáticamente. \\
+\hline
+\texttt{patient\_id} & UUID (FK) & Referencia a \texttt{patients.id}. \\
+\hline
+\texttt{doctor\_id} & UUID (FK) & Referencia a \texttt{doctors.id}. \\
+\hline
+\texttt{appointment\_time} & TIMESTAMPTZ & Inicio de la cita. \\
+\hline
+\texttt{appointment\_end\_time} & TIMESTAMPTZ & Fin de la cita. Calculado por el backend. \\
+\hline
+\texttt{status} & ENUM \texttt{appt\_status} & \texttt{SCHEDULED}, \texttt{CANCELLED}, \texttt{COMPLETED}. \\
+\hline
+\texttt{created\_at} & TIMESTAMPTZ & Fecha de creación. \\
+\hline
+\end{tabular}
+\caption*{Tabla 5: Campos de \texttt{appointments}.}
+\end{table}
+
+\subsection{Tabla: \texttt{medical\_records} (Historial Clínico)}
+Almacena los diagnósticos y tratamientos emitidos por un doctor. Acceso bloqueado para \texttt{RECEPTIONIST} a nivel de base de datos.
+
+\begin{table}[H]
+\centering\small\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|p{3.2cm}|p{2.5cm}|p{7.8cm}|}
+\hline
+\rowcolor{SKTPrimary}
+\textcolor{white}{\textbf{Campo}} & \textcolor{white}{\textbf{Tipo}} & \textcolor{white}{\textbf{Descripción}} \\
+\hline
+\texttt{id} & UUID (PK) & Generado automáticamente. \\
+\hline
+\texttt{patient\_id} & UUID (FK) & Referencia a \texttt{patients.id}. \\
+\hline
+\texttt{doctor\_id} & UUID (FK) & Referencia a \texttt{doctors.id}. \\
+\hline
+\texttt{appointment\_id} & UUID (FK) & Referencia a \texttt{appointments.id}. Opcional. \\
+\hline
+\texttt{document\_url} & VARCHAR(500) & URL del recurso digital asociado. \\
+\hline
+\texttt{diagnosis} & TEXT & Diagnóstico médico en texto libre. \\
+\hline
+\texttt{created\_at} & TIMESTAMPTZ & Fecha de registro. \\
+\hline
+\end{tabular}
+\caption*{Tabla 6: Campos de \texttt{medical\_records}.}
+\end{table}
+
+% ==========================================
+\section{Extensiones PostgreSQL Habilitadas}
+% ==========================================
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{mockups/bd_extensiones.png}
+  \caption{Panel de extensiones de Supabase — \texttt{uuid-ossp} y \texttt{btree\_gist} habilitadas.}
+\end{figure}
+
+Las dos extensiones clave instaladas para LUPSI son:
+
+\begin{itemize}
+  \item \textbf{\texttt{uuid-ossp} v1.1} — Provee la función \texttt{uuid\_generate\_v4()} usada como valor por defecto en las claves primarias de \texttt{appointments} y \texttt{medical\_records}. Garantiza unicidad criptográfica distribuida sin dependencia de secuencias numéricas.
+  \item \textbf{\texttt{btree\_gist} v1.7} — Extiende el soporte de índices GiST para tipos de datos estándar (UUID, TIMESTAMPTZ). Es un requisito indispensable para que la cláusula \texttt{EXCLUDE USING gist} de la tabla \texttt{appointments} pueda comparar el campo \texttt{doctor\_id} (UUID) junto al rango temporal.
+\end{itemize}
+
+% ==========================================
+\section{Índices y Restricciones de Integridad}
+% ==========================================
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{mockups/bd_indices.png}
+  \caption{Panel de índices del esquema \texttt{public} — índice \texttt{no\_overlapping\_appointments} visible.}
+\end{figure}
+
+\subsection{Índices Automáticos (Claves Primarias y Únicas)}
+PostgreSQL genera automáticamente un índice B-tree por cada restricción \texttt{PRIMARY KEY} y \texttt{UNIQUE}. Los índices registrados son:
+
+\begin{table}[H]
+\centering\small\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|p{3.5cm}|p{4.5cm}|p{5.5cm}|}
+\hline
+\rowcolor{SKTPrimary}
+\textcolor{white}{\textbf{Tabla}} & \textcolor{white}{\textbf{Nombre del Índice}} & \textcolor{white}{\textbf{Propósito}} \\
+\hline
+\texttt{appointments} & \texttt{appointments\_pkey} & Clave primaria UUID. \\
+\hline
+\texttt{doctors} & \texttt{doctors\_pkey} & Clave primaria UUID. \\
+\hline
+\texttt{doctors} & \texttt{doctors\_medical\_license\_key} & Unicidad del número de licencia médica. \\
+\hline
+\texttt{medical\_records} & \texttt{medical\_records\_pkey} & Clave primaria UUID. \\
+\hline
+\texttt{patients} & \texttt{patients\_pkey} & Clave primaria UUID. \\
+\hline
+\texttt{patients} & \texttt{patients\_dni\_key} & Unicidad del número de cédula (10 dígitos). \\
+\hline
+\texttt{profiles} & \texttt{profiles\_pkey} & Clave primaria UUID. \\
+\hline
+\texttt{profiles} & \texttt{profiles\_email\_key} & Unicidad del correo electrónico. \\
+\hline
+\end{tabular}
+\caption*{Tabla 7: Índices B-tree generados automáticamente por restricciones de unicidad.}
+\end{table}
+
+\subsection{Índice GiST de Exclusión Temporal — Anti Double-Booking}
+El índice más crítico del sistema es \texttt{no\_overlapping\_appointments}. Es un índice GiST compuesto definido mediante la cláusula \texttt{EXCLUDE USING gist}:
+
+\begin{itemize}
+  \item \textbf{Columnas:} \texttt{doctor\_id} (con operador \texttt{=}) + \texttt{tstzrange(appointment\_time, appointment\_end\_time)} (con operador \texttt{\&\&}).
+  \item \textbf{Condición:} Solo aplica cuando \texttt{status = 'SCHEDULED'}, ignorando las citas canceladas o completadas.
+  \item \textbf{Efecto:} Si dos transacciones simultáneas intentan insertar citas con el mismo doctor en un rango horario solapado, PostgreSQL lanza una excepción de exclusión. El backend NestJS captura esta excepción y retorna \texttt{HTTP 409 Conflict}.
+\end{itemize}
+
+% ==========================================
+\section{Modelo de Seguridad: Row Level Security (RLS)}
+% ==========================================
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{mockups/bd_rls_politicas.png}
+  \caption{Panel de políticas RLS del esquema \texttt{public} — 7 políticas activas en 5 tablas.}
+\end{figure}
+
+RLS está habilitado en las cinco tablas del sistema (\texttt{ALTER TABLE ... ENABLE ROW LEVEL SECURITY}). Esto significa que sin una política de \texttt{SELECT}, \texttt{INSERT}, \texttt{UPDATE} o \texttt{DELETE} que lo autorice explícitamente, ningún rol puede acceder a ninguna fila, independientemente de los permisos a nivel de columna o tabla.
+
+\subsection{Arquitectura de Doble Barrera}
+LUPSI implementa seguridad en dos capas independientes y acumulativas:
+
+\begin{enumerate}
+  \item \textbf{Capa de Aplicación (NestJS Guards):} El backend verifica el JWT y el rol del usuario antes de procesar cualquier solicitud. Un rol no autorizado recibe \texttt{HTTP 403 Forbidden} antes de llegar a la base de datos.
+  \item \textbf{Capa de Datos (PostgreSQL RLS):} Aunque una solicitud llegue a la capa de datos, las políticas RLS garantizan que cada consulta solo devuelva las filas correspondientes al usuario autenticado.
+\end{enumerate}
+
+\subsection{Inventario de Políticas RLS}
+
+\begin{table}[H]
+\centering\small\renewcommand{\arraystretch}{1.6}
+\begin{tabular}{|p{3cm}|p{5.5cm}|p{1.5cm}|p{3.5cm}|}
+\hline
+\rowcolor{SKTPrimary}
+\textcolor{white}{\textbf{Tabla}} & \textcolor{white}{\textbf{Nombre de Política}} & \textcolor{white}{\textbf{Cmd}} & \textcolor{white}{\textbf{Condición}} \\
+\hline
+\texttt{appointments} & Doctores leen sus citas & SELECT & \texttt{auth.uid() = doctor\_id} \\
+\hline
+\texttt{appointments} & Pacientes leen sus citas & SELECT & \texttt{auth.uid() = patient\_id} \\
+\hline
+\texttt{appointments} & Recepcionistas leen todas las citas & SELECT & rol = \texttt{RECEPTIONIST} \\
+\hline
+\texttt{doctors} & Lectura pública de doctores & SELECT & usuario autenticado \\
+\hline
+\texttt{medical\_records} & Restricción de Privacidad RLS en Historias & SELECT & solo paciente o doctor propio \\
+\hline
+\texttt{patients} & Paciente lee su propio perfil & SELECT & \texttt{auth.uid() = id} \\
+\hline
+\texttt{profiles} & Usuario lee su propio perfil & SELECT & \texttt{auth.uid() = id} \\
+\hline
+\texttt{profiles} & Personal médico lee todos los perfiles & SELECT & rol = \texttt{DOCTOR/RECEPTIONIST} \\
+\hline
+\texttt{profiles} & Usuario registra su perfil & INSERT & \texttt{auth.uid() = id} \\
+\hline
+\end{tabular}
+\caption*{Tabla 8: Inventario completo de políticas RLS del sistema LUPSI.}
+\end{table}
+
+\subsection{Caso Crítico: Aislamiento de Historias Clínicas}
+La política \textit{``Restricción de Privacidad RLS en Historias''} en la tabla \texttt{medical\_records} garantiza que el rol \texttt{RECEPTIONIST} jamás pueda leer datos clínicos. Este bloqueo opera en la capa de datos: aunque un recepcionista realice una solicitud directa a la API de Supabase con su JWT válido, la consulta devolverá cero filas porque ninguna política lo autoriza.
+
+% ==========================================
+\section{Tipos de Datos Enumerados (ENUMs)}
+% ==========================================
+Se definieron dos tipos de datos enumerados para garantizar la consistencia de los valores de estado en el sistema:
+
+\begin{itemize}
+  \item \textbf{\texttt{public.user\_role}}: \texttt{PATIENT} | \texttt{DOCTOR} | \texttt{RECEPTIONIST} | \texttt{ADMIN} — controla los privilegios de acceso.
+  \item \textbf{\texttt{public.appointment\_status}}: \texttt{SCHEDULED} | \texttt{CANCELLED} | \texttt{COMPLETED} — define el ciclo de vida de una cita médica.
+\end{itemize}
+
+Los ENUMs previenen la inserción de valores inválidos y simplifican la lógica de filtrado en las políticas RLS.
+
+% ==========================================
+\section{Conclusiones}
+% ==========================================
+La base de datos del sistema LUPSI implementa una estrategia de seguridad de defensa en profundidad (defense-in-depth) con las siguientes garantías:
+
+\begin{enumerate}
+  \item \textbf{Privacidad garantizada a nivel de fila:} RLS activo en las 5 tablas con 9 políticas que cubren todos los roles del sistema.
+  \item \textbf{Integridad de agendamiento:} El índice GiST \texttt{no\_overlapping\_appointments} previene el doble agendamiento mediante una restricción de exclusión temporal atómica.
+  \item \textbf{Identidad centralizada:} La tabla \texttt{profiles} vincula el sistema de autenticación de Supabase con la lógica de roles, evitando fragmentación de identidad.
+  \item \textbf{Validación en origen:} La restricción \texttt{CHECK (dni \textasciitilde{} '\^{}[0-9]\{10\}\$')} garantiza que ningún DNI inválido pueda persistirse sin pasar por la validación del Módulo 10.
+\end{enumerate}
+
+\newpage
+% ==========================================
+\section{Firmas de Responsabilidad}
+% ==========================================
+
+\renewcommand{\arraystretch}{2}
+\noindent
+\begin{tabular}{
+p{0.28\textwidth}
+p{0.30\textwidth}
+>{\centering\arraybackslash}p{0.22\textwidth}
+>{\centering\arraybackslash}p{0.12\textwidth}
+}
+\hline
+\textbf{Rol} &
+\textbf{Nombre / Representante} &
+\textbf{Firma (QR)} &
+\textbf{Fecha} \\
+\hline
+
+Gestor del Proyecto
+& Angel Ayuquina
+& \includegraphics[width=3.2cm]{QR_Sello_Angel_Ayuquina.png}
+& 27/03/2026 \\[0.6cm]
+
+Arquitecto BD y Cloud
+& Sebastián Ortiz
+& \includegraphics[width=3.2cm]{QR_Sello_Sebastían_Ortiz.png}
+& 27/03/2026 \\[0.6cm]
+
+Desarrollador Backend y QA
+& Daniel Luisa
+& \includegraphics[width=3.2cm]{QR_Sello_Daniel_Luisa.png}
+& 27/03/2026 \\[0.6cm]
+
+Desarrollador Frontend y UX/UI
+& Alex Huachi
+& \includegraphics[width=3.2cm]{QR_Sello_Alex_Huachi.png}
+& 27/03/2026 \\[0.6cm]
+
+\hline
+\end{tabular}
+
+\end{document}
