@@ -47,5 +47,8 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
+    - name: Create dummy .env for Docker check
+      run: touch backend/.env
+
     - name: Test Docker Compose Build
       run: docker compose -f docker/docker-compose.yml build
