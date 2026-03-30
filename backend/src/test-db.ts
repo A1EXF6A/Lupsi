@@ -22,7 +22,7 @@ async function testConnection() {
   console.log(`🔗 URL: ${supabaseUrl}`);
 
   // Intentamos leer de la tabla 'profiles' que definimos en el schema.sql
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('profiles')
     .select('count', { count: 'exact', head: true });
 
@@ -42,4 +42,7 @@ async function testConnection() {
   }
 }
 
-testConnection();
+testConnection().catch((err: unknown) => {
+  console.error('Fatal error in connection test:', err);
+  process.exit(1);
+});

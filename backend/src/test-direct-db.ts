@@ -32,8 +32,8 @@ async function testDirectConnection() {
 
     await client.end();
     console.log('🎉 Todo funcionando al 100%. Estás listo para el Sprint 2.');
-  } catch (err: any) {
-    console.error('❌ Error fatal de conexión:', err.message);
+  } catch (err: unknown) {
+    console.error('❌ Error fatal de conexión:', err);
     console.error(
       '📋 Sugerencia: Revisa que tu contraseña y el host sean correctos.',
     );
@@ -41,4 +41,7 @@ async function testDirectConnection() {
   }
 }
 
-testDirectConnection();
+testDirectConnection().catch((err: unknown) => {
+  console.error('Fatal connection error:', err);
+  process.exit(1);
+});
