@@ -22,14 +22,30 @@ Esto instala dependencias de todos los paquetes. Si necesitas reinstalar todo de
 - `pnpm backend:start` y `pnpm backend:dev`: levanta el backend NestJS (por defecto puerto 3000 o `PORT`).
 - `pnpm -r build` / `pnpm -r test`: ejecutan `build` o `test` en cada paquete.
 
-## Estructura
+## Docker (Entorno Local)
 
+Siguiendo el estándar **MI-DES-GUI-001**, el proyecto utiliza Docker para orquestar los servicios. 
+
+### Ejecución con Docker
+Para levantar todo el entorno (Frontend + Backend):
+```bash
+docker-compose -f docker/docker-compose.yml up --build
 ```
-backend/   # API NestJS
-frontend/  # SPA Angular
+- **Backend:** `http://localhost:3000`
+- **Frontend:** `http://localhost:8080` (Cerrado a producción en el contenedor)
+
+## Estructura del Proyecto
+```text
+/lupsi
+  /backend    # API NestJS
+  /frontend   # PWA Angular
+  /docker     # Orquestación (docker-compose)
+  /docs       # Documentación técnica
+  README.md   # Guía general
 ```
 
 ## Buenas prácticas
+...
 
 - No subas `node_modules` (ya está en `.gitignore`).
 - Usa siempre `pnpm` desde la raíz para mantener el lockfile sincronizado.

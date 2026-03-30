@@ -1,0 +1,20 @@
+services:
+  backend:
+    build:
+      context: ../
+      dockerfile: backend/Dockerfile
+    container_name: lupsi_backend
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - ../backend/.env
+
+  frontend:
+    build:
+      context: ../
+      dockerfile: frontend/Dockerfile
+    container_name: lupsi_frontend
+    restart: always
+    ports:
+      - "8080:80"

@@ -10,7 +10,9 @@ describe('EcuadorianIdValidatorService', () => {
       providers: [EcuadorianIdValidatorService],
     }).compile();
 
-    service = module.get<EcuadorianIdValidatorService>(EcuadorianIdValidatorService);
+    service = module.get<EcuadorianIdValidatorService>(
+      EcuadorianIdValidatorService,
+    );
   });
 
   it('debería estar definido dentro de la arquitectura de NestJS', () => {
@@ -32,7 +34,9 @@ describe('EcuadorianIdValidatorService', () => {
   describe('Corrupción y Ataques Zero Friction (DNI Inválidos)', () => {
     it('debería rechazar DNIs fantasmas que contengan diferente de 10 caracteres', () => {
       expect(() => service.validate('171003406')).toThrow(BadRequestException);
-      expect(() => service.validate('17100340650')).toThrow(BadRequestException);
+      expect(() => service.validate('17100340650')).toThrow(
+        BadRequestException,
+      );
     });
 
     it('debería rechazar caracteres maliciosos (letras, inyecciones) inmediatamente', () => {
