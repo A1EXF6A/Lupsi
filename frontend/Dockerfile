@@ -15,9 +15,12 @@ RUN npm install -g pnpm
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY backend/package.json ./backend/
 COPY frontend/package.json ./frontend/
-RUN pnpm install --filter frontend... --frozen-lockfile
 
+# Copiamos el código fuente antes de la instalación para que pnpm cree las rutas correctas
 COPY frontend ./frontend
+
+# Instalamos dependencias finales y construimos
+RUN pnpm install --filter frontend... --frozen-lockfile
 RUN pnpm --filter frontend build
 
 # Stage 2: Serve
