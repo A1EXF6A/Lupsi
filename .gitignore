@@ -7,7 +7,6 @@ coverage/
 *.log
 *.pid
 .env
-.env.*
 .DS_Store
 Thumbs.db
 .idea/
