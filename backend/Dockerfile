@@ -10,6 +10,7 @@ RUN pnpm install --filter backend... --frozen-lockfile
 # Stage 2: Builder
 FROM node:22.13.1-alpine AS builder
 WORKDIR /app
+ENV CI=true
 RUN npm install -g pnpm
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/backend/node_modules ./backend/node_modules

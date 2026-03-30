@@ -4,6 +4,7 @@ WORKDIR /app
 ENV CI=true
 
 # Instalamos pnpm globalmente
+ENV CI=true
 RUN npm install -g pnpm
 
 # Copiamos archivos de dependencias desde la raíz del monorepo
