@@ -1,4 +1,10 @@
-import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { RegisterDto } from './dto/register.dto';
 import { SupabaseService } from '../supabase/supabase.service';
 import { EcuadorianIdValidatorService } from '../iam/services/ecuadorian-id-validator.service';
@@ -25,24 +31,31 @@ export class AuthService {
     this.logger.log(`Iniciando registro para cédula: ${dto.dni}`);
     const isDniValid = this.idValidator.validate(dto.dni);
     if (!isDniValid) {
-      throw new BadRequestException('El número de cédula no parece ser correcto. Por favor, verifica que lo hayas escrito bien e intenta de nuevo.');
+      throw new BadRequestException(
+        'El número de cédula no parece ser correcto. Por favor, verifica que lo hayas escrito bien e intenta de nuevo.',
+      );
     }
 
     const supabase = this.supabaseService.getClient();
 
     // 2. Crear usuario en Auth (Supabase Admin)
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email: dto.email,
-      password: dto.password,
-      email_confirm: true, // Auto-confirmar para "Fricción Cero"
-    });
+    const { data: authData, error: authError } =
+      await supabase.auth.admin.createUser({
+        email: dto.email,
+        password: dto.password,
+        email_confirm: true, // Auto-confirmar para "Fricción Cero"
+      });
 
     if (authError) {
       this.logger.error(`Error al crear usuario en Auth: ${authError.message}`);
       if (authError.message.includes('already registered')) {
-        throw new ConflictException('El correo electrónico ya está registrado en el sistema.');
+        throw new ConflictException(
+          'El correo electrónico ya está registrado en el sistema.',
+        );
       }
-      throw new InternalServerErrorException('Error al crear la cuenta de seguridad.');
+      throw new InternalServerErrorException(
+        'Error al crear la cuenta de seguridad.',
+      );
     }
 
     const userId = authData.user.id;
@@ -62,7 +75,9 @@ export class AuthService {
       // Como el perfil falló (probablemente por constraint), borramos el usuario de Auth por seguridad
       await supabase.auth.admin.deleteUser(userId);
       this.logger.error(`Error al insertar perfil: ${profileError.message}`);
-      throw new InternalServerErrorException('Error al crear el perfil del usuario.');
+      throw new InternalServerErrorException(
+        'Error al crear el perfil del usuario.',
+      );
     }
 
     // 4. Insertar en Pacientes
@@ -79,15 +94,25 @@ export class AuthService {
       // Rollback manual de Auth (Profiles se borra en cascada por foreign key restricción si está configurado, igual borramos auth)
       await supabase.auth.admin.deleteUser(userId);
       this.logger.error(`Error al insertar paciente: ${patientError.message}`);
-      if (patientError.message.includes('unique constraint') || patientError.code === '23505') {
-        throw new ConflictException('Esta cédula ya se encuentra registrada en otra cuenta.');
+      if (
+        patientError.message.includes('unique constraint') ||
+        patientError.code === '23505'
+      ) {
+        throw new ConflictException(
+          'Esta cédula ya se encuentra registrada en otra cuenta.',
+        );
       }
-      throw new InternalServerErrorException('Error al completar el registro médico relacional.');
+      throw new InternalServerErrorException(
+        'Error al completar el registro médico relacional.',
+      );
     }
 
     // 5. Auto-Login para Fricción Cero
-    const loginResult = await this.login({ email: dto.email, password: dto.password });
-    
+    const loginResult = await this.login({
+      email: dto.email,
+      password: dto.password,
+    });
+
     return {
       message: 'Registro exitoso. Bienvenido a LUPSI.',
       userId: userId,
@@ -100,14 +125,16 @@ export class AuthService {
    */
   async login(dto: LoginDto) {
     const supabase = this.supabaseService.getClient();
-    
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email: dto.email,
       password: dto.password,
     });
 
     if (error) {
-      this.logger.warn(`Intento de login fallido para ${dto.email}: ${error.message}`);
+      this.logger.warn(
+        `Intento de login fallido para ${dto.email}: ${error.message}`,
+      );
       throw new BadRequestException('Credenciales inválidas.');
     }
 

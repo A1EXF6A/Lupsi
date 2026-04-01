@@ -4,12 +4,14 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  
+
   // Habilitar protección CORS para la PWA de Angular
   app.enableCors();
 
   // Activar validaciones globales usando class-validator
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
+  app.useGlobalPipes(
+    new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
+  );
 
   await app.listen(process.env.PORT ?? 3000);
 }

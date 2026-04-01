@@ -52,8 +52,12 @@ export class Register {
 
     // Sanear el payload: Si phone está vacío, enviarlo como null para pasar validación opcional
     const payload = { ...this.registerForm.value };
-    if (!payload.phone) { payload.phone = null; }
-    if (!payload.date_of_birth) { payload.date_of_birth = null; }
+    if (!payload.phone) {
+      payload.phone = null;
+    }
+    if (!payload.date_of_birth) {
+      payload.date_of_birth = null;
+    }
 
     this.authService.register(payload).subscribe({
       next: (res) => {
@@ -64,7 +68,7 @@ export class Register {
       },
       error: (err: any) => {
         this.isSubmitting = false;
-        
+
         // Manejar formato de NestJS ValidationPipe (Array de strings) o string simple
         const msg = err.error?.message;
         if (Array.isArray(msg)) {
@@ -72,7 +76,7 @@ export class Register {
         } else {
           this.errorMessage = msg || 'Ha ocurrido un error inesperado al registrarte.';
         }
-        
+
         this.cdr.detectChanges(); // Forzar actualización de UI (Soluciona botón atascado "Validando...")
       },
     });

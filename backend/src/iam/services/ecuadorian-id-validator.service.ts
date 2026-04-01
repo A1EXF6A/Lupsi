@@ -16,7 +16,9 @@ export class EcuadorianIdValidatorService {
     const provinceCode = parseInt(dni.substring(0, 2), 10);
     // Provincias de Ecuador van del 01 al 24, más 30 (exterior).
     if (provinceCode < 1 || (provinceCode > 24 && provinceCode !== 30)) {
-      throw new BadRequestException('El código de provincia en la cédula no es válido en Ecuador.');
+      throw new BadRequestException(
+        'El código de provincia en la cédula no es válido en Ecuador.',
+      );
     }
 
     const thirdDigit = parseInt(dni.charAt(2), 10);

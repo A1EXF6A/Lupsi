@@ -1,4 +1,11 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString, Length, Matches } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Length,
+  Matches,
+} from 'class-validator';
 
 export class RegisterDto {
   @IsEmail({}, { message: 'El correo electrónico no es válido' })
@@ -12,7 +19,9 @@ export class RegisterDto {
 
   @IsString()
   @IsNotEmpty({ message: 'La cédula es requerida' })
-  @Matches(/^[0-9]{10}$/, { message: 'La cédula debe contener exactamente 10 dígitos numéricos' })
+  @Matches(/^[0-9]{10}$/, {
+    message: 'La cédula debe contener exactamente 10 dígitos numéricos',
+  })
   dni: string;
 
   @IsString()
@@ -22,7 +31,9 @@ export class RegisterDto {
 
   @IsString()
   @IsNotEmpty({ message: 'El apellido es requerido' })
-  @Length(2, 100, { message: 'El apellido debe tener entre 2 y 100 caracteres' })
+  @Length(2, 100, {
+    message: 'El apellido debe tener entre 2 y 100 caracteres',
+  })
   last_name: string;
 
   @IsOptional()

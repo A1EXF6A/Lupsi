@@ -28,7 +28,7 @@ export class AuthService {
         if (response?.session?.access_token) {
           this.setToken(response.session.access_token);
         }
-      })
+      }),
     );
   }
 

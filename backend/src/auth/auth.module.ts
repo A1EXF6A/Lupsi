@@ -7,6 +7,6 @@ import { IamModule } from '../iam/iam.module';
 @Module({
   imports: [SupabaseModule, IamModule],
   controllers: [AuthController],
-  providers: [AuthService]
+  providers: [AuthService],
 })
 export class AuthModule {}
