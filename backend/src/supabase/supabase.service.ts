@@ -20,6 +20,7 @@ export class SupabaseService {
       );
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     this.supabase = createClient(supabaseUrl || '', supabaseKey || '', {
       auth: {
         autoRefreshToken: false,
