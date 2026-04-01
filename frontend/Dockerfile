@@ -27,5 +27,8 @@ RUN pnpm --filter frontend build
 FROM nginx:stable-alpine
 # Ajustamos la ruta según donde Angular genere el build (dist/frontend/browser por defecto en v17+)
 COPY --from=builder /app/frontend/dist/frontend/browser /usr/share/nginx/html
+# Reemplazamos la configuración por defecto de nginx para habilitar SPA routing
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
+
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

@@ -9,21 +9,21 @@ export class EcuadorianIdValidatorService {
   validate(dni: string): boolean {
     if (!dni || dni.length !== 10 || !/^\d+$/.test(dni)) {
       throw new BadRequestException(
-        'El DNI debe contener 10 dígitos numéricos.',
+        'La cédula debe contener exactamente 10 dígitos numéricos.',
       );
     }
 
     const provinceCode = parseInt(dni.substring(0, 2), 10);
     // Provincias de Ecuador van del 01 al 24, más 30 (exterior).
     if (provinceCode < 1 || (provinceCode > 24 && provinceCode !== 30)) {
-      throw new BadRequestException('Código de provincia inválido en el DNI.');
+      throw new BadRequestException('El código de provincia en la cédula no es válido en Ecuador.');
     }
 
     const thirdDigit = parseInt(dni.charAt(2), 10);
     // Para personas naturales, el tercer dígito siempre es < 6.
     if (thirdDigit >= 6) {
       throw new BadRequestException(
-        'El DNI no pertenece a una persona natural.',
+        'El número ingresado no pertenece a una cédula de persona natural.',
       );
     }
 
@@ -51,10 +51,10 @@ export class EcuadorianIdValidatorService {
 
     if (actualCheckDigit !== expectedCheckDigit) {
       throw new BadRequestException(
-        'El DNI es matemáticamente inconsistente (Algoritmo Módulo 10).',
+        'El número de cédula no parece ser correcto. Por favor, verifica que lo hayas escrito bien e intenta de nuevo.',
       );
     }
 
-    return true; // Zero fricción: el DNI es verídico.
+    return true; // Zero fricción: la cédula es verídica.
   }
 }
