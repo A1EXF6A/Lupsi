@@ -23,7 +23,7 @@ export class PwaService {
 
     this.deferredPrompt.prompt();
     const { outcome } = await this.deferredPrompt.userChoice;
-    
+
     if (outcome === 'accepted') {
       this.showInstallButton.set(false);
     }

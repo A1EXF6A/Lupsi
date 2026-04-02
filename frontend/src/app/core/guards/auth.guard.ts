@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../services/auth';
 
 /**
- * Guard para proteger rutas privadas. 
+ * Guard para proteger rutas privadas.
  * Si no hay token, redirige al /login (o /register si no hay login aún).
  */
 export const authGuard = () => {

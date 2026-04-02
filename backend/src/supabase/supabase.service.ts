@@ -8,8 +8,12 @@ export class SupabaseService {
   private supabase: SupabaseClient;
 
   constructor(private readonly configService: ConfigService) {
-    const supabaseUrl = this.configService.get<string>('SUPABASE_URL') || process.env['SUPABASE_URL'];
-    const supabaseKey = this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY') || process.env['SUPABASE_SERVICE_ROLE_KEY'];
+    const supabaseUrl =
+      this.configService.get<string>('SUPABASE_URL') ||
+      process.env['SUPABASE_URL'];
+    const supabaseKey =
+      this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY') ||
+      process.env['SUPABASE_SERVICE_ROLE_KEY'];
 
     if (!supabaseUrl || !supabaseKey) {
       this.logger.error(
@@ -18,8 +22,10 @@ export class SupabaseService {
       throw new Error('Supabase credentials missing');
     }
 
-    this.logger.log('Inicializando Supabase Client con permisos Administrativos 🔐');
-    
+    this.logger.log(
+      'Inicializando Supabase Client con permisos Administrativos 🔐',
+    );
+
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     this.supabase = createClient(supabaseUrl, supabaseKey, {
       auth: {

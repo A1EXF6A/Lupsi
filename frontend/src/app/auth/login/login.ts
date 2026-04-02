@@ -49,7 +49,8 @@ export class Login {
       },
       error: (err) => {
         this.isSubmitting = false;
-        this.errorMessage = err.error?.message || 'Credenciales incorrectas o usuario no registrado.';
+        this.errorMessage =
+          err.error?.message || 'Credenciales incorrectas o usuario no registrado.';
         this.cdr.detectChanges();
       },
     });

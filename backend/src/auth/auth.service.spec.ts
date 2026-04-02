@@ -55,7 +55,9 @@ describe('AuthService', () => {
         last_name: 'Perez',
       };
 
-      await expect(service.register(dto as any)).rejects.toThrow(BadRequestException);
+      await expect(service.register(dto as any)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should complete registration if everything is valid', async () => {
@@ -65,7 +67,10 @@ describe('AuthService', () => {
         error: null,
       });
       mockSupabaseClient.auth.signInWithPassword.mockResolvedValue({
-        data: { session: { access_token: 'fake-token' }, user: { id: 'uuid-123' } },
+        data: {
+          session: { access_token: 'fake-token' },
+          user: { id: 'uuid-123' },
+        },
         error: null,
       });
 
@@ -78,7 +83,7 @@ describe('AuthService', () => {
       };
 
       const result = await service.register(dto as any);
-      
+
       expect(result).toBeDefined();
       expect(result.message).toContain('exitoso');
       expect(mockSupabaseClient.auth.admin.createUser).toHaveBeenCalled();
