@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://lupsi-api.onrender.com', // URL de producción en Render (ajustar al deploy)
+  apiUrl: 'http://localhost:3000', // URL de producción en Render (ajustar al deploy)
 };

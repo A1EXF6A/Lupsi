@@ -1,6 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 /**
  * Servicio encargado de gestionar el registro y la sesión del usuario.
@@ -10,8 +11,7 @@ import { Observable, tap } from 'rxjs';
   providedIn: 'root',
 })
 export class AuthService {
-  // Ajustar la URL a la variable de entorno según el proyecto, asumiendo local para dev
-  private readonly apiUrl = 'http://localhost:3000/api/v1/auth';
+  private readonly apiUrl = `${environment.apiUrl}/api/v1/auth`;
 
   // Usamos Signals de Angular 17+ para mantener el estado reactivo del usuario
   public currentUserToken = signal<string | null>(this.getTokenFromStorage());
@@ -24,6 +24,19 @@ export class AuthService {
    */
   register(payload: any): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/register`, payload).pipe(
+      tap((response) => {
+        if (response?.session?.access_token) {
+          this.setToken(response.session.access_token);
+        }
+      }),
+    );
+  }
+
+  /**
+   * Inicia sesión con email y contraseña.
+   */
+  login(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/login`, payload).pipe(
       tap((response) => {
         if (response?.session?.access_token) {
           this.setToken(response.session.access_token);

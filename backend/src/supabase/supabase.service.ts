@@ -8,20 +8,20 @@ export class SupabaseService {
   private supabase: SupabaseClient;
 
   constructor(private readonly configService: ConfigService) {
-    const supabaseUrl = this.configService.get<string>('SUPABASE_URL');
-    // Usamos la Service Role Key para saltarnos el RLS al momento de crear pacientes/perfiles
-    const supabaseKey = this.configService.get<string>(
-      'SUPABASE_SERVICE_ROLE_KEY',
-    );
+    const supabaseUrl = this.configService.get<string>('SUPABASE_URL') || process.env['SUPABASE_URL'];
+    const supabaseKey = this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY') || process.env['SUPABASE_SERVICE_ROLE_KEY'];
 
     if (!supabaseUrl || !supabaseKey) {
-      this.logger.warn(
-        'Faltan credenciales de Supabase (SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY). El AuthModule podría fallar.',
+      this.logger.error(
+        '⚠️ FATAL: No se detectaron SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY. El backend NO podrá registrar usuarios.',
       );
+      throw new Error('Supabase credentials missing');
     }
 
+    this.logger.log('Inicializando Supabase Client con permisos Administrativos 🔐');
+    
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    this.supabase = createClient(supabaseUrl || '', supabaseKey || '', {
+    this.supabase = createClient(supabaseUrl, supabaseKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false,

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth';
+import { PwaService } from '../../core/services/pwa';
 
 @Component({
   selector: 'app-register',
@@ -14,12 +15,17 @@ import { AuthService } from '../../core/services/auth';
 export class Register {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
+  public pwaService = inject(PwaService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
   registerForm: FormGroup;
   isSubmitting = false;
   errorMessage: string | null = null;
+
+  installApp() {
+    this.pwaService.installApp();
+  }
 
   constructor() {
     this.registerForm = this.fb.group({
