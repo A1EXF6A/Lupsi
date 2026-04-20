@@ -22,9 +22,14 @@ export class Register {
   registerForm: FormGroup;
   isSubmitting = false;
   errorMessage: string | null = null;
+  showPassword = false;
 
   installApp() {
     this.pwaService.installApp();
+  }
+
+  togglePasswordVisibility() {
+    this.showPassword = !this.showPassword;
   }
 
   constructor() {

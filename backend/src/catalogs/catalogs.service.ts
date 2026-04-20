@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { SupabaseService } from '../supabase/supabase.service';
 
 @Injectable()
 export class CatalogsService {
+  constructor(private readonly supabaseService: SupabaseService) {}
+
   /**
    * Obtener lista de especialidades médicas (Estandarizadas)
    */
@@ -38,5 +41,48 @@ export class CatalogsService {
       { id: 'C201', name: 'Consultorio 201', floor: 'Primer Piso' },
       { id: 'C202', name: 'Consultorio 202', floor: 'Primer Piso' },
     ];
+  }
+
+  async getDoctors() {
+    const supabase = this.supabaseService.getClient();
+    console.log('[CatalogsService] Fetching doctors...');
+    
+    // 1. Fetch doctors without the relationship to avoid PostgREST RLS planning bugs
+    const { data: doctorsData, error: dError } = await supabase.from('doctors').select('id, specialty');
+    if (dError) {
+      console.error('[CatalogsService] Error fetching doctorsData:', dError.message);
+      throw new Error(dError.message);
+    }
+
+    console.log(`[CatalogsService] Found ${doctorsData?.length || 0} doctors in DB.`);
+
+    if (!doctorsData || doctorsData.length === 0) return [];
+
+    // 2. Fetch profiles directly
+    const doctorIds = doctorsData.map(d => d.id);
+    console.log('[CatalogsService] Fetching profiles for IDs:', doctorIds);
+    const { data: profilesData, error: pError } = await supabase.from('profiles').select('id, first_name, last_name').in('id', doctorIds);
+    
+    if (pError) {
+      console.error('[CatalogsService] Error fetching profilesData:', pError.message);
+      throw new Error(pError.message);
+    }
+
+    console.log('[CatalogsService] Found ${profilesData?.length || 0} profiles matching.');
+
+    // 3. Merge them
+    const merged = doctorsData.map(d => {
+      const profile = profilesData.find(p => p.id === d.id);
+      return {
+        id: d.id,
+        specialty: d.specialty,
+        profiles: {
+          first_name: profile?.first_name || 'Desconocido',
+          last_name: profile?.last_name || ''
+        }
+      };
+    });
+
+    return merged;
   }
 }

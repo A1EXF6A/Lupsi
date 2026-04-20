@@ -21,4 +21,9 @@ export class CatalogsController {
   getOffices() {
     return this.catalogsService.getOffices();
   }
+
+  @Get('doctors')
+  getDoctors() {
+    return this.catalogsService.getDoctors();
+  }
 }

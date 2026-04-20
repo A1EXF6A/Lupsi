@@ -21,6 +21,7 @@ export class Login {
   loginForm: FormGroup;
   isSubmitting = false;
   errorMessage: string | null = null;
+  showPassword = false;
 
   constructor() {
     this.loginForm = this.fb.group({
@@ -31,6 +32,10 @@ export class Login {
 
   installApp() {
     this.pwaService.installApp();
+  }
+
+  togglePasswordVisibility() {
+    this.showPassword = !this.showPassword;
   }
 
   onSubmit() {
