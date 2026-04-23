@@ -1,0 +1,403 @@
+    \documentclass[a4paper,12pt]{article}
+
+    \usepackage[utf8]{inputenc}
+    \usepackage[spanish, es-noshorthands]{babel}
+    \usepackage{geometry}
+    \usepackage{graphicx}
+    \usepackage{multirow}
+    \usepackage{array}
+    \usepackage{fancyhdr}
+    \usepackage{lastpage}
+    \usepackage{hyperref}
+    \usepackage{float}
+    \usepackage{caption}
+    \usepackage{booktabs}
+    \usepackage[table]{xcolor}
+    \usepackage[T1]{fontenc}
+    \usepackage{tabularx}
+    \usepackage{amssymb}
+    \usepackage{pifont}
+    \usepackage{listings}
+
+    \hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+
+    \definecolor{SKTPrimary}{HTML}{3F4A4F}
+    \definecolor{SKTDark}{HTML}{242B2E}
+    \definecolor{SKTAccent}{HTML}{979C9D}
+    \definecolor{SKTLight}{HTML}{CDCFD2}
+    \definecolor{SKTMid}{HTML}{6E7375}
+
+    \definecolor{rowGET}{HTML}{DFF0D8}
+    \definecolor{rowPOST}{HTML}{D9EDF7}
+    \definecolor{rowPATCH}{HTML}{FCF8E3}
+    \definecolor{rowDELETE}{HTML}{F2DEDE}
+    \definecolor{codeGray}{HTML}{F5F5F5}
+
+    \lstset{
+      basicstyle=\small\ttfamily,
+      backgroundcolor=\color{codeGray},
+      frame=single,
+      breaklines=true,
+      keywordstyle=\bfseries,
+      commentstyle=\itshape\color{gray},
+      captionpos=b
+    }
+
+    \geometry{
+    top=2.5cm,
+    bottom=2.5cm,
+    left=3cm,
+    right=3cm,
+    includehead,
+    headheight=130pt,
+    headsep=1cm
+    }
+
+    % ---------------- ENCABEZADO ----------------
+    \pagestyle{fancy}
+    \fancyhf{}
+    \renewcommand{\headrulewidth}{0pt}
+
+    \fancyhead[C]{
+    \small
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.1}
+
+    \    \begin{tabular}{|m{3cm}|m{7.5cm}|m{3.8cm}|}
+    \hline
+    \multirow{5}{*}{
+    \parbox[c][3.5cm][c]{2.5cm}{
+    \centering
+    \includegraphics[width=2.2cm]{SKTLogo.png}
+    }
+    }
+    & \centering\textbf{EMPRESA DE DESARROLLO E INNOVACIÓN}
+    & \parbox[c]{\linewidth}{\centering
+    \textbf{CÓDIGO:}\\
+    MI-DES-ESP-003
+    \vspace{3pt}
+    } \\ \cline{2-3}
+
+    & \centering\textbf{PROCESO: DESARROLLO DE SOFTWARE}
+    & \parbox[c]{\linewidth}{\centering
+    \textbf{VERSIÓN:}\\
+    1.0
+    \vspace{3pt}
+    } \\ \cline{2-3}
+
+    & \centering Desarrollo del Sistema LUPSI
+    & \parbox[c]{\linewidth}{\centering
+    \textbf{ELABORACIÓN:}\\
+    20/04/2026
+    } \\ \cline{2-3}
+
+    & \centering Especificación del Backend: Motor de Reservas Médicas
+    & \parbox[c]{\linewidth}{\centering
+    \textbf{ÚLTIMA REVISIÓN:}\\
+    20/04/2026
+    } \\ \hline
+    \end{tabular}
+    }
+
+    \fancyfoot[R]{\small Página \thepage\ de \pageref{LastPage}}
+
+    % --------------------------------------------------
+    \begin{document}
+    \raggedbottom
+
+    % ==========================================
+    \section{Título}
+    % ==========================================
+    \textbf{Especificación Técnica del Motor de Reservas Médicas: Gestión de Horarios, Disponibilidad de Franjas y Persistencia de Citas en el Ecosistema LUPSI (Sprint 3)}
+
+    % ==========================================
+    \section{Introducción}
+    % ==========================================
+    El módulo de reservas constituye el núcleo operativo del sistema LUPSI, siendo el componente que materializa la propuesta de valor principal de la plataforma: permitir que un paciente agende una cita con un profesional médico de manera autónoma, sin fricciones y con garantías de integridad de datos.
+
+    Este documento describe la implementación técnica del \textit{Motor de Reservas} en el backend NestJS, incluyendo: la generación dinámica de franjas horarias disponibles, la prevención de colisiones de horario (\textit{double-booking}), la gestión de zonas horarias y los mecanismos de seguridad que aseguran que únicamente los pacientes autenticados puedan persistir una cita en la base de datos.
+
+    % ==========================================
+    \section{Objetivo}
+    % ==========================================
+    Documentar formalmente los algoritmos, flujos de datos y decisiones de diseño que conforman el motor de agendamiento médico del sistema LUPSI, garantizando su comprensión, mantenibilidad y auditabilidad por parte del equipo de desarrollo y los revisores del proyecto.
+
+    % ==========================================
+    \section{Tecnología y Arquitectura}
+    % ==========================================
+
+    \begin{itemize}
+        \item \textbf{Backend Framework}: NestJS (Node.js + TypeScript), arquitectura en módulos desacoplados.
+        \item \textbf{Base de Datos}: PostgreSQL alojado en Supabase Cloud con extensión \texttt{btree\_gist} para restricciones de exclusión de rangos de tiempo.
+        \item \textbf{Autenticación}: Supabase Auth con validación directa de sesión en cada petición protegida.
+        \item \textbf{Seguridad}: Guard global \texttt{JwtAuthGuard} con decorador \texttt{@Public()} para rutas de consulta abiertas.
+        \item \textbf{Frontend}: Angular 17+ con \texttt{AuthInterceptor} que inyecta el \texttt{Bearer Token} en cada petición HTTP.
+    \end{itemize}
+
+    % ==========================================
+    \section{Estructura del Módulo}
+    % ==========================================
+
+    El módulo \texttt{AppointmentsModule} agrupa los siguientes componentes:
+
+    \begin{table}[H]
+    \centering\small\renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{|p{5cm}|p{8.5cm}|}
+    \hline
+    \rowcolor{SKTPrimary}
+    \textcolor{white}{\textbf{Archivo}} & \textcolor{white}{\textbf{Responsabilidad}} \\
+    \hline
+    \texttt{appointments.controller.ts} & Exposición de los endpoints HTTP. Recibe peticiones, delega lógica al servicio y retorna respuestas. \\
+    \hline
+    \texttt{appointments.service.ts} & Lógica de negocio: generación de slots, verificación de disponibilidad y persistencia de citas. \\
+    \hline
+    \texttt{appointments.module.ts} & Configuración de dependencias e inyección del módulo Supabase. \\
+    \hline
+    \texttt{dto/create-appointment.dto.ts} & Objeto de Transferencia de Datos con validación de entrada para crear citas. \\
+    \hline
+    \end{tabular}
+    \caption*{\footnotesize Componentes del módulo de citas (Sprint 3).}
+    \end{table}
+
+    % ==========================================
+    \section{Endpoints Implementados}
+    % ==========================================
+
+    \begin{table}[H]
+    \centering\small\renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{|p{1.4cm}|p{5.5cm}|p{1.6cm}|p{4.5cm}|}
+    \hline
+    \rowcolor{SKTPrimary}
+    \textcolor{white}{\textbf{Método}} &
+    \textcolor{white}{\textbf{Ruta}} &
+    \textcolor{white}{\textbf{Acceso}} &
+    \textcolor{white}{\textbf{Descripción}} \\
+    \hline
+    \rowcolor{rowGET}
+    GET & \texttt{/api/v1/appointments/available-slots} & Público & Devuelve las franjas horarias libres para un doctor en una fecha concreta. \\
+    \hline
+    \rowcolor{rowPOST}
+    POST & \texttt{/api/v1/appointments} & Privado & Crea y persiste una nueva cita médica para el paciente autenticado. \\
+    \hline
+    \rowcolor{rowGET}
+    GET & \texttt{/api/v1/appointments} & Privado & Retorna las citas filtradas por fecha y rol del usuario (PATIENT, DOCTOR, RECEPTIONIST). \\
+    \hline
+    \end{tabular}
+    \caption*{\footnotesize Los endpoints privados requieren \texttt{Bearer Token} en la cabecera HTTP.}
+    \end{table}
+
+    % ==========================================
+    \section{Motor de Franjas Horarias (Available Slots)}
+    % ==========================================
+
+    \subsection{Descripción del Algoritmo}
+    El método \texttt{getAvailableSlots(doctorId, date)} implementa un algoritmo de generación dinámica de horarios disponibles en tres fases:
+
+    \begin{enumerate}
+        \item \textbf{Consulta de citas ocupadas}: Se extraen de la base de datos todas las citas con estado \texttt{SCHEDULED} del doctor solicitado para la fecha indicada, dentro del rango horario completo del día en UTC.
+        \item \textbf{Generación del espacio de franjas}: Se itera sobre el horario laboral configurado (\textbf{08:00 a 17:00, horario de Ecuador, UTC-5}), generando bloques de \textbf{30 minutos} consecutivos.
+        \item \textbf{Filtro de disponibilidad}: Cada franja generada se compara contra las citas existentes mediante lógica de superposición de intervalos: si \texttt{inicio\_franja < fin\_cita AND fin\_franja > inicio\_cita}, el bloque se marca como \textit{ocupado} y se excluye del resultado.
+    \end{enumerate}
+
+    \subsection{Gestión de Zona Horaria (UTC-5 Ecuador)}
+
+    Los servidores operan en UTC, mientras que los usuarios trabajan en horario de Ecuador (ECT, \texttt{UTC-5}). Una mala conversión generaba franjas horarias incorrectas (e.g., mostrar disponibilidad desde las 03:00 a.m. en lugar de las 08:00 a.m.).
+
+    \textbf{Solución implementada:} La construcción de objetos \texttt{Date} se realiza usando el formato ISO 8601 con el offset explícito de Ecuador, de modo que el servidor interprete correctamente la hora local sin ambigüedades:
+
+    \begin{lstlisting}[caption={Generación de franja con offset correcto --- \texttt{appointments.service.ts}}]
+// Crear el objeto Date representando la hora exacta en ECUADOR (-05:00)
+const currentSlotStart = new Date(`${date}T${hh}:${mm}:00-05:00`);
+const currentSlotEnd   = new Date(currentSlotStart.getTime() + 30 * 60000);
+    \end{lstlisting}
+
+    De esta forma, la franja de las 08:00 ECT es almacenada como \texttt{13:00Z} en la base de datos (UTC), y el navegador del paciente la muestra correctamente como \textbf{08:00 a.m.} gracias a la conversión automática del objeto \texttt{Date} de JavaScript.
+
+    % ==========================================
+    \section{Prevención de Double-Booking}
+    % ==========================================
+
+    El sistema implementa dos capas de protección contra el agendamiento duplicado de citas:
+
+    \subsection{Capa 1 --- Lógica de Negocio (Servicio)}
+    El método \texttt{getAvailableSlots} no retorna las franjas ya ocupadas, impidiendo que el usuario pueda seleccionar un horario tomado desde la interfaz.
+
+    \subsection{Capa 2 --- Restricción de Base de Datos (PostgreSQL EXCLUDE)}
+    La tabla \texttt{appointments} posee una restricción de exclusión de nivel de base de datos implementada con la extensión \texttt{btree\_gist}. Si dos citas del mismo doctor se superponen en el tiempo, la base de datos rechaza la segunda inserción:
+
+    \begin{lstlisting}[language=SQL, caption={Restricción EXCLUDE en el esquema de la base de datos}]
+CONSTRAINT no_overlapping_appointments EXCLUDE USING gist (
+    doctor_id WITH =,
+    tstzrange(appointment_time, appointment_end_time) WITH &&
+) WHERE (status = 'SCHEDULED')
+    \end{lstlisting}
+
+    Cuando se produce una colisión, PostgreSQL retorna el código de error \texttt{23P01} (exclusion\_violation). El servicio captura este error y responde al cliente con un HTTP \texttt{409 Conflict} y un mensaje descriptivo:
+
+    \begin{lstlisting}[caption={Manejo del 409 en \texttt{appointments.service.ts}}]
+if (error.code === '23P01') {
+  throw new ConflictException(
+    'El horario seleccionado ya se encuentra ocupado por otra cita.'
+  );
+}
+    \end{lstlisting}
+
+    % ==========================================
+    \section{Flujo de Creación de Cita (Extremo a Extremo)}
+    % ==========================================
+
+    \begin{table}[H]
+    \centering\small\renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{|c|p{3.5cm}|p{8cm}|}
+    \hline
+    \rowcolor{SKTPrimary}
+    \textcolor{white}{\textbf{Paso}} & \textcolor{white}{\textbf{Actor}} & \textcolor{white}{\textbf{Acción}} \\
+    \hline
+    1 & Paciente (Frontend) & Selecciona doctor, fecha y franja horaria disponible en la interfaz. \\
+    \hline
+    2 & AuthInterceptor & Inyecta automáticamente el \texttt{Bearer Token} de la sesión en la cabecera HTTP de la petición. \\
+    \hline
+    3 & JwtAuthGuard & Valida el token consultando Supabase Auth (\texttt{getUser}). Obtiene el rol del usuario desde la tabla \texttt{profiles}. \\
+    \hline
+    4 & AppointmentsController & Recibe el \texttt{POST /appointments}. Extrae el \texttt{patientId} del objeto \texttt{request.user} inyectado por el guard. \\
+    \hline
+    5 & AppointmentsService & Calcula \texttt{appointment\_end\_time} sumando 30 minutos al inicio. Ejecuta el \texttt{INSERT} en la tabla \texttt{appointments}. \\
+    \hline
+    6 & PostgreSQL & Valida la restricción \texttt{EXCLUDE}. Si hay colisión retorna \texttt{23P01}; de lo contrario confirma la inserción. \\
+    \hline
+    7 & Paciente (Frontend) & Recibe confirmación de la cita agendada o mensaje de error descriptivo. \\
+    \hline
+    \end{tabular}
+    \caption*{\footnotesize Flujo completo de creación de cita en el sistema LUPSI.}
+    \end{table}
+
+    % ==========================================
+    \section{Sistema de Autenticación y Roles (RBAC)}
+    % ==========================================
+
+    \subsection{Guard Global (JwtAuthGuard)}
+    El \texttt{JwtAuthGuard} protege todos los endpoints del sistema por defecto. En cada petición autenticada realiza:
+    \begin{enumerate}
+        \item Extrae el \texttt{Bearer Token} de la cabecera \texttt{Authorization}.
+        \item Llama a \texttt{supabase.auth.getUser(token)} para validar la sesión activa directamente con Supabase.
+        \item Consulta la tabla \texttt{public.profiles} para obtener el \textbf{rol real} del usuario (\texttt{PATIENT}, \texttt{DOCTOR}, \texttt{RECEPTIONIST}, \texttt{ADMIN}).
+        \item Inyecta el objeto \texttt{\{id, email, role\}} en la solicitud HTTP para su uso en el controlador y servicio.
+    \end{enumerate}
+
+    \subsection{Ruta Pública (available-slots)}
+    El endpoint \texttt{GET /available-slots} está marcado con el decorador \texttt{@Public()}, permitiendo que sea accedido sin sesión activa. Esto es necesario para que el formulario de reserva pueda mostrar los horarios disponibles antes de que el paciente confirme la cita.
+
+    \subsection{Filtrado por Rol en Agenda Diaria}
+    El endpoint \texttt{GET /appointments} devuelve información filtrada según el rol del solicitante:
+
+    \begin{table}[H]
+    \centering\small\renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{|p{3.5cm}|p{10cm}|}
+    \hline
+    \rowcolor{SKTPrimary}
+    \textcolor{white}{\textbf{Rol}} & \textcolor{white}{\textbf{Datos devueltos}} \\
+    \hline
+    \texttt{PATIENT} & Solo las citas donde \texttt{patient\_id} coincide con el ID del paciente autenticado. \\
+    \hline
+    \texttt{DOCTOR} & Solo las citas donde \texttt{doctor\_id} coincide con el ID del doctor autenticado. \\
+    \hline
+    \texttt{RECEPTIONIST / ADMIN} & Todas las citas del sistema (vista completa de la agenda diaria). \\
+    \hline
+    \end{tabular}
+    \caption*{\footnotesize Control de acceso basado en roles (RBAC) aplicado en el servicio de citas.}
+    \end{table}
+
+    % ==========================================
+    \section{Estrategia Anti-RLS: Merge en Memoria}
+    % ==========================================
+
+    La base de datos utiliza el mecanismo de \textit{Row Level Security} (RLS) de Supabase. Las políticas activas generaban recursión infinita al intentar usar \texttt{JOIN} entre \texttt{appointments}, \texttt{profiles} y \texttt{patients} a través de la capa HTTP de PostgREST.
+
+    \textbf{Solución adoptada:} En lugar de usar \texttt{JOIN} en la consulta SQL, el \texttt{AppointmentsService} realiza tres consultas independientes y combina los datos en memoria (TypeScript):
+
+    \begin{enumerate}
+        \item Consulta principal a \texttt{appointments} para obtener la lista de citas.
+        \item Consulta a \texttt{patients} con los IDs de pacientes extraídos del paso 1.
+        \item Consulta a \texttt{profiles} con los IDs combinados de pacientes y doctores.
+    \end{enumerate}
+
+    Esta decisión de diseño garantiza la estabilidad del sistema ante las limitaciones de RLS, manteniendo un número fijo y predecible de tres consultas por solicitud, lo cual resulta aceptable para el volumen de datos del sistema médico.
+
+    % ==========================================
+    \section{Responsabilidades}
+    % ==========================================
+
+    \begin{table}[H]
+    \centering\small\renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{|p{4.5cm}|p{9cm}|}
+    \hline
+    \rowcolor{SKTPrimary}
+    \textcolor{white}{\textbf{Responsable}} & \textcolor{white}{\textbf{Rol en el Módulo}} \\
+    \hline
+    Daniel Luisa & Implementación del \texttt{AppointmentsService}, lógica de generación de slots, algoritmo de superposición de intervalos y gestión de errores. \\
+    \hline
+    Sebastián Ortiz & Diseño del esquema SQL (restricción EXCLUDE), corrección de zona horaria (UTC-5 Ecuador) y módulo de autenticación (\texttt{JwtAuthGuard} + RBAC). \\
+    \hline
+    \end{tabular}
+    \end{table}
+
+    % ==========================================
+    \section{Firmas de Responsabilidad}
+    % ==========================================
+
+    \renewcommand{\arraystretch}{2}
+    \noindent
+    \begin{tabular}{
+    p{0.28\textwidth}
+    p{0.30\textwidth}
+    >{\centering\arraybackslash}p{0.22\textwidth}
+    >{\centering\arraybackslash}p{0.12\textwidth}
+    }
+    \hline
+    \textbf{Rol} &
+    \textbf{Nombre / Representante} &
+    \textbf{Firma (QR)} &
+    \textbf{Fecha} \\
+    \hline
+
+    Gestor del Proyecto
+    & Angel Ayuquina
+    & \includegraphics[width=3.2cm]{QR_Sello_Angel_Ayuquina.png}
+    & 20/04/2026 \\[0.6cm]
+
+    Arquitecto BD y Cloud
+    & Sebastián Ortiz
+    & \includegraphics[width=3.2cm]{QR_Sello_Sebastían_Ortiz.png}
+    & 20/04/2026 \\[0.6cm]
+
+    Desarrollador Backend y QA
+    & Daniel Luisa
+    & \includegraphics[width=3.2cm]{QR_Sello_Daniel_Luisa.png}
+    & 20/04/2026 \\[0.6cm]
+
+    Desarrollador Frontend y UX/UI
+    & Alex Huachi
+    & \includegraphics[width=3.2cm]{QR_Sello_Alex_Huachi.png}
+    & 20/04/2026 \\[0.6cm]
+    \hline
+    \end{tabular}
+
+    % ==========================================
+    \section{Control de Cambios}
+    % ==========================================
+
+    \renewcommand{\arraystretch}{1.5}
+    \noindent
+    \begin{tabular}{|p{1.5cm}|p{2.5cm}|p{6.5cm}|p{3.2cm}|}
+    \hline
+    \rowcolor{SKTLight}
+    \textbf{Versión} &
+    \textbf{Fecha} &
+    \textbf{Descripción del Cambio} &
+    \textbf{Responsable} \\
+    \hline
+    1.0 & 20/04/2026 & Creación del documento. Motor de reservas, slots, double-booking, RBAC y zona horaria. & Daniel Luisa / Sebastián Ortiz \\
+    \hline
+    \end{tabular}
+
+    \end{document}
