@@ -17,12 +17,12 @@ import { RouterModule, RouterOutlet } from '@angular/router';
           <a routerLink="agenda" class="p-2 bg-gray-800 rounded hover:bg-gray-700">Agenda Diaria</a>
         </nav>
       </div>
-      
+
       <!-- Content -->
       <div class="flex-1 bg-gray-100 p-8">
         <router-outlet></router-outlet>
       </div>
     </div>
-  `
+  `,
 })
 export class PanelAdminComponent {}

@@ -13,7 +13,7 @@ export interface Doctor {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class CatalogsService {
   private http = inject(HttpClient);

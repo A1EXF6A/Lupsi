@@ -20,7 +20,7 @@ export interface Appointment {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AppointmentsService {
   private http = inject(HttpClient);
@@ -28,11 +28,11 @@ export class AppointmentsService {
 
   getAvailableSlots(doctorId: string, date: string): Observable<AppointmentSlot[]> {
     return this.http.get<AppointmentSlot[]>(`${this.apiUrl}/available-slots`, {
-      params: { doctorId, date }
+      params: { doctorId, date },
     });
   }
 
-  createAppointment(payload: { doctor_id: string, appointment_time: string }): Observable<any> {
+  createAppointment(payload: { doctor_id: string; appointment_time: string }): Observable<any> {
     return this.http.post<any>(this.apiUrl, payload);
   }
 

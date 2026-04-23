@@ -55,9 +55,10 @@ describe('AuthService', () => {
         last_name: 'Perez',
       };
 
-      await expect(service.register(dto as any)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        service.register(dto as any),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should complete registration if everything is valid', async () => {
@@ -82,6 +83,7 @@ describe('AuthService', () => {
         last_name: 'Perez',
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const result = await service.register(dto as any);
 
       expect(result).toBeDefined();

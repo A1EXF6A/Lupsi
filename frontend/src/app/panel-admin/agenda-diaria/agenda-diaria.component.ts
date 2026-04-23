@@ -10,14 +10,23 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
   template: `
     <div class="p-4 border rounded shadow-sm bg-white">
       <h2 class="text-xl font-bold mb-4">Agenda Diaria de Recepción</h2>
-      
+
       <div class="mb-4 flex items-center gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700">Filtrar por Fecha</label>
-          <input type="date" [(ngModel)]="selectedDate" (ngModelChange)="loadAppointments()" class="mt-1 block w-48 p-2 border border-gray-300 rounded">
+          <input
+            type="date"
+            [(ngModel)]="selectedDate"
+            (ngModelChange)="loadAppointments()"
+            class="mt-1 block w-48 p-2 border border-gray-300 rounded"
+          />
         </div>
         <div class="mt-6">
-          <button (click)="loadAppointments()" [disabled]="isLoading" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 disabled:opacity-50">
+          <button
+            (click)="loadAppointments()"
+            [disabled]="isLoading"
+            class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 disabled:opacity-50"
+          >
             {{ isLoading ? 'Cargando...' : 'Actualizar' }}
           </button>
         </div>
@@ -34,19 +43,39 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
       <table *ngIf="!isLoading" class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hora</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paciente</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Especialidad</th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Hora
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Paciente
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Doctor
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Especialidad
+            </th>
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
           <tr *ngFor="let app of appointments">
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-              {{ app.appointment_time | date:'shortTime' }} - {{ app.appointment_end_time | date:'shortTime' }}
+              {{ app.appointment_time | date: 'shortTime' }} -
+              {{ app.appointment_end_time | date: 'shortTime' }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-              {{ app.patients?.first_name }} {{ app.patients?.last_name }} <br><span class="text-xs text-gray-500">DNI: {{ app.patients?.dni }}</span>
+              {{ app.patients?.first_name }} {{ app.patients?.last_name }} <br /><span
+                class="text-xs text-gray-500"
+                >DNI: {{ app.patients?.dni }}</span
+              >
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
               Dr/Dra. {{ app.doctors?.profiles?.first_name }} {{ app.doctors?.profiles?.last_name }}
@@ -56,12 +85,14 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
             </td>
           </tr>
           <tr *ngIf="appointments.length === 0">
-            <td colspan="4" class="px-6 py-4 text-center text-gray-500">No hay citas para este día.</td>
+            <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+              No hay citas para este día.
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
-  `
+  `,
 })
 export class AgendaDiariaComponent implements OnInit {
   appointmentsService = inject(AppointmentsService);
@@ -92,7 +123,7 @@ export class AgendaDiariaComponent implements OnInit {
         this.errorMessage = 'No se pudieron cargar las citas. Intenta de nuevo.';
         this.isLoading = false;
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 }

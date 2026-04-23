@@ -33,6 +33,7 @@ describe('AuthController', () => {
         last_name: 'Perez',
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const result = await controller.register(dto as any);
 
       expect(result.message).toBeDefined();

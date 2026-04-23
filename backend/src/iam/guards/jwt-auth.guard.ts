@@ -1,14 +1,25 @@
-import { Injectable, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  ExecutionContext,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
+import { Request } from 'express';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { SupabaseService } from '../../supabase/supabase.service';
+import { ActiveUser } from '../interfaces/active-user.interface';
+import { Profile } from '../../database/interfaces/database.interfaces';
+
+interface RequestWithUser extends Request {
+  user?: ActiveUser;
+}
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
   constructor(
     private reflector: Reflector,
-    private readonly supabaseService: SupabaseService
+    private readonly supabaseService: SupabaseService,
   ) {
     super();
   }
@@ -22,7 +33,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<RequestWithUser>();
     const authHeader = request.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -33,11 +44,19 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     const supabase = this.supabaseService.getClient();
 
     // Validar el token directamente con Supabase para evitar errores de sincronización de secretos
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser(token);
 
     if (error || !user) {
-      console.error('[JwtAuthGuard] Token inválido o sesión expirada:', error?.message);
-      throw new UnauthorizedException('Sesión inválida o expirada. Por favor, inicia sesión de nuevo.');
+      console.error(
+        '[JwtAuthGuard] Token inválido o sesión expirada:',
+        error?.message,
+      );
+      throw new UnauthorizedException(
+        'Sesión inválida o expirada. Por favor, inicia sesión de nuevo.',
+      );
     }
 
     // Obtener el ROL real desde la tabla profiles (app_metadata puede estar vacío)
@@ -45,16 +64,20 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       .from('profiles')
       .select('role')
       .eq('id', user.id)
-      .single();
+      .single<Profile>();
 
-    // Inyectar el usuario en la request para uso posterior (ej. roles)
-    request['user'] = {
+    const activeUser: ActiveUser = {
       id: user.id,
-      email: user.email,
-      role: profile?.role || user.app_metadata?.role || 'PATIENT'
+      email: user.email || '',
+      role: profile?.role || (user.app_metadata?.role as string) || 'PATIENT',
     };
 
-    console.log(`[JwtAuthGuard] Usuario autenticado: ${user.email}, Rol: ${request['user'].role}`);
+    // Inyectar el usuario en la request para uso posterior
+    request.user = activeUser;
+
+    console.log(
+      `[JwtAuthGuard] Usuario autenticado: ${activeUser.email}, Rol: ${activeUser.role}`,
+    );
 
     return true;
   }
