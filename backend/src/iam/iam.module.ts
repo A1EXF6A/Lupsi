@@ -6,6 +6,8 @@ import { EcuadorianIdValidatorService } from './services/ecuadorian-id-validator
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
+import { PermissionsGuard } from './guards/permissions.guard';
+import { RbacRepository } from './rbac/rbac.repository';
 import { SupabaseModule } from '../supabase/supabase.module';
 
 @Module({
@@ -17,6 +19,7 @@ import { SupabaseModule } from '../supabase/supabase.module';
   providers: [
     EcuadorianIdValidatorService,
     JwtStrategy,
+    RbacRepository,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard, // Protección por defecto en toda la APP
@@ -25,7 +28,11 @@ import { SupabaseModule } from '../supabase/supabase.module';
       provide: APP_GUARD,
       useClass: RolesGuard, // Validador de roles global
     },
+    {
+      provide: APP_GUARD,
+      useClass: PermissionsGuard,
+    },
   ],
-  exports: [EcuadorianIdValidatorService, PassportModule, JwtModule],
+  exports: [EcuadorianIdValidatorService, PassportModule, JwtModule, RbacRepository],
 })
 export class IamModule {}
