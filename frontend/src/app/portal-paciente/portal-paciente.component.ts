@@ -16,6 +16,6 @@ import { RouterModule, RouterOutlet } from '@angular/router';
         <router-outlet></router-outlet>
       </div>
     </div>
-  `
+  `,
 })
 export class PortalPacienteComponent {}

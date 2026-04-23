@@ -13,14 +13,14 @@ export const routes: Routes = [
   { path: 'register', component: Register },
   { path: 'login', component: Login },
   { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },
-  { 
-    path: 'portal-paciente', 
-    component: PortalPacienteComponent, 
+  {
+    path: 'portal-paciente',
+    component: PortalPacienteComponent,
     canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'reserva', pathMatch: 'full' },
-      { path: 'reserva', component: ReservaComponent }
-    ]
+      { path: 'reserva', component: ReservaComponent },
+    ],
   },
   {
     path: 'panel',
@@ -28,7 +28,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'agenda', pathMatch: 'full' },
-      { path: 'agenda', component: AgendaDiariaComponent }
-    ]
-  }
+      { path: 'agenda', component: AgendaDiariaComponent },
+    ],
+  },
 ];
