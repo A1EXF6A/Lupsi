@@ -1,0 +1,409 @@
+    \documentclass[a4paper,12pt]{article}
+
+    \usepackage[utf8]{inputenc}
+    \usepackage[spanish, es-noshorthands]{babel}
+    \usepackage{geometry}
+    \usepackage{graphicx}
+    \usepackage{multirow}
+    \usepackage{array}
+    \usepackage{fancyhdr}
+    \usepackage{lastpage}
+    \usepackage{hyperref}
+    \usepackage{float}
+    \usepackage{caption}
+    \usepackage{booktabs}
+    \usepackage[table]{xcolor}
+    \usepackage[T1]{fontenc}
+    \usepackage{tabularx}
+    \usepackage{amssymb}
+    \usepackage{pifont}
+    \usepackage{listings}
+
+    \hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+
+    \definecolor{SKTPrimary}{HTML}{3F4A4F}
+    \definecolor{SKTDark}{HTML}{242B2E}
+    \definecolor{SKTAccent}{HTML}{979C9D}
+    \definecolor{SKTLight}{HTML}{CDCFD2}
+    \definecolor{SKTMid}{HTML}{6E7375}
+
+    \definecolor{rowGET}{HTML}{DFF0D8}
+    \definecolor{rowPOST}{HTML}{D9EDF7}
+    \definecolor{rowPATCH}{HTML}{FCF8E3}
+    \definecolor{rowDELETE}{HTML}{F2DEDE}
+
+    \geometry{
+    top=2.5cm,
+    bottom=2.5cm,
+    left=3cm,
+    right=3cm,
+    includehead,
+    headheight=130pt,
+    headsep=1cm
+    }
+
+    % ---------------- ENCABEZADO ----------------
+    \pagestyle{fancy}
+    \fancyhf{}
+    \renewcommand{\headrulewidth}{0pt}
+
+    \fancyhead[C]{
+    \small
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.1}
+
+    \    \begin{tabular}{|m{3cm}|m{7.5cm}|m{3.8cm}|}
+    \hline
+    \multirow{5}{*}{
+    \parbox[c][3.5cm][c]{2.5cm}{
+    \centering
+    \includegraphics[width=2.2cm]{SKTLogo.png}
+    }
+    }
+    & \centering\textbf{EMPRESA DE DESARROLLO E INNOVACIÓN}
+    & \parbox[c]{\linewidth}{\centering
+    \textbf{CÓDIGO:}\\
+    MI-DES-MAN-001
+    \vspace{3pt}
+    } \\ \cline{2-3}
+
+    & \centering\textbf{PROCESO: DESARROLLO DE SOFTWARE}
+    & \parbox[c]{\linewidth}{\centering
+    \textbf{VERSIÓN:}\\
+    1.0
+    \vspace{3pt}
+    } \\ \cline{2-3}
+
+    & \centering Desarrollo del Sistema LUPSI
+    & \parbox[c]{\linewidth}{\centering
+    \textbf{ELABORACIÓN:}\\
+    07/04/2026
+    } \\ \cline{2-3}
+
+    & \centering Especificación de Autenticación y Validación de Identidad
+    & \parbox[c]{\linewidth}{\centering
+    \textbf{ÚLTIMA REVISIÓN:}\\
+    07/04/2026
+    } \\ \hline
+    \end{tabular}
+    }
+
+    \fancyfoot[R]{\small Página \thepage\ de \pageref{LastPage}}
+
+    % --------------------------------------------------
+    \begin{document}
+    \raggedbottom
+
+    % ==========================================
+    \section{Título}
+    % ==========================================
+    \textbf{Especificación Técnica de Autenticación Centralizada y Validación Algorítmica de Identidad (Módulo 10) para el Ecosistema LUPSI}
+
+    % ==========================================
+    \section{Introducción}
+    % ==========================================
+    El sistema LUPSI prioriza una experiencia de usuario de \textbf{fricción cero} (\textit{Zero Friction}) sin comprometer la integridad de la identidad ni la seguridad de los datos médicos. Este documento detalla la implementación técnica del motor de autenticación basado en Supabase Auth y el servicio de validación de cédula ecuatoriana mediante el algoritmo Módulo 10.
+
+    La autenticación no solo garantiza el acceso, sino que orquesta la sincronización entre la capa de seguridad gestionada de Supabase y el modelo relacional de la base de datos (perfiles y pacientes), asegurando que cada usuario autenticado tenga una identidad válida y verificable desde el primer segundo de su registro.
+
+    % ==========================================
+    \section{Objetivo}
+    % ==========================================
+    Documentar formalmente el funcionamiento interno, los flujos lógicos y las restricciones de seguridad aplicables al proceso de registro, inicio de sesión y validación de identidad en el backend LUPSI, sirviendo como guía de referencia técnica para mantenimiento y auditoría.
+
+    % ==========================================
+    \section{Tecnología y Arquitectura}
+    % ==========================================
+
+    \begin{itemize}
+        \item \textbf{Backend Framework}: NestJS con arquitectura de microservicios lógica.
+        \item \textbf{Identity Provider}: Supabase Auth (Admin SDK para operaciones de registro).
+        \item \textbf{Validation Logic}: Servicio especializado \texttt{EcuadorianIdValidatorService}.
+        \item \textbf{Data Sync}: Sincronización atómica entre \texttt{auth.users} y \texttt{public.profiles / public.patients}.
+    \end{itemize}
+
+    % ==========================================
+    \section{Validación de Cédula (Algoritmo Módulo 10)}
+    % ==========================================
+
+    El servicio \texttt{EcuadorianIdValidatorService} implementa una validación matemática de tres capas para garantizar que el DNI ingresado sea un documento verídico emitido por el Registro Civil del Ecuador.
+
+    \subsection{Reglas de Validación}
+
+    \begin{enumerate}
+        \item \textbf{Longitud y Formato}: Debe contener exactamente 10 dígitos numéricos.
+        \item \textbf{Código de Provincia}: Los dos primeros dígitos deben estar en el rango [01, 24] o ser el código 30 (Ecuatorianos en el exterior).
+        \item \textbf{Tipo de Persona}: El tercer dígito debe ser menor a 6, indicando que el DNI pertenece a una persona natural y no a una entidad jurídica (RUC).
+        \item \textbf{Algoritmo de Módulo 10}: Validación del dígito verificador.
+    \end{enumerate}
+
+    \subsection{Lógica del Algoritmo}
+
+    El proceso matemático sigue estos pasos:
+    \begin{itemize}
+        \item Se extraen los primeros 9 dígitos.
+        \item Se multiplican por los coeficientes fijos: \texttt{[2, 1, 2, 1, 2, 1, 2, 1, 2]}.
+        \item Si el resultado de una multiplicación es $\ge 10$, se le resta 9.
+        \item Se suman todos los resultados parciales (\texttt{totalSum}).
+        \item Se calcula la decena superior inmediata de \texttt{totalSum}.
+        \item El dígito verificador resultante debe ser igual a la diferencia entre la decena superior y la suma total.
+    \end{itemize}
+
+    \begin{lstlisting}[language=TypeScript, caption={Extracto de implementación del validador}, basicstyle=\small\ttfamily]
+    const coefficients = [2, 1, 2, 1, 2, 1, 2, 1, 2];
+    for (let i = 0; i < 9; i++) {
+    let product = parseInt(dni.charAt(i)) * coefficients[i];
+    if (product >= 10) product -= 9;
+    totalSum += product;
+    }
+    const nextTen = Math.ceil(totalSum / 10) * 10;
+    const expectedDigit = (nextTen - totalSum) === 10 ? 0 : (nextTen - totalSum);
+    \end{lstlisting}
+
+    % ==========================================
+    \section{Flujo de Registro "Fricción Cero"}
+    % ==========================================
+
+    El \texttt{AuthService.register} orquesta una transacción distribuida entre el servicio de identidad de Supabase y las tablas relacionales de la base de datos.
+
+    \subsection{Secuencia de Operaciones}
+
+    \begin{table}[H]
+    \centering\small\renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{|c|l|p{7cm}|}
+    \hline
+    \rowcolor{SKTPrimary}
+    \textcolor{white}{\textbf{Paso}} & \textcolor{white}{\textbf{Acción}} & \textcolor{white}{\textbf{Descripción}} \\
+    \hline
+    1 & \textbf{Validación ID} & Ejecución del Módulo 10. Si falla, el flujo termina con Error 400. \\
+    \hline
+    2 & \textbf{Creación en Auth} & Se crea el usuario en \texttt{supabase.auth} con auto-confirmación de email activada. \\
+    \hline
+    3 & \textbf{Sincronización Profile} & Inserción en \texttt{public.profiles} con el UUID generado por Auth. \\
+    \hline
+    4 & \textbf{Sincronización Patient} & Inserción de DNI y metadatos en \texttt{public.patients}. \\
+    \hline
+    5 & \textbf{Auto-Login} & Se genera la sesión JWT inmediata para que el usuario sea redirigido al Dashboard sin re-autenticarse. \\
+    \hline
+    \end{tabular}
+    \end{table}
+
+    \subsection{Estrategia de Rollback y Robustez}
+    Para mantener la integridad referencial, si la inserción en las tablas de base de datos (\texttt{profiles} o \texttt{patients}) falla (por ejemplo, duplicidad de cédula detectada por constraint UNIQUE), el backend solicita inmediatamente el \textbf{borrado del usuario de Auth} mediante el Admin SDK de Supabase, evitando "usuarios huérfanos" en el sistema de seguridad que no existan en el sistema relacional.
+
+    % ==========================================
+    \section{Módulo de Sesiones (Login)}
+    % ==========================================
+
+    El inicio de sesión delega la autenticación criptográfica a Supabase, pero el backend actúa como guardián de la lógica de negocio.
+
+    \begin{itemize}
+        \item \textbf{Carga de Claims}: El JWT resultante contiene el identificador único del usuario (\texttt{sub}) y se orquesta con las políticas RLS para acceso a datos.
+        \item \textbf{Manejo de Errores}: Los intentos fallidos son capturados y estandarizados para no revelar información sobre la existencia de correos electrónicos en la base de datos (Seguridad por Ofuscación).
+    \end{itemize}
+
+    % ==========================================
+    \section{Responsabilidades}
+    % ==========================================
+
+    \begin{table}[H]
+    \centering\small\renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{|p{4.5cm}|p{9cm}|}
+    \hline
+    \rowcolor{SKTPrimary}
+    \textcolor{white}{\textbf{Responsable}} & \textcolor{white}{\textbf{Rol en el Módulo}} \\
+    \hline
+    Daniel Luisa & Implementación de lógica NestJS, Integración Supabase SDK y validadores. \\
+    \hline
+    Sebastián Ortiz & Diseño de transaccionalidad, constraints SQL y revisión de seguridad. \\
+    \hline
+    \end{tabular}
+    \end{table}
+
+    % ==========================================
+    \section{Firmas de Responsabilidad}
+    % ==========================================
+
+    \renewcommand{\arraystretch}{2}
+    \noindent
+    \begin{tabular}{
+    p{0.28\textwidth}
+    p{0.30\textwidth}
+    >{\centering\arraybackslash}p{0.22\textwidth}
+    >{\centering\arraybackslash}p{0.12\textwidth}
+    }
+    \hline
+    \textbf{Rol} &
+    \textbf{Nombre / Representante} &
+    \textbf{Firma (QR)} &
+    \textbf{Fecha} \\
+    \hline
+
+    Gestor del Proyecto
+    & Angel Ayuquina
+    & \includegraphics[width=3.2cm]{QR_Sello_Angel_Ayuquina.png}
+    & 07/04/2026 \\[0.6cm]
+
+    Arquitecto BD y Cloud
+    & Sebastián Ortiz
+    & \includegraphics[width=3.2cm]{QR_Sello_Sebastían_Ortiz.png}
+    & 07/04/2026 \\[0.6cm]
+
+    Desarrollador Backend y QA
+    & Daniel Luisa
+    & \includegraphics[width=3.2cm]{QR_Sello_Daniel_Luisa.png}
+    & 07/04/2026 \\[0.6cm]
+
+    Desarrollador Frontend y UX/UI
+    & Alex Huachi
+    & \includegraphics[width=3.2cm]{QR_Sello_Alex_Huachi.png}
+    & 07/04/2026 \\[0.6cm]
+    \hline
+    \end{tabular}
+
+    % ==========================================
+    \section{Control de Cambios}
+    % ==========================================
+
+    \renewcommand{\arraystretch}{1.5}
+
+    \noindent
+    \begin{tabular}{|p{1.5cm}|p{2.5cm}|p{6.5cm}|p{3.2cm}|}
+    \hline
+    \rowcolor{SKTLight}
+    \textbf{Versión} &
+    \textbf{Fecha} &
+    \textbf{Descripción del Cambio} &
+    \textbf{Responsable} \\
+    \hline
+    1.0 & 07/04/2026 & Creación del documento de Autenticación y Cédula (Módulo 10). & Daniel Luisa \\
+    \hline
+    \end{tabular}
+
+    % ==========================================
+    \section{Anexos}
+    % ==========================================
+
+    \section*{A. Codificación del documento}
+
+    \subsection*{A.1 Definición}
+    La codificación es el sistema alfanumérico estructurado que identifica de forma única cada documento dentro del proyecto, permitiendo clasificar, ordenar, recuperar y dar trazabilidad a los documentos.
+
+    \subsection*{A.2 Estructura de codificación}
+    La estructura utilizada en el proyecto es la siguiente:
+    \[
+    \texttt{XX-YYY-ZZZ-NNN}
+    \]
+    \begin{itemize}
+      \item \texttt{XX} — Tipo de proceso (2 letras).
+      \item \texttt{YYY} — Nombre del proceso o subproceso (3 letras).
+      \item \texttt{ZZZ} — Tipo documental (3 letras).
+      \item \texttt{NNN} — Número secuencial (3 dígitos, con relleno a la izquierda).
+    \end{itemize}
+
+    \subsection*{A.3 Catálogo de códigos}
+    \begin{table}[h!]
+    \centering
+    \small
+    \begin{tabularx}{\linewidth}{@{}lX@{}}
+    \toprule
+    \textbf{Campo} & \textbf{Opciones (código)} \\ \midrule
+
+    Tipo de proceso (XX) &
+    Directivo (DI), Misional (MI), Asesor (AS), Apoyo (AP). \\
+
+    Nombre del proceso (YYY) &
+    Desarrollo SW (DES), Gestión de Requisitos (GDR), Implementación del Sistema Clínico (ISC), 
+    Gestión de Seguridad de la Información (GSI), Gestión de Agendamiento Médico (GAM), 
+    Gestión de Indicaciones Médicas (GIM). \\
+
+    Tipo de documento (ZZZ) &
+    Cronograma (CRO), Especificación (ESP), Instructivo (INS), Manual (MAN), Memorando (MEM), 
+    Oficio (OFI), Plan (PLA), Procedimiento (PRO), Registro (RGI), Bitácora (BIT), 
+    Protocolo (PTC), Guía (GUI). \\
+
+    Número secuencial (NNN) &
+    001, 002, … (numeración incremental según la combinación anterior). \\
+
+    \bottomrule
+    \end{tabularx}
+    \caption*{\footnotesize Listado resumido de códigos importantes.}
+    \end{table}
+
+    \subsection*{A.4 Ejemplo de código final}
+    Aplicando las selecciones resumidas:
+    \begin{itemize}
+      \item Tipo de proceso: \textbf{MI} (Misional)
+      \item Proceso / Subproceso: \textbf{DES} (Desarrollo SW)
+      \item Tipo de documento: \textbf{MAN} (Manual)
+      \item Secuencial: \textbf{001}
+    \end{itemize}
+
+    \noindent\textbf{Código resultante:} \texttt{MI-DES-MAN-001}
+
+    \subsection*{A.5 Plantilla corta de registro (para control y trazabilidad)}
+    Incluye siempre al crear o modificar un documento una entrada como la siguiente en el índice de control:
+
+    \begin{table}[H]
+    \centering
+    \begin{tabular}{p{3.6cm} p{7cm}}
+    \toprule
+    \textbf{Campo} & \textbf{Valor / Ejemplo} \\ \midrule
+    Código documento & \texttt{MI-DES-MAN-001} \\
+    Título & Backend: Autenticación y Cédula \\
+    Versión & 1.0 \\
+    Fecha emisión / modificación & 2026-04-07 \\
+    Autor / Responsable & Daniel Luisa (Backend) \\
+    Motivo del cambio & Creación inicial \\
+    Aprobación & Angel Ayuquina / 2026-04-07 \\
+    Ubicación archivo & \texttt{/docs/MI-DES-MAN-001\_Backend\_Autenticacion\_Cedula.tex} \\
+    \bottomrule
+    \end{tabular}
+    \caption*{\footnotesize{Plantilla mínima para registro de cada documento.}}
+    \end{table}
+
+    \subsection*{A.6 Notas sobre uso}
+    \begin{itemize}
+      \item El número secuencial se incrementa para cada nuevo documento dentro de la misma combinación \texttt{XX-YYY-ZZZ}.  
+      \item Mantener el registro de cambios vinculado al repositorio o al sistema documental para garantizar trazabilidad.  
+    \end{itemize}
+
+    \section*{B. Paleta de colores y archivos fuente}
+
+    \subsection*{B.1 Introducción}
+    Este anexo contiene la paleta de color muestreada a partir del archivo raster recibido, la especificación técnica básica (HEX / RGB / CMYK), y resultados de contraste WCAG frente a blanco y negro.
+
+    \subsection*{B.2 Imagen fuente}
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.95\linewidth]{SKTLogo.png}
+      \caption*{Figura 1: Logo del equipo SKT Software Solution}
+    \end{figure}
+
+    \subsection*{B.3 Tabla técnica — paleta}
+    \small
+    \begin{table}[H]
+    \centering
+    \begin{tabular}{ l  c  c  c  c }
+    \toprule
+    \textbf{Nombre} & \textbf{Muestra} & \textbf{HEX} & \textbf{RGB} & \textbf{CMYK (\%)} \\
+    \midrule
+    Primario (sugerido) & \cellcolor{SKTPrimary} & \texttt{\#3F4A4F} & (63,74,79) & (20,6,0,69) \\
+    Secundario (oscuro) & \cellcolor{SKTDark} & \texttt{\#242B2E} & (36,43,46) & (22,7,0,82) \\
+    Matiz medio & \cellcolor{SKTMid} & \texttt{\#6E7375} & (110,115,117) & (6,2,0,54) \\
+    Acento & \cellcolor{SKTAccent} & \texttt{\#979C9D} & (151,156,157) & (4,1,0,38) \\
+    Claro (detalle) & \cellcolor{SKTLight} & \texttt{\#CDCFD2} & (205,207,210) & (2,1,0,18) \\
+    \bottomrule
+    \end{tabular}
+    \end{table}
+    \normalsize
+
+    \subsection*{B.4 Interpretación de contraste WCAG}
+    \begin{itemize}
+      \item Ratios mostrados siguen la fórmula WCAG (relativa a luminancias sRGB linealizadas).
+      \item \textbf{Regla práctica:} para texto normal, se recomienda contraste \(\geq 4.5:1\) (AA). Para texto grande, \(\geq 3:1\).
+      \item De la paleta muestreada: \textbf{texto blanco sobre el color Primario (\#3F4A4F)} cumple AA (9.12), mientras que \textbf{texto negro sobre ese mismo fondo} no cumple (2.30). Eso implica que en fondos oscuros del isotipo es preferible usar texto/elementos en blanco o variantes claras.
+      \item Colores muy claros como \#CDCFD2 no son adecuados para texto claro encima; verificar siempre combinaciones en contexto.
+    \end{itemize}
+
+    \end{document}
