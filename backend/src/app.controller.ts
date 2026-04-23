@@ -15,7 +15,7 @@ export class AppController {
     return {
       status: 'UP',
       timestamp: new Date().toISOString(),
-      service: 'LUPSI-Backend'
+      service: 'LUPSI-Backend',
     };
   }
 }
