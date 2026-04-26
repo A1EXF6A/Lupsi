@@ -4,6 +4,7 @@ import { Login } from './auth/login/login';
 import { Dashboard } from './dashboard/dashboard';
 import { authGuard } from './core/guards/auth.guard';
 import { PortalPacienteComponent } from './portal-paciente/portal-paciente.component';
+import { MisCitasComponent } from './portal-paciente/mis-citas/mis-citas.component';
 import { ReservaComponent } from './portal-paciente/reserva/reserva.component';
 import { PanelAdminComponent } from './panel-admin/panel-admin.component';
 import { AgendaDiariaComponent } from './panel-admin/agenda-diaria/agenda-diaria.component';
@@ -18,7 +19,8 @@ export const routes: Routes = [
     component: PortalPacienteComponent,
     canActivate: [authGuard],
     children: [
-      { path: '', redirectTo: 'reserva', pathMatch: 'full' },
+      { path: '', redirectTo: 'mis-citas', pathMatch: 'full' },
+      { path: 'mis-citas', component: MisCitasComponent },
       { path: 'reserva', component: ReservaComponent },
     ],
   },
