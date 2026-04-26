@@ -12,6 +12,18 @@ export interface Doctor {
   };
 }
 
+export interface Specialty {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export interface AppointmentType {
+  id: string;
+  name: string;
+  durationMinutes: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -21,5 +33,13 @@ export class CatalogsService {
 
   getDoctors(): Observable<Doctor[]> {
     return this.http.get<Doctor[]>(`${this.apiUrl}/doctors`);
+  }
+
+  getSpecialties(): Observable<Specialty[]> {
+    return this.http.get<Specialty[]>(`${this.apiUrl}/specialties`);
+  }
+
+  getAppointmentTypes(): Observable<AppointmentType[]> {
+    return this.http.get<AppointmentType[]>(`${this.apiUrl}/appointment-types`);
   }
 }
