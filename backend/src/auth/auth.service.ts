@@ -17,7 +17,7 @@ export class AuthService {
   constructor(
     private readonly supabaseService: SupabaseService,
     private readonly idValidator: EcuadorianIdValidatorService,
-  ) {}
+  ) { }
 
   /**
    * Registro Fricción Cero (US-01)

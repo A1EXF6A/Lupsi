@@ -13,3 +13,4 @@ Thumbs.db
 .vscode/
 *.tsbuildinfo
 tmp/
+endpoints_documentation.txt
