@@ -50,7 +50,7 @@ export class Login {
     this.authService.login(this.loginForm.value).subscribe({
       next: () => {
         this.isSubmitting = false;
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/portal-paciente']);
       },
       error: (err) => {
         this.isSubmitting = false;
