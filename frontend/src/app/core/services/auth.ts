@@ -15,6 +15,7 @@ export class AuthService {
 
   // Usamos Signals de Angular 17+ para mantener el estado reactivo del usuario
   public currentUserToken = signal<string | null>(this.getTokenFromStorage());
+  public currentUserRole = signal<string | null>(this.getRoleFromStorage());
 
   constructor(private http: HttpClient) {}
 
@@ -26,7 +27,7 @@ export class AuthService {
     return this.http.post<any>(`${this.apiUrl}/register`, payload).pipe(
       tap((response) => {
         if (response?.session?.access_token) {
-          this.setToken(response.session.access_token);
+          this.setSession(response.session.access_token, response.role);
         }
       }),
     );
@@ -39,18 +40,20 @@ export class AuthService {
     return this.http.post<any>(`${this.apiUrl}/login`, payload).pipe(
       tap((response) => {
         if (response?.session?.access_token) {
-          this.setToken(response.session.access_token);
+          this.setSession(response.session.access_token, response.role);
         }
       }),
     );
   }
 
   /**
-   * Guarda el JWT del usuario de forma persistente.
+   * Guarda de forma persistente la sesión.
    */
-  private setToken(token: string) {
+  private setSession(token: string, role: string) {
     localStorage.setItem('lupsi_token', token);
+    localStorage.setItem('lupsi_role', role || 'PATIENT');
     this.currentUserToken.set(token);
+    this.currentUserRole.set(role || 'PATIENT');
   }
 
   /**
@@ -60,11 +63,17 @@ export class AuthService {
     return localStorage.getItem('lupsi_token');
   }
 
+  private getRoleFromStorage(): string | null {
+    return localStorage.getItem('lupsi_role');
+  }
+
   /**
    * Cierra sesión
    */
   logout() {
     localStorage.removeItem('lupsi_token');
+    localStorage.removeItem('lupsi_role');
     this.currentUserToken.set(null);
+    this.currentUserRole.set(null);
   }
 }

@@ -99,7 +99,7 @@ import { AuthService } from '../../core/services/auth';
           >
             <option [ngValue]="null">-- Selecciona Profesional --</option>
             <option *ngFor="let doc of filteredDoctors" [ngValue]="doc">
-              Dr/Dra. {{ doc.profiles?.first_name || '?' }} {{ doc.profiles?.last_name || '?' }}
+              Dr/Dra. {{ doc.profiles.first_name || '?' }} {{ doc.profiles.last_name || '?' }}
             </option>
           </select>
           <div *ngIf="filteredDoctors.length === 0" class="px-2 text-sm text-amber-600 font-medium mt-2 flex items-center gap-1.5">

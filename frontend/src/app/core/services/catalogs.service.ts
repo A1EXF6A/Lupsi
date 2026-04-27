@@ -24,6 +24,12 @@ export interface AppointmentType {
   durationMinutes: number;
 }
 
+export interface Office {
+  id: string;
+  name: string;
+  floor: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -42,4 +48,9 @@ export class CatalogsService {
   getAppointmentTypes(): Observable<AppointmentType[]> {
     return this.http.get<AppointmentType[]>(`${this.apiUrl}/appointment-types`);
   }
+
+  getOffices(): Observable<Office[]> {
+    return this.http.get<Office[]>(`${this.apiUrl}/offices`);
+  }
 }
+
