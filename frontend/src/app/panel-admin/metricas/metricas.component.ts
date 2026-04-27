@@ -69,15 +69,77 @@ import { CatalogsService } from '../../core/services/catalogs.service';
         </div>
       </div>
       
-      <!-- Charts/Overview Placeholder -->
-      <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm mt-8 relative overflow-hidden group">
-         <div class="absolute inset-0 bg-gradient-to-br from-green-50 to-white z-0 opacity-50 group-hover:opacity-100 transition-opacity"></div>
-         <div class="relative z-10 flex flex-col items-center justify-center h-48 text-center">
-            <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-md mb-4 text-green-500">
-               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+      <!-- CSS Charts -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+         <!-- Appointments Status Chart -->
+         <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm relative overflow-hidden">
+            <h3 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+               Estado de Citas
+            </h3>
+            
+            <div *ngIf="totalAppointments === 0" class="flex flex-col items-center justify-center py-10 text-slate-400">
+               <p>No hay citas registradas</p>
             </div>
-            <h3 class="text-xl font-bold text-slate-800">Visualización Avanzada</h3>
-            <p class="text-slate-500 mt-2 max-w-sm">Aquí se mostrarán los gráficos de rendimiento una vez recopilados más datos.</p>
+            
+            <div *ngIf="totalAppointments > 0" class="space-y-5">
+               <!-- Pending -->
+               <div>
+                  <div class="flex justify-between text-sm mb-1 font-bold">
+                     <span class="text-amber-600 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Programadas</span>
+                     <span class="text-slate-600">{{ appointmentsByStatus.pending }} ({{ (appointmentsByStatus.pending / totalAppointments * 100) | number:'1.0-0' }}%)</span>
+                  </div>
+                  <div class="w-full bg-slate-100 rounded-full h-2.5">
+                     <div class="bg-amber-500 h-2.5 rounded-full transition-all duration-1000" [style.width]="(appointmentsByStatus.pending / totalAppointments * 100) + '%'"></div>
+                  </div>
+               </div>
+               
+               <!-- Completed -->
+               <div>
+                  <div class="flex justify-between text-sm mb-1 font-bold">
+                     <span class="text-green-600 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500"></span> Completadas</span>
+                     <span class="text-slate-600">{{ appointmentsByStatus.completed }} ({{ (appointmentsByStatus.completed / totalAppointments * 100) | number:'1.0-0' }}%)</span>
+                  </div>
+                  <div class="w-full bg-slate-100 rounded-full h-2.5">
+                     <div class="bg-green-500 h-2.5 rounded-full transition-all duration-1000" [style.width]="(appointmentsByStatus.completed / totalAppointments * 100) + '%'"></div>
+                  </div>
+               </div>
+               
+               <!-- Cancelled -->
+               <div>
+                  <div class="flex justify-between text-sm mb-1 font-bold">
+                     <span class="text-rose-600 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Canceladas</span>
+                     <span class="text-slate-600">{{ appointmentsByStatus.cancelled }} ({{ (appointmentsByStatus.cancelled / totalAppointments * 100) | number:'1.0-0' }}%)</span>
+                  </div>
+                  <div class="w-full bg-slate-100 rounded-full h-2.5">
+                     <div class="bg-rose-500 h-2.5 rounded-full transition-all duration-1000" [style.width]="(appointmentsByStatus.cancelled / totalAppointments * 100) + '%'"></div>
+                  </div>
+               </div>
+            </div>
+         </div>
+
+         <!-- Top Specialties Chart -->
+         <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm relative overflow-hidden">
+            <h3 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+               Top Especialidades (por # Doctores)
+            </h3>
+            
+            <div *ngIf="doctorsBySpecialty.length === 0" class="flex flex-col items-center justify-center py-10 text-slate-400">
+               <p>No hay doctores registrados</p>
+            </div>
+            
+            <div *ngIf="doctorsBySpecialty.length > 0" class="space-y-4">
+               <div *ngFor="let spec of doctorsBySpecialty">
+                  <div class="flex justify-between text-sm mb-1">
+                     <span class="font-bold text-slate-700">{{ spec.specialty }}</span>
+                     <span class="font-bold text-indigo-600">{{ spec.count }} docs</span>
+                  </div>
+                  <div class="w-full bg-indigo-50 rounded-full h-3">
+                     <div class="bg-gradient-to-r from-indigo-500 to-indigo-400 h-3 rounded-full transition-all duration-1000" [style.width]="spec.percent + '%'"></div>
+                  </div>
+               </div>
+            </div>
          </div>
       </div>
     </div>
@@ -94,9 +156,28 @@ export class MetricasComponent implements OnInit {
   totalApptTypes = 0;
   totalOffices = 0;
 
+  appointmentsByStatus = { pending: 0, completed: 0, cancelled: 0 };
+  doctorsBySpecialty: { specialty: string, count: number, percent: number }[] = [];
+
   ngOnInit() {
     this.catalogsService.getDoctors().subscribe({
-      next: (d) => { this.totalDoctors = d.length; this.cdr.detectChanges(); },
+      next: (d) => { 
+        this.totalDoctors = d.length; 
+        
+        // Calculate doctors by specialty
+        const specialtyCount: Record<string, number> = {};
+        d.forEach(doc => {
+           const spec = doc.specialty || 'General';
+           specialtyCount[spec] = (specialtyCount[spec] || 0) + 1;
+        });
+        this.doctorsBySpecialty = Object.keys(specialtyCount).map(spec => ({
+           specialty: spec,
+           count: specialtyCount[spec],
+           percent: Math.round((specialtyCount[spec] / Math.max(1, d.length)) * 100)
+        })).sort((a,b) => b.count - a.count).slice(0, 5);
+        
+        this.cdr.detectChanges(); 
+      },
       error: (e) => console.error('Metrics getDoctors Error:', e)
     });
     this.catalogsService.getSpecialties().subscribe({
@@ -112,7 +193,20 @@ export class MetricasComponent implements OnInit {
       error: (e) => console.error('Metrics getOffices Error:', e)
     });
     this.appointmentsService.getAppointments().subscribe({
-      next: (a) => { this.totalAppointments = a.length; this.cdr.detectChanges(); },
+      next: (a) => { 
+        this.totalAppointments = a.length; 
+        
+        // Calculate appointments status
+        this.appointmentsByStatus = { pending: 0, completed: 0, cancelled: 0 };
+        a.forEach(appt => {
+           const s = appt.status?.toUpperCase() || 'SCHEDULED';
+           if (s === 'SCHEDULED' || s === 'PENDING') this.appointmentsByStatus.pending++;
+           else if (s === 'COMPLETED') this.appointmentsByStatus.completed++;
+           else if (s === 'CANCELLED') this.appointmentsByStatus.cancelled++;
+        });
+        
+        this.cdr.detectChanges(); 
+      },
       error: (e) => console.error('Metrics getAppointments Error:', e)
     });
   }
