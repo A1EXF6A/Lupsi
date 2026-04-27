@@ -117,6 +117,7 @@ export class AuthService {
       message: 'Registro exitoso. Bienvenido a LUPSI.',
       userId: userId,
       session: loginResult.session,
+      role: loginResult.role,
     };
   }
 
@@ -138,11 +139,20 @@ export class AuthService {
       throw new BadRequestException('Credenciales inválidas.');
     }
 
-    // Opcional: Obtener perfil para devolver el ROL en la respuesta, pero el JWT ya lo puede interceptar luego.
+    // Obtener perfil para devolver el ROL en la respuesta
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .single();
+
+    const role = profile?.role || (data.user.app_metadata?.role as string) || 'PATIENT';
+
     return {
       message: 'Autenticación exitosa',
       session: data.session,
       userId: data.user.id,
+      role: role,
     };
   }
 }
