@@ -71,11 +71,14 @@ export class Register {
     }
 
     this.authService.register(payload).subscribe({
-      next: (res) => {
+      next: () => {
         this.isSubmitting = false;
-        this.cdr.detectChanges(); // Forzar actualización de vista
-        // Redirigir al inicio/dashboard tras la cuenta exitosa y token inyectado
-        this.router.navigate(['/dashboard']);
+        const role = this.authService.currentUserRole();
+        if (role === 'PATIENT') {
+          this.router.navigate(['/portal-paciente']);
+        } else {
+          this.router.navigate(['/panel']);
+        }
       },
       error: (err: any) => {
         this.isSubmitting = false;
