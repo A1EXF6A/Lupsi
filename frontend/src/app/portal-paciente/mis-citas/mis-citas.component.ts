@@ -28,8 +28,19 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
         <p class="text-slate-400 text-sm mb-4">Puedes agendar tu primera consulta médica desde la sección de Nueva Reserva.</p>
       </div>
 
-      <div *ngIf="!isLoading && appointments.length > 0" class="space-y-4">
-        <div *ngFor="let apt of appointments" class="flex flex-col md:flex-row md:items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-green-200 hover:shadow-md transition-all gap-4">
+      <div *ngIf="!isLoading && appointments.length > 0" class="flex flex-wrap gap-2 mb-6">
+         <button (click)="setFilter('ALL')" [class.bg-slate-800]="currentFilter === 'ALL'" [class.text-white]="currentFilter === 'ALL'" [class.bg-slate-100]="currentFilter !== 'ALL'" [class.text-slate-600]="currentFilter !== 'ALL'" class="px-4 py-2 rounded-full text-sm font-bold transition-colors hover:bg-slate-200">Todas</button>
+         <button (click)="setFilter('SCHEDULED')" [class.bg-amber-500]="currentFilter === 'SCHEDULED'" [class.text-white]="currentFilter === 'SCHEDULED'" [class.bg-slate-100]="currentFilter !== 'SCHEDULED'" [class.text-slate-600]="currentFilter !== 'SCHEDULED'" class="px-4 py-2 rounded-full text-sm font-bold transition-colors hover:bg-amber-100">Programadas</button>
+         <button (click)="setFilter('COMPLETED')" [class.bg-green-500]="currentFilter === 'COMPLETED'" [class.text-white]="currentFilter === 'COMPLETED'" [class.bg-slate-100]="currentFilter !== 'COMPLETED'" [class.text-slate-600]="currentFilter !== 'COMPLETED'" class="px-4 py-2 rounded-full text-sm font-bold transition-colors hover:bg-green-100">Completadas</button>
+         <button (click)="setFilter('CANCELLED')" [class.bg-rose-500]="currentFilter === 'CANCELLED'" [class.text-white]="currentFilter === 'CANCELLED'" [class.bg-slate-100]="currentFilter !== 'CANCELLED'" [class.text-slate-600]="currentFilter !== 'CANCELLED'" class="px-4 py-2 rounded-full text-sm font-bold transition-colors hover:bg-rose-100">Canceladas</button>
+      </div>
+
+      <div *ngIf="!isLoading && filteredAppointments.length === 0 && appointments.length > 0" class="text-center py-12 px-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+        <p class="text-slate-500 font-medium">No se encontraron citas con este estado.</p>
+      </div>
+
+      <div *ngIf="!isLoading && paginatedAppointments.length > 0" class="space-y-4">
+        <div *ngFor="let apt of paginatedAppointments" class="flex flex-col md:flex-row md:items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-green-200 hover:shadow-md transition-all gap-4">
           <div class="flex items-start gap-4">
             <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex flex-col items-center justify-center border border-slate-100 flex-shrink-0">
               <span class="text-xs font-bold text-slate-500 uppercase">{{ apt.appointment_time | date:'MMM' }}</span>
@@ -46,12 +57,28 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
           </div>
           
           <div class="flex items-center gap-3">
-             <span class="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full border border-blue-100 flex items-center gap-1.5">
-               <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
-               {{ apt.status || 'PROGRAMADA' }}
+             <span 
+                [class.bg-amber-50]="apt.status === 'SCHEDULED'" [class.text-amber-700]="apt.status === 'SCHEDULED'" [class.border-amber-100]="apt.status === 'SCHEDULED'"
+                [class.bg-green-50]="apt.status === 'COMPLETED'" [class.text-green-700]="apt.status === 'COMPLETED'" [class.border-green-100]="apt.status === 'COMPLETED'"
+                [class.bg-rose-50]="apt.status === 'CANCELLED'" [class.text-rose-700]="apt.status === 'CANCELLED'" [class.border-rose-100]="apt.status === 'CANCELLED'"
+                [class.bg-slate-50]="!apt.status" [class.text-slate-700]="!apt.status" [class.border-slate-200]="!apt.status"
+                class="px-3 py-1 text-xs font-bold rounded-full border flex items-center gap-1.5">
+               <span 
+                  [class.bg-amber-500]="apt.status === 'SCHEDULED'"
+                  [class.bg-green-500]="apt.status === 'COMPLETED'"
+                  [class.bg-rose-500]="apt.status === 'CANCELLED'"
+                  [class.bg-slate-400]="!apt.status"
+                  class="w-1.5 h-1.5 rounded-full"></span>
+               {{ apt.status === 'SCHEDULED' ? 'PROGRAMADA' : (apt.status === 'COMPLETED' ? 'COMPLETADA' : (apt.status === 'CANCELLED' ? 'CANCELADA' : 'DESCONOCIDO')) }}
              </span>
           </div>
         </div>
+      </div>
+
+      <div *ngIf="totalPages > 1" class="flex items-center justify-between mt-6 pt-6 border-t border-slate-100">
+         <button (click)="prevPage()" [disabled]="currentPage === 1" class="px-4 py-2 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Anterior</button>
+         <span class="text-sm font-bold text-slate-400">Página {{ currentPage }} de {{ totalPages }}</span>
+         <button (click)="nextPage()" [disabled]="currentPage === totalPages" class="px-4 py-2 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Siguiente</button>
       </div>
     </div>
   `
@@ -63,6 +90,46 @@ export class MisCitasComponent implements OnInit {
   appointments: Appointment[] = [];
   isLoading = false;
 
+  currentFilter: 'ALL' | 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' = 'ALL';
+  currentPage = 1;
+  itemsPerPage = 4;
+
+  get filteredAppointments() {
+    if (this.currentFilter === 'ALL') {
+      return this.appointments;
+    }
+    return this.appointments.filter(a => a.status === this.currentFilter);
+  }
+
+  get totalPages() {
+    return Math.ceil(this.filteredAppointments.length / this.itemsPerPage) || 1;
+  }
+
+  get paginatedAppointments() {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    return this.filteredAppointments.slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+  setFilter(filter: 'ALL' | 'SCHEDULED' | 'COMPLETED' | 'CANCELLED') {
+    this.currentFilter = filter;
+    this.currentPage = 1;
+    this.cdr.detectChanges();
+  }
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.cdr.detectChanges();
+    }
+  }
+
+  prevPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.cdr.detectChanges();
+    }
+  }
+
   ngOnInit() {
     this.loadAppointments();
   }
@@ -71,8 +138,8 @@ export class MisCitasComponent implements OnInit {
     this.isLoading = true;
     this.appointmentsService.getAppointments().subscribe({
       next: (data) => {
-        // Sort by date mostly ascending or descending depending on what's best, let's just reverse to show latest potentially or keep as is.
-        this.appointments = data;
+        // Reverse to show the newest appointments first
+        this.appointments = data.reverse();
         this.isLoading = false;
         this.cdr.detectChanges();
       },
