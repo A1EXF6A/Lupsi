@@ -1,71 +1,298 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import {
   Doctor,
   Profile,
   DoctorWithProfile,
+  Specialty,
+  AppointmentType,
+  Office,
 } from '../database/interfaces/database.interfaces';
+import {
+  CreateAppointmentTypeDto,
+  CreateOfficeDto,
+  CreateSpecialtyDto,
+  UpdateAppointmentTypeDto,
+  UpdateOfficeDto,
+  UpdateSpecialtyDto,
+} from './dto/catalog.dto';
 
 @Injectable()
 export class CatalogsService {
   constructor(private readonly supabaseService: SupabaseService) {}
 
-  /**
-   * Obtener lista de especialidades médicas (Estandarizadas)
-   */
-  getSpecialties() {
-    return [
-      {
-        id: 'GEN',
-        name: 'Medicina General',
-        description: 'Atención primaria y triaje.',
-      },
-      {
-        id: 'PED',
-        name: 'Pediatría',
-        description: 'Atención especializada para niños.',
-      },
-      {
-        id: 'GIN',
-        name: 'Ginecología',
-        description: 'Salud reproductiva femenina.',
-      },
-      {
-        id: 'DER',
-        name: 'Dermatología',
-        description: 'Afecciones de la piel.',
-      },
-      { id: 'CAR', name: 'Cardiología', description: 'Salud cardiovascular.' },
-      {
-        id: 'PSQ',
-        name: 'Psiquiatría',
-        description: 'Salud mental y emocional.',
-      },
-    ];
+  async getSpecialties(): Promise<Specialty[]> {
+    const supabase = this.supabaseService.getClient();
+    const { data, error } = await supabase
+      .from('specialties')
+      .select('id, name, description, is_deleted')
+      .eq('is_deleted', false)
+      .order('name', { ascending: true })
+      .returns<Specialty[]>();
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error fetching specialties: ${error.message}`,
+      );
+    }
+
+    return data || [];
   }
 
-  /**
-   * Obtener tipos de cita disponibles
-   */
-  getAppointmentTypes() {
-    return [
-      { id: 'CONSULTA', name: 'Consulta Médica', durationMinutes: 20 },
-      { id: 'CONTROL', name: 'Control / Seguimiento', durationMinutes: 15 },
-      { id: 'EMERGENCIA', name: 'Atención de Emergencia', durationMinutes: 30 },
-      { id: 'PROCEDIMIENTO', name: 'Procedimiento Menor', durationMinutes: 45 },
-    ];
+  async getAppointmentTypes(): Promise<AppointmentType[]> {
+    const supabase = this.supabaseService.getClient();
+    const { data, error } = await supabase
+      .from('appointment_types')
+      .select('id, name, description, duration_minutes, is_deleted')
+      .eq('is_deleted', false)
+      .order('name', { ascending: true })
+      .returns<AppointmentType[]>();
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error fetching appointment types: ${error.message}`,
+      );
+    }
+
+    return data || [];
   }
 
-  /**
-   * Obtener lista de consultorios (Offices)
-   */
-  getOffices() {
-    return [
-      { id: 'C101', name: 'Consultorio 101', floor: 'Planta Baja' },
-      { id: 'C102', name: 'Consultorio 102', floor: 'Planta Baja' },
-      { id: 'C201', name: 'Consultorio 201', floor: 'Primer Piso' },
-      { id: 'C202', name: 'Consultorio 202', floor: 'Primer Piso' },
-    ];
+  async getOffices(): Promise<Office[]> {
+    const supabase = this.supabaseService.getClient();
+    const { data, error } = await supabase
+      .from('offices')
+      .select('id, name, floor, description, is_deleted')
+      .eq('is_deleted', false)
+      .order('name', { ascending: true })
+      .returns<Office[]>();
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error fetching offices: ${error.message}`,
+      );
+    }
+
+    return data || [];
+  }
+
+  async createSpecialty(dto: CreateSpecialtyDto): Promise<Specialty> {
+    const supabase = this.supabaseService.getClient();
+    const { data, error } = await supabase
+      .from('specialties')
+      .insert([
+        {
+          name: dto.name,
+          description: dto.description ?? null,
+        },
+      ])
+      .select('id, name, description, is_deleted')
+      .single<Specialty>();
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error creating specialty: ${error.message}`,
+      );
+    }
+
+    return data;
+  }
+
+  async updateSpecialty(id: string, dto: UpdateSpecialtyDto): Promise<Specialty> {
+    const supabase = this.supabaseService.getClient();
+    const updates: Partial<Specialty> & { updated_at: string } = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (dto.name !== undefined) {
+      updates.name = dto.name;
+    }
+    if (dto.description !== undefined) {
+      updates.description = dto.description;
+    }
+
+    const { data, error } = await supabase
+      .from('specialties')
+      .update(updates)
+      .eq('id', id)
+      .eq('is_deleted', false)
+      .select('id, name, description, is_deleted')
+      .single<Specialty>();
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error updating specialty: ${error.message}`,
+      );
+    }
+
+    return data;
+  }
+
+  async deleteSpecialty(id: string): Promise<void> {
+    const supabase = this.supabaseService.getClient();
+    const { error } = await supabase
+      .from('specialties')
+      .update({
+        is_deleted: true,
+        deleted_at: new Date().toISOString(),
+      })
+      .eq('id', id);
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error deleting specialty: ${error.message}`,
+      );
+    }
+  }
+
+  async createAppointmentType(
+    dto: CreateAppointmentTypeDto,
+  ): Promise<AppointmentType> {
+    const supabase = this.supabaseService.getClient();
+    const { data, error } = await supabase
+      .from('appointment_types')
+      .insert([
+        {
+          name: dto.name,
+          description: dto.description ?? null,
+          duration_minutes: dto.duration_minutes,
+        },
+      ])
+      .select('id, name, description, duration_minutes, is_deleted')
+      .single<AppointmentType>();
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error creating appointment type: ${error.message}`,
+      );
+    }
+
+    return data;
+  }
+
+  async updateAppointmentType(
+    id: string,
+    dto: UpdateAppointmentTypeDto,
+  ): Promise<AppointmentType> {
+    const supabase = this.supabaseService.getClient();
+    const updates: Partial<AppointmentType> & { updated_at: string } = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (dto.name !== undefined) {
+      updates.name = dto.name;
+    }
+    if (dto.description !== undefined) {
+      updates.description = dto.description;
+    }
+    if (dto.duration_minutes !== undefined) {
+      updates.duration_minutes = dto.duration_minutes;
+    }
+
+    const { data, error } = await supabase
+      .from('appointment_types')
+      .update(updates)
+      .eq('id', id)
+      .eq('is_deleted', false)
+      .select('id, name, description, duration_minutes, is_deleted')
+      .single<AppointmentType>();
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error updating appointment type: ${error.message}`,
+      );
+    }
+
+    return data;
+  }
+
+  async deleteAppointmentType(id: string): Promise<void> {
+    const supabase = this.supabaseService.getClient();
+    const { error } = await supabase
+      .from('appointment_types')
+      .update({
+        is_deleted: true,
+        deleted_at: new Date().toISOString(),
+      })
+      .eq('id', id);
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error deleting appointment type: ${error.message}`,
+      );
+    }
+  }
+
+  async createOffice(dto: CreateOfficeDto): Promise<Office> {
+    const supabase = this.supabaseService.getClient();
+    const { data, error } = await supabase
+      .from('offices')
+      .insert([
+        {
+          name: dto.name,
+          floor: dto.floor ?? null,
+          description: dto.description ?? null,
+        },
+      ])
+      .select('id, name, floor, description, is_deleted')
+      .single<Office>();
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error creating office: ${error.message}`,
+      );
+    }
+
+    return data;
+  }
+
+  async updateOffice(id: string, dto: UpdateOfficeDto): Promise<Office> {
+    const supabase = this.supabaseService.getClient();
+    const updates: Partial<Office> & { updated_at: string } = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (dto.name !== undefined) {
+      updates.name = dto.name;
+    }
+    if (dto.floor !== undefined) {
+      updates.floor = dto.floor;
+    }
+    if (dto.description !== undefined) {
+      updates.description = dto.description;
+    }
+
+    const { data, error } = await supabase
+      .from('offices')
+      .update(updates)
+      .eq('id', id)
+      .eq('is_deleted', false)
+      .select('id, name, floor, description, is_deleted')
+      .single<Office>();
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error updating office: ${error.message}`,
+      );
+    }
+
+    return data;
+  }
+
+  async deleteOffice(id: string): Promise<void> {
+    const supabase = this.supabaseService.getClient();
+    const { error } = await supabase
+      .from('offices')
+      .update({
+        is_deleted: true,
+        deleted_at: new Date().toISOString(),
+      })
+      .eq('id', id);
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error deleting office: ${error.message}`,
+      );
+    }
   }
 
   async getDoctors(): Promise<DoctorWithProfile[]> {
@@ -75,7 +302,8 @@ export class CatalogsService {
     // 1. Fetch doctors without the relationship to avoid PostgREST RLS planning bugs
     const { data: doctorsData, error: dError } = await supabase
       .from('doctors')
-      .select('id, specialty')
+      .select('id, specialty, is_deleted')
+      .eq('is_deleted', false)
       .returns<Doctor[]>();
     if (dError) {
       console.error(

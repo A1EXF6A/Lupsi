@@ -6,10 +6,14 @@ import {
   Query,
   Req,
   UseGuards,
+  Put,
+  Param,
+  Delete,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { JwtAuthGuard } from '../iam/guards/jwt-auth.guard';
 import { Public } from '../iam/decorators/public.decorator';
 import { Permissions } from '../iam/decorators/permissions.decorator';
@@ -55,5 +59,52 @@ export class AppointmentsController {
     @Query('date') date: string,
   ) {
     return this.appointmentsService.getAvailableSlots(doctorId, date);
+  }
+
+  @Post('available-slots')
+  @Permissions(Permission.APPOINTMENTS_UPDATE)
+  async createAvailableSlot(
+    @Body('doctor_id') doctorId: string,
+    @Body('start_time') startTime: string,
+    @Body('end_time') endTime: string,
+  ) {
+    return this.appointmentsService.createAvailableSlot(
+      doctorId,
+      startTime,
+      endTime,
+    );
+  }
+
+  @Put('available-slots/:id')
+  @Permissions(Permission.APPOINTMENTS_UPDATE)
+  async updateAvailableSlot(
+    @Param('id') id: string,
+    @Body('start_time') startTime: string,
+    @Body('end_time') endTime: string,
+  ) {
+    return this.appointmentsService.updateAvailableSlot(id, startTime, endTime);
+  }
+
+  @Delete('available-slots/:id')
+  @Permissions(Permission.APPOINTMENTS_DELETE)
+  async deleteAvailableSlot(@Param('id') id: string) {
+    await this.appointmentsService.deleteAvailableSlot(id);
+    return { message: 'Disponibilidad eliminada' };
+  }
+
+  @Put(':id')
+  @Permissions(Permission.APPOINTMENTS_UPDATE)
+  async updateAppointment(
+    @Param('id') id: string,
+    @Body() dto: UpdateAppointmentDto,
+  ) {
+    return this.appointmentsService.updateAppointment(id, dto);
+  }
+
+  @Delete(':id')
+  @Permissions(Permission.APPOINTMENTS_DELETE)
+  async deleteAppointment(@Param('id') id: string) {
+    await this.appointmentsService.deleteAppointment(id);
+    return { message: 'Cita eliminada' };
   }
 }

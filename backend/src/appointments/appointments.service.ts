@@ -11,7 +11,10 @@ import {
   Patient,
   Doctor,
   Profile,
+  AppointmentBase,
+  AvailableSlot,
 } from '../database/interfaces/database.interfaces';
+import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 
 @Injectable()
 export class AppointmentsService {
@@ -33,6 +36,8 @@ export class AppointmentsService {
           appointment_time: startTime.toISOString(),
           appointment_end_time: endTime.toISOString(),
           status: 'SCHEDULED',
+          arrived: false,
+          paid: false,
         },
       ])
       .select()
@@ -65,8 +70,10 @@ export class AppointmentsService {
       doctor_id,
       appointment_time,
       appointment_end_time,
-      status
-    `);
+      status,
+      arrived,
+      paid
+    `).eq('is_deleted', false);
 
     // El supabase client está configurado con service_role.
     // Aplicamos los filtros manualmente basados en el rol.
@@ -137,6 +144,8 @@ export class AppointmentsService {
         appointment_time: app.appointment_time,
         appointment_end_time: app.appointment_end_time,
         status: app.status,
+        arrived: app.arrived,
+        paid: app.paid,
         patients: {
           id: app.patient_id,
           first_name: pProfile?.first_name || '',
@@ -168,6 +177,7 @@ export class AppointmentsService {
       .select('appointment_time, appointment_end_time')
       .eq('doctor_id', doctorId)
       .eq('status', 'SCHEDULED')
+      .eq('is_deleted', false)
       .gte('appointment_time', startDate.toISOString())
       .lte('appointment_time', endDate.toISOString())
       .returns<Partial<Appointment>[]>();
@@ -213,5 +223,137 @@ export class AppointmentsService {
     }
 
     return slots;
+  }
+
+  async updateAppointment(
+    id: string,
+    dto: UpdateAppointmentDto,
+  ): Promise<AppointmentBase> {
+    const supabase = this.supabaseService.getClient();
+    const updates: Partial<AppointmentBase> = {};
+
+    if (dto.doctor_id !== undefined) {
+      updates.doctor_id = dto.doctor_id;
+    }
+    if (dto.appointment_time !== undefined) {
+      const startTime = new Date(dto.appointment_time);
+      const endTime = new Date(startTime.getTime() + 30 * 60000);
+      updates.appointment_time = startTime.toISOString();
+      updates.appointment_end_time = endTime.toISOString();
+    }
+    if (dto.status !== undefined) {
+      updates.status = dto.status;
+    }
+    if (dto.arrived !== undefined) {
+      updates.arrived = dto.arrived;
+    }
+    if (dto.paid !== undefined) {
+      updates.paid = dto.paid;
+    }
+
+    const { data, error } = await supabase
+      .from('appointments')
+      .update(updates)
+      .eq('id', id)
+      .eq('is_deleted', false)
+      .select(
+        'id, patient_id, doctor_id, appointment_time, appointment_end_time, status, arrived, paid, is_deleted',
+      )
+      .single<AppointmentBase>();
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error al actualizar cita: ${error.message}`,
+      );
+    }
+
+    return data;
+  }
+
+  async deleteAppointment(id: string): Promise<void> {
+    const supabase = this.supabaseService.getClient();
+    const { error } = await supabase
+      .from('appointments')
+      .update({
+        is_deleted: true,
+        deleted_at: new Date().toISOString(),
+      })
+      .eq('id', id);
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error al eliminar cita: ${error.message}`,
+      );
+    }
+  }
+
+  async createAvailableSlot(
+    doctorId: string,
+    startTime: string,
+    endTime: string,
+  ): Promise<AvailableSlot> {
+    const supabase = this.supabaseService.getClient();
+    const { data, error } = await supabase
+      .from('available_slots')
+      .insert([
+        {
+          doctor_id: doctorId,
+          start_time: startTime,
+          end_time: endTime,
+        },
+      ])
+      .select('id, doctor_id, start_time, end_time, is_deleted')
+      .single<AvailableSlot>();
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error al crear disponibilidad: ${error.message}`,
+      );
+    }
+
+    return data;
+  }
+
+  async updateAvailableSlot(
+    id: string,
+    startTime: string,
+    endTime: string,
+  ): Promise<AvailableSlot> {
+    const supabase = this.supabaseService.getClient();
+    const { data, error } = await supabase
+      .from('available_slots')
+      .update({
+        start_time: startTime,
+        end_time: endTime,
+      })
+      .eq('id', id)
+      .eq('is_deleted', false)
+      .select('id, doctor_id, start_time, end_time, is_deleted')
+      .single<AvailableSlot>();
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error al actualizar disponibilidad: ${error.message}`,
+      );
+    }
+
+    return data;
+  }
+
+  async deleteAvailableSlot(id: string): Promise<void> {
+    const supabase = this.supabaseService.getClient();
+    const { error } = await supabase
+      .from('available_slots')
+      .update({
+        is_deleted: true,
+        deleted_at: new Date().toISOString(),
+      })
+      .eq('id', id);
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error al eliminar disponibilidad: ${error.message}`,
+      );
+    }
   }
 }
