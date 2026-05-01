@@ -107,4 +107,143 @@ export class AppointmentsController {
     await this.appointmentsService.deleteAppointment(id);
     return { message: 'Cita eliminada' };
   }
+
+  @Get(':id/reminders')
+  @Permissions(Permission.APPOINTMENTS_READ_SELF, Permission.APPOINTMENTS_READ_ASSIGNED)
+  getReminders(@Param('id') appointmentId: string) {
+    return this.appointmentsService.getReminders(appointmentId);
+  }
+
+  @Post(':id/reminders')
+  @Permissions(Permission.APPOINTMENTS_UPDATE)
+  createReminder(
+    @Param('id') appointmentId: string,
+    @Body('reminder_time') reminderTime: string,
+    @Body('channel') channel?: string,
+    @Body('status') status?: string,
+  ) {
+    return this.appointmentsService.createReminder(
+      appointmentId,
+      reminderTime,
+      channel,
+      status,
+    );
+  }
+
+  @Put(':id/reminders/:reminderId')
+  @Permissions(Permission.APPOINTMENTS_UPDATE)
+  updateReminder(
+    @Param('reminderId') reminderId: string,
+    @Body('reminder_time') reminderTime?: string,
+    @Body('channel') channel?: string,
+    @Body('status') status?: string,
+  ) {
+    return this.appointmentsService.updateReminder(
+      reminderId,
+      reminderTime,
+      channel,
+      status,
+    );
+  }
+
+  @Delete(':id/reminders/:reminderId')
+  @Permissions(Permission.APPOINTMENTS_DELETE)
+  async deleteReminder(@Param('reminderId') reminderId: string) {
+    await this.appointmentsService.deleteReminder(reminderId);
+    return { message: 'Recordatorio eliminado' };
+  }
+
+  @Get(':id/prescription')
+  @Permissions(Permission.APPOINTMENTS_READ_SELF, Permission.APPOINTMENTS_READ_ASSIGNED)
+  getPrescription(@Param('id') appointmentId: string) {
+    return this.appointmentsService.getPrescription(appointmentId);
+  }
+
+  @Post(':id/prescription')
+  @Permissions(Permission.APPOINTMENTS_UPDATE)
+  createPrescription(
+    @Param('id') appointmentId: string,
+    @Body('patient_id') patientId: string,
+    @Body('doctor_id') doctorId: string,
+    @Body('notes') notes?: string,
+    @Body('medications') medications?: Record<string, unknown>[],
+  ) {
+    return this.appointmentsService.createPrescription(
+      appointmentId,
+      patientId,
+      doctorId,
+      notes,
+      medications,
+    );
+  }
+
+  @Put(':id/prescription/:prescriptionId')
+  @Permissions(Permission.APPOINTMENTS_UPDATE)
+  updatePrescription(
+    @Param('prescriptionId') prescriptionId: string,
+    @Body('notes') notes?: string,
+    @Body('medications') medications?: Record<string, unknown>[],
+  ) {
+    return this.appointmentsService.updatePrescription(
+      prescriptionId,
+      notes,
+      medications,
+    );
+  }
+
+  @Delete(':id/prescription/:prescriptionId')
+  @Permissions(Permission.APPOINTMENTS_DELETE)
+  async deletePrescription(@Param('prescriptionId') prescriptionId: string) {
+    await this.appointmentsService.deletePrescription(prescriptionId);
+    return { message: 'Receta eliminada' };
+  }
+
+  @Get(':id/payments')
+  @Permissions(Permission.APPOINTMENTS_READ_SELF, Permission.APPOINTMENTS_READ_ASSIGNED)
+  getPayments(@Param('id') appointmentId: string) {
+    return this.appointmentsService.getPayments(appointmentId);
+  }
+
+  @Post(':id/payments')
+  @Permissions(Permission.APPOINTMENTS_UPDATE)
+  createPayment(
+    @Param('id') appointmentId: string,
+    @Body('amount') amount: number,
+    @Body('method') method?: string,
+    @Body('status') status?: string,
+    @Body('paid_at') paidAt?: string,
+  ) {
+    return this.appointmentsService.createPayment(
+      appointmentId,
+      amount,
+      method,
+      status,
+      paidAt,
+    );
+  }
+
+  @Put(':id/payments/:paymentId')
+  @Permissions(Permission.APPOINTMENTS_UPDATE)
+  updatePayment(
+    @Param('paymentId') paymentId: string,
+    @Body('amount') amount?: number,
+    @Body('method') method?: string,
+    @Body('status') status?: string,
+    @Body('paid_at') paidAt?: string,
+  ) {
+    return this.appointmentsService.updatePayment(
+      paymentId,
+      amount,
+      method,
+      status,
+      paidAt,
+    );
+  }
+
+  @Delete(':id/payments/:paymentId')
+  @Permissions(Permission.APPOINTMENTS_DELETE)
+  async deletePayment(@Param('paymentId') paymentId: string) {
+    await this.appointmentsService.deletePayment(paymentId);
+    return { message: 'Pago eliminado' };
+  }
 }
