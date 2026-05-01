@@ -13,6 +13,9 @@ const mockSupabaseClient = {
     signInWithPassword: jest.fn(),
   },
   from: jest.fn().mockReturnThis(),
+  select: jest.fn().mockReturnThis(),
+  eq: jest.fn().mockReturnThis(),
+  single: jest.fn().mockResolvedValue({ data: { role: 'PATIENT' } }),
   insert: jest.fn().mockResolvedValue({ error: null }),
 };
 
