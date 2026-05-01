@@ -10,6 +10,7 @@ import { AppointmentsModule } from './appointments/appointments.module';
 import { ClinicalHistoryModule } from './clinical-history/clinical-history.module';
 import { ClinicalAttentionsModule } from './clinical-attentions/clinical-attentions.module';
 import { MedicationsModule } from './medications/medications.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { MedicationsModule } from './medications/medications.module';
     ClinicalHistoryModule,
     ClinicalAttentionsModule,
     MedicationsModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

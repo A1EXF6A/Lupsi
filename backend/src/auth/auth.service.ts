@@ -155,4 +155,62 @@ export class AuthService {
       role: role,
     };
   }
+
+  async changePassword(
+    accessToken: string,
+    currentPassword: string,
+    newPassword: string,
+  ) {
+    const supabase = this.supabaseService.getClient();
+
+    const { data: userData, error: userError } = await supabase.auth.getUser(
+      accessToken,
+    );
+
+    if (userError || !userData?.user) {
+      throw new BadRequestException('Token inválido o sesión expirada.');
+    }
+
+    const email = userData.user.email;
+    if (!email) {
+      throw new BadRequestException('No se pudo determinar el usuario.');
+    }
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password: currentPassword,
+    });
+
+    if (signInError) {
+      throw new BadRequestException('La contraseña actual no es correcta.');
+    }
+
+    const { error: updateError } = await supabase.auth.admin.updateUserById(
+      userData.user.id,
+      {
+        password: newPassword,
+      },
+    );
+
+    if (updateError) {
+      throw new InternalServerErrorException(
+        `Error al actualizar contraseña: ${updateError.message}`,
+      );
+    }
+
+    return { message: 'Contraseña actualizada con éxito.' };
+  }
+
+  async requestPasswordRecovery(email: string) {
+    const supabase = this.supabaseService.getClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error al solicitar recuperación: ${error.message}`,
+      );
+    }
+
+    return { message: 'Se envió un correo para recuperar la contraseña.' };
+  }
 }

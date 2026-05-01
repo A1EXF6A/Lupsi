@@ -20,4 +20,25 @@ export class AuthController {
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
+
+  @Post('change-password')
+  @HttpCode(HttpStatus.OK)
+  async changePassword(
+    @Body('current_password') currentPassword: string,
+    @Body('new_password') newPassword: string,
+    @Body('access_token') accessToken: string,
+  ) {
+    return this.authService.changePassword(
+      accessToken,
+      currentPassword,
+      newPassword,
+    );
+  }
+
+  @Public()
+  @Post('recovery-password')
+  @HttpCode(HttpStatus.OK)
+  async requestPasswordRecovery(@Body('email') email: string) {
+    return this.authService.requestPasswordRecovery(email);
+  }
 }
