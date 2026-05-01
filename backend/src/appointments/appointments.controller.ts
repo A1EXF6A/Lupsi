@@ -109,7 +109,10 @@ export class AppointmentsController {
   }
 
   @Get(':id/reminders')
-  @Permissions(Permission.APPOINTMENTS_READ_SELF, Permission.APPOINTMENTS_READ_ASSIGNED)
+  @Permissions(
+    Permission.APPOINTMENTS_READ_SELF,
+    Permission.APPOINTMENTS_READ_ASSIGNED,
+  )
   getReminders(@Param('id') appointmentId: string) {
     return this.appointmentsService.getReminders(appointmentId);
   }
@@ -154,7 +157,10 @@ export class AppointmentsController {
   }
 
   @Get(':id/prescription')
-  @Permissions(Permission.APPOINTMENTS_READ_SELF, Permission.APPOINTMENTS_READ_ASSIGNED)
+  @Permissions(
+    Permission.APPOINTMENTS_READ_SELF,
+    Permission.APPOINTMENTS_READ_ASSIGNED,
+  )
   getPrescription(@Param('id') appointmentId: string) {
     return this.appointmentsService.getPrescription(appointmentId);
   }
@@ -199,7 +205,10 @@ export class AppointmentsController {
   }
 
   @Get(':id/payments')
-  @Permissions(Permission.APPOINTMENTS_READ_SELF, Permission.APPOINTMENTS_READ_ASSIGNED)
+  @Permissions(
+    Permission.APPOINTMENTS_READ_SELF,
+    Permission.APPOINTMENTS_READ_ASSIGNED,
+  )
   getPayments(@Param('id') appointmentId: string) {
     return this.appointmentsService.getPayments(appointmentId);
   }

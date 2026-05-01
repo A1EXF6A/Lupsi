@@ -69,7 +69,10 @@ export class AppointmentsService {
     date?: string,
   ): Promise<AppointmentWithDetails[]> {
     const supabase = this.supabaseService.getClient();
-    let query = supabase.from('appointments').select(`
+    let query = supabase
+      .from('appointments')
+      .select(
+        `
       id,
       patient_id,
       doctor_id,
@@ -78,7 +81,9 @@ export class AppointmentsService {
       status,
       arrived,
       paid
-    `).eq('is_deleted', false);
+    `,
+      )
+      .eq('is_deleted', false);
 
     // El supabase client está configurado con service_role.
     // Aplicamos los filtros manualmente basados en el rol.
@@ -366,9 +371,7 @@ export class AppointmentsService {
     const supabase = this.supabaseService.getClient();
     const { data, error } = await supabase
       .from('appointment_reminders')
-      .select(
-        'id, appointment_id, reminder_time, channel, status, is_deleted',
-      )
+      .select('id, appointment_id, reminder_time, channel, status, is_deleted')
       .eq('appointment_id', appointmentId)
       .eq('is_deleted', false)
       .order('reminder_time', { ascending: true })

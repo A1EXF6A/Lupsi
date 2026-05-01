@@ -97,7 +97,10 @@ export class CatalogsService {
     return data;
   }
 
-  async updateSpecialty(id: string, dto: UpdateSpecialtyDto): Promise<Specialty> {
+  async updateSpecialty(
+    id: string,
+    dto: UpdateSpecialtyDto,
+  ): Promise<Specialty> {
     const supabase = this.supabaseService.getClient();
     const updates: Partial<Specialty> & { updated_at: string } = {
       updated_at: new Date().toISOString(),

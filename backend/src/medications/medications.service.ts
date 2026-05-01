@@ -1,10 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { Medication } from '../database/interfaces/database.interfaces';
-import {
-  CreateMedicationDto,
-  UpdateMedicationDto,
-} from './dto/medication.dto';
+import { CreateMedicationDto, UpdateMedicationDto } from './dto/medication.dto';
 
 @Injectable()
 export class MedicationsService {

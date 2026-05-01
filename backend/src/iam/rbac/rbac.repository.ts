@@ -4,7 +4,9 @@ import { Permission } from '../enums/permission.enum';
 
 @Injectable()
 export class RbacRepository {
-  private readonly rolePermissions: Readonly<Record<UserRole, ReadonlyArray<Permission>>> = {
+  private readonly rolePermissions: Readonly<
+    Record<UserRole, ReadonlyArray<Permission>>
+  > = {
     [UserRole.PATIENT]: [
       Permission.APPOINTMENTS_CREATE,
       Permission.APPOINTMENTS_READ_SELF,

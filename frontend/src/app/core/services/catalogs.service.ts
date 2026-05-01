@@ -53,4 +53,3 @@ export class CatalogsService {
     return this.http.get<Office[]>(`${this.apiUrl}/offices`);
   }
 }
-

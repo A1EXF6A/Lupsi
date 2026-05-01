@@ -16,11 +16,16 @@ describe('ClinicalHistoryController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ClinicalHistoryController],
       providers: [
-        { provide: ClinicalHistoryService, useValue: mockClinicalHistoryService },
+        {
+          provide: ClinicalHistoryService,
+          useValue: mockClinicalHistoryService,
+        },
       ],
     }).compile();
 
-    controller = module.get<ClinicalHistoryController>(ClinicalHistoryController);
+    controller = module.get<ClinicalHistoryController>(
+      ClinicalHistoryController,
+    );
   });
 
   it('should be defined', () => {
@@ -29,7 +34,9 @@ describe('ClinicalHistoryController', () => {
 
   it('gets by patient id', async () => {
     await controller.getByPatient('patient-1');
-    expect(mockClinicalHistoryService.findByPatient).toHaveBeenCalledWith('patient-1');
+    expect(mockClinicalHistoryService.findByPatient).toHaveBeenCalledWith(
+      'patient-1',
+    );
   });
 
   it('creates clinical history', async () => {
@@ -48,7 +55,10 @@ describe('ClinicalHistoryController', () => {
     const dto = { diagnosis: 'Ok' };
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await controller.update('record-1', dto as any);
-    expect(mockClinicalHistoryService.update).toHaveBeenCalledWith('record-1', dto);
+    expect(mockClinicalHistoryService.update).toHaveBeenCalledWith(
+      'record-1',
+      dto,
+    );
   });
 
   it('removes clinical history', async () => {

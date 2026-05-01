@@ -33,6 +33,11 @@ import { SupabaseModule } from '../supabase/supabase.module';
       useClass: PermissionsGuard,
     },
   ],
-  exports: [EcuadorianIdValidatorService, PassportModule, JwtModule, RbacRepository],
+  exports: [
+    EcuadorianIdValidatorService,
+    PassportModule,
+    JwtModule,
+    RbacRepository,
+  ],
 })
 export class IamModule {}

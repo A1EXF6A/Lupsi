@@ -14,10 +14,12 @@ import { LoginDto } from './dto/login.dto';
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
+  private static readonly defaultRole = 'PATIENT';
+
   constructor(
     private readonly supabaseService: SupabaseService,
     private readonly idValidator: EcuadorianIdValidatorService,
-  ) { }
+  ) {}
 
   /**
    * Registro Fricción Cero (US-01)
@@ -124,13 +126,27 @@ export class AuthService {
   /**
    * Login Estándar
    */
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto): Promise<{
+    message: string;
+    session: unknown;
+    userId: string;
+    role: string;
+  }> {
     const supabase = this.supabaseService.getClient();
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data, error } = (await supabase.auth.signInWithPassword({
       email: dto.email,
       password: dto.password,
-    });
+    })) as {
+      data: {
+        user: {
+          id: string;
+          app_metadata?: { role?: string };
+        };
+        session: unknown;
+      };
+      error: { message: string } | null;
+    };
 
     if (error) {
       this.logger.warn(
@@ -140,13 +156,14 @@ export class AuthService {
     }
 
     // Obtener perfil para devolver el ROL en la respuesta
-    const { data: profile } = await supabase
+    const { data: profile } = (await supabase
       .from('profiles')
       .select('role')
       .eq('id', data.user.id)
-      .single();
+      .single()) as { data: { role?: string } | null };
 
-    const role = profile?.role || (data.user.app_metadata?.role as string) || 'PATIENT';
+    const role =
+      profile?.role || data.user.app_metadata?.role || AuthService.defaultRole;
 
     return {
       message: 'Autenticación exitosa',
@@ -163,9 +180,12 @@ export class AuthService {
   ) {
     const supabase = this.supabaseService.getClient();
 
-    const { data: userData, error: userError } = await supabase.auth.getUser(
+    const { data: userData, error: userError } = (await supabase.auth.getUser(
       accessToken,
-    );
+    )) as {
+      data: { user: { id: string; email?: string | null } | null };
+      error: { message: string } | null;
+    };
 
     if (userError || !userData?.user) {
       throw new BadRequestException('Token inválido o sesión expirada.');

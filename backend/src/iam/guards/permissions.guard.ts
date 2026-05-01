@@ -36,7 +36,9 @@ export class PermissionsGuard implements CanActivate {
     const userRole = request.user?.role;
 
     if (!userRole) {
-      throw new UnauthorizedException('No se pudo determinar el rol del usuario.');
+      throw new UnauthorizedException(
+        'No se pudo determinar el rol del usuario.',
+      );
     }
 
     const hasAtLeastOnePermission = requiredPermissions.some((permission) =>
@@ -44,7 +46,9 @@ export class PermissionsGuard implements CanActivate {
     );
 
     if (!hasAtLeastOnePermission) {
-      throw new ForbiddenException('No tiene permisos para ejecutar esta acción.');
+      throw new ForbiddenException(
+        'No tiene permisos para ejecutar esta acción.',
+      );
     }
 
     return true;

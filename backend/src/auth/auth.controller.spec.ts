@@ -5,8 +5,12 @@ import { AuthService } from './auth.service';
 const mockAuthService = {
   register: jest.fn().mockResolvedValue({ message: 'Registro exitoso' }),
   login: jest.fn().mockResolvedValue({ message: 'Autenticación exitosa' }),
-  changePassword: jest.fn().mockResolvedValue({ message: 'Contraseña actualizada con éxito.' }),
-  requestPasswordRecovery: jest.fn().mockResolvedValue({ message: 'Se envió un correo para recuperar la contraseña.' }),
+  changePassword: jest
+    .fn()
+    .mockResolvedValue({ message: 'Contraseña actualizada con éxito.' }),
+  requestPasswordRecovery: jest.fn().mockResolvedValue({
+    message: 'Se envió un correo para recuperar la contraseña.',
+  }),
 };
 
 describe('AuthController', () => {
@@ -51,7 +55,6 @@ describe('AuthController', () => {
         access_token: 'token',
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const result = await controller.changePassword(
         body.current_password,
         body.new_password,
@@ -74,7 +77,9 @@ describe('AuthController', () => {
       const result = await controller.requestPasswordRecovery(email);
 
       expect(result.message).toBeDefined();
-      expect(mockAuthService.requestPasswordRecovery).toHaveBeenCalledWith(email);
+      expect(mockAuthService.requestPasswordRecovery).toHaveBeenCalledWith(
+        email,
+      );
     });
   });
 });

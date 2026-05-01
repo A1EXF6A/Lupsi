@@ -58,11 +58,17 @@ describe('AppointmentsController', () => {
   });
 
   it('creates appointment', async () => {
-    const dto = { doctor_id: 'doc-1', appointment_time: '2026-05-01T10:00:00Z' };
+    const dto = {
+      doctor_id: 'doc-1',
+      appointment_time: '2026-05-01T10:00:00Z',
+    };
     const req = { user: { id: 'patient-1', role: 'PATIENT' } };
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await controller.create(req as any, dto as any);
-    expect(mockAppointmentsService.create).toHaveBeenCalledWith('patient-1', dto);
+    expect(mockAppointmentsService.create).toHaveBeenCalledWith(
+      'patient-1',
+      dto,
+    );
   });
 
   it('gets appointments', async () => {
@@ -77,7 +83,11 @@ describe('AppointmentsController', () => {
   });
 
   it('creates available slot', async () => {
-    await controller.createAvailableSlot('doc-1', '2026-05-01T10:00:00Z', '2026-05-01T10:30:00Z');
+    await controller.createAvailableSlot(
+      'doc-1',
+      '2026-05-01T10:00:00Z',
+      '2026-05-01T10:30:00Z',
+    );
     expect(mockAppointmentsService.createAvailableSlot).toHaveBeenCalledWith(
       'doc-1',
       '2026-05-01T10:00:00Z',
@@ -86,7 +96,11 @@ describe('AppointmentsController', () => {
   });
 
   it('updates available slot', async () => {
-    await controller.updateAvailableSlot('slot-1', '2026-05-01T11:00:00Z', '2026-05-01T11:30:00Z');
+    await controller.updateAvailableSlot(
+      'slot-1',
+      '2026-05-01T11:00:00Z',
+      '2026-05-01T11:30:00Z',
+    );
     expect(mockAppointmentsService.updateAvailableSlot).toHaveBeenCalledWith(
       'slot-1',
       '2026-05-01T11:00:00Z',
@@ -96,7 +110,9 @@ describe('AppointmentsController', () => {
 
   it('deletes available slot', async () => {
     await controller.deleteAvailableSlot('slot-1');
-    expect(mockAppointmentsService.deleteAvailableSlot).toHaveBeenCalledWith('slot-1');
+    expect(mockAppointmentsService.deleteAvailableSlot).toHaveBeenCalledWith(
+      'slot-1',
+    );
   });
 
   it('updates appointment', async () => {
@@ -111,7 +127,9 @@ describe('AppointmentsController', () => {
 
   it('deletes appointment', async () => {
     await controller.deleteAppointment('appt-1');
-    expect(mockAppointmentsService.deleteAppointment).toHaveBeenCalledWith('appt-1');
+    expect(mockAppointmentsService.deleteAppointment).toHaveBeenCalledWith(
+      'appt-1',
+    );
   });
 
   it('gets reminders', async () => {
@@ -120,7 +138,12 @@ describe('AppointmentsController', () => {
   });
 
   it('creates reminder', async () => {
-    await controller.createReminder('appt-1', '2026-05-01T10:00:00Z', 'EMAIL', 'PENDING');
+    await controller.createReminder(
+      'appt-1',
+      '2026-05-01T10:00:00Z',
+      'EMAIL',
+      'PENDING',
+    );
     expect(mockAppointmentsService.createReminder).toHaveBeenCalledWith(
       'appt-1',
       '2026-05-01T10:00:00Z',
@@ -130,7 +153,12 @@ describe('AppointmentsController', () => {
   });
 
   it('updates reminder', async () => {
-    await controller.updateReminder('rem-1', '2026-05-02T10:00:00Z', 'SMS', 'SENT');
+    await controller.updateReminder(
+      'rem-1',
+      '2026-05-02T10:00:00Z',
+      'SMS',
+      'SENT',
+    );
     expect(mockAppointmentsService.updateReminder).toHaveBeenCalledWith(
       'rem-1',
       '2026-05-02T10:00:00Z',
@@ -141,17 +169,27 @@ describe('AppointmentsController', () => {
 
   it('deletes reminder', async () => {
     await controller.deleteReminder('rem-1');
-    expect(mockAppointmentsService.deleteReminder).toHaveBeenCalledWith('rem-1');
+    expect(mockAppointmentsService.deleteReminder).toHaveBeenCalledWith(
+      'rem-1',
+    );
   });
 
   it('gets prescription', async () => {
     await controller.getPrescription('appt-1');
-    expect(mockAppointmentsService.getPrescription).toHaveBeenCalledWith('appt-1');
+    expect(mockAppointmentsService.getPrescription).toHaveBeenCalledWith(
+      'appt-1',
+    );
   });
 
   it('creates prescription', async () => {
     const medications = [{ medication_id: 'med-1', dose: '1' }];
-    await controller.createPrescription('appt-1', 'patient-1', 'doctor-1', 'Notas', medications);
+    await controller.createPrescription(
+      'appt-1',
+      'patient-1',
+      'doctor-1',
+      'Notas',
+      medications,
+    );
     expect(mockAppointmentsService.createPrescription).toHaveBeenCalledWith(
       'appt-1',
       'patient-1',
@@ -173,7 +211,9 @@ describe('AppointmentsController', () => {
 
   it('deletes prescription', async () => {
     await controller.deletePrescription('pres-1');
-    expect(mockAppointmentsService.deletePrescription).toHaveBeenCalledWith('pres-1');
+    expect(mockAppointmentsService.deletePrescription).toHaveBeenCalledWith(
+      'pres-1',
+    );
   });
 
   it('gets payments', async () => {
@@ -182,7 +222,13 @@ describe('AppointmentsController', () => {
   });
 
   it('creates payment', async () => {
-    await controller.createPayment('appt-1', 25, 'CARD', 'PAID', '2026-05-01T10:00:00Z');
+    await controller.createPayment(
+      'appt-1',
+      25,
+      'CARD',
+      'PAID',
+      '2026-05-01T10:00:00Z',
+    );
     expect(mockAppointmentsService.createPayment).toHaveBeenCalledWith(
       'appt-1',
       25,
@@ -193,7 +239,13 @@ describe('AppointmentsController', () => {
   });
 
   it('updates payment', async () => {
-    await controller.updatePayment('pay-1', 30, 'CASH', 'PAID', '2026-05-01T11:00:00Z');
+    await controller.updatePayment(
+      'pay-1',
+      30,
+      'CASH',
+      'PAID',
+      '2026-05-01T11:00:00Z',
+    );
     expect(mockAppointmentsService.updatePayment).toHaveBeenCalledWith(
       'pay-1',
       30,

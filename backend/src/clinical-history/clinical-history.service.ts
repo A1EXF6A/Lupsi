@@ -1,8 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
-import {
-  MedicalRecord,
-} from '../database/interfaces/database.interfaces';
+import { MedicalRecord } from '../database/interfaces/database.interfaces';
 import {
   CreateClinicalHistoryDto,
   UpdateClinicalHistoryDto,
@@ -16,7 +14,9 @@ export class ClinicalHistoryService {
     const supabase = this.supabaseService.getClient();
     const { data, error } = await supabase
       .from('medical_records')
-      .select('id, patient_id, doctor_id, appointment_id, document_url, diagnosis, is_deleted')
+      .select(
+        'id, patient_id, doctor_id, appointment_id, document_url, diagnosis, is_deleted',
+      )
       .eq('patient_id', patientId)
       .eq('is_deleted', false)
       .order('created_at', { ascending: false })
@@ -44,7 +44,9 @@ export class ClinicalHistoryService {
           diagnosis: dto.diagnosis ?? null,
         },
       ])
-      .select('id, patient_id, doctor_id, appointment_id, document_url, diagnosis, is_deleted')
+      .select(
+        'id, patient_id, doctor_id, appointment_id, document_url, diagnosis, is_deleted',
+      )
       .single<MedicalRecord>();
 
     if (error) {
@@ -56,7 +58,10 @@ export class ClinicalHistoryService {
     return data;
   }
 
-  async update(id: string, dto: UpdateClinicalHistoryDto): Promise<MedicalRecord> {
+  async update(
+    id: string,
+    dto: UpdateClinicalHistoryDto,
+  ): Promise<MedicalRecord> {
     const supabase = this.supabaseService.getClient();
     const updates: Partial<MedicalRecord> & { updated_at: string } = {
       updated_at: new Date().toISOString(),
@@ -83,7 +88,9 @@ export class ClinicalHistoryService {
       .update(updates)
       .eq('id', id)
       .eq('is_deleted', false)
-      .select('id, patient_id, doctor_id, appointment_id, document_url, diagnosis, is_deleted')
+      .select(
+        'id, patient_id, doctor_id, appointment_id, document_url, diagnosis, is_deleted',
+      )
       .single<MedicalRecord>();
 
     if (error) {

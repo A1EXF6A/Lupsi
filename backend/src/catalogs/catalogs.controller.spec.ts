@@ -45,7 +45,10 @@ describe('CatalogsController', () => {
     const dto = { name: 'Neuro' };
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await controller.updateSpecialty('id-1', dto as any);
-    expect(mockCatalogsService.updateSpecialty).toHaveBeenCalledWith('id-1', dto);
+    expect(mockCatalogsService.updateSpecialty).toHaveBeenCalledWith(
+      'id-1',
+      dto,
+    );
   });
 
   it('deletes specialty', async () => {
@@ -72,7 +75,9 @@ describe('CatalogsController', () => {
 
   it('deletes appointment type', async () => {
     await controller.deleteAppointmentTypes('id-2');
-    expect(mockCatalogsService.deleteAppointmentType).toHaveBeenCalledWith('id-2');
+    expect(mockCatalogsService.deleteAppointmentType).toHaveBeenCalledWith(
+      'id-2',
+    );
   });
 
   it('creates office', async () => {

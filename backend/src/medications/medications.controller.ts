@@ -1,9 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
-import { MedicationsService } from './medications.service';
 import {
-  CreateMedicationDto,
-  UpdateMedicationDto,
-} from './dto/medication.dto';
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
+import { MedicationsService } from './medications.service';
+import { CreateMedicationDto, UpdateMedicationDto } from './dto/medication.dto';
 
 @Controller('api/v1/medications')
 export class MedicationsController {

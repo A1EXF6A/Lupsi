@@ -16,7 +16,9 @@ import {
 
 @Controller('api/v1/clinical-history')
 export class ClinicalHistoryController {
-  constructor(private readonly clinicalHistoryService: ClinicalHistoryService) {}
+  constructor(
+    private readonly clinicalHistoryService: ClinicalHistoryService,
+  ) {}
 
   @Get()
   getByPatient(@Query('patientId') patientId: string) {
