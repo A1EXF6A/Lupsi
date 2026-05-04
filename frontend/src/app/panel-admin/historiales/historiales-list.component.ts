@@ -23,6 +23,11 @@ import { ClinicalHistoryService, ClinicalHistory } from '../../core/services/cli
         </button>
       </div>
 
+      <!-- Búsqueda -->
+      <div class="mb-4">
+        <input type="text" [(ngModel)]="searchTerm" placeholder="Buscar por ID de ficha, paciente o doctor..." class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm">
+      </div>
+
       <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
         <div *ngIf="isLoading" class="p-10 flex flex-col items-center justify-center text-slate-400">
           <svg class="animate-spin h-8 w-8 text-green-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -52,7 +57,7 @@ import { ClinicalHistoryService, ClinicalHistory } from '../../core/services/cli
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-50">
-            <tr *ngFor="let record of histories" class="hover:bg-slate-50 transition-colors">
+            <tr *ngFor="let record of filteredHistories" class="hover:bg-slate-50 transition-colors">
               <td class="px-6 py-4 whitespace-nowrap font-medium text-slate-800">{{ record.id | slice:0:8 }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-slate-500">{{ record.patient_id | slice:0:8 }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-slate-500">{{ record.doctor_id | slice:0:8 }}</td>
@@ -72,7 +77,7 @@ import { ClinicalHistoryService, ClinicalHistory } from '../../core/services/cli
                 </button>
               </td>
             </tr>
-            <tr *ngIf="histories.length === 0">
+            <tr *ngIf="filteredHistories.length === 0">
               <td colspan="5" class="px-6 py-8 text-center text-slate-500 font-medium">
                 No hay fichas clínicas registradas en el sistema.
               </td>
@@ -135,6 +140,17 @@ export class HistorialesListComponent implements OnInit {
   isEditing = false;
   isSaving = false;
   selectedId: string | null = null;
+  searchTerm = '';
+  
+  get filteredHistories() {
+    if (!this.searchTerm) return this.histories;
+    const term = this.searchTerm.toLowerCase();
+    return this.histories.filter(h => 
+      h.id?.toLowerCase().includes(term) ||
+      h.patient_id?.toLowerCase().includes(term) ||
+      h.doctor_id?.toLowerCase().includes(term)
+    );
+  }
   
   formData = {
     patient_id: '',

@@ -15,6 +15,7 @@ export interface Appointment {
   appointment_time: string;
   appointment_end_time?: string;
   status?: string;
+  paid?: boolean;
   patients?: any;
   doctors?: any;
 }

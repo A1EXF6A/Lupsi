@@ -22,6 +22,11 @@ import { CatalogsService, Specialty } from '../../core/services/catalogs.service
           Nueva Especialidad
         </button>
       </div>
+      
+      <!-- Búsqueda -->
+      <div class="mb-4">
+        <input type="text" [(ngModel)]="searchTerm" placeholder="Buscar especialidad..." class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm">
+      </div>
 
       <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
         <div *ngIf="isLoading" class="p-10 flex flex-col items-center justify-center text-slate-400">
@@ -51,8 +56,7 @@ import { CatalogsService, Specialty } from '../../core/services/catalogs.service
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-50">
-            <tr *ngFor="let item of specialties" class="hover:bg-slate-50 transition-colors">
-              <td class="px-6 py-4 whitespace-nowrap font-bold text-slate-500">{{ item.id }}</td>
+            <tr *ngFor="let item of filteredSpecialties" class="hover:bg-slate-50 transition-colors">
               <td class="px-6 py-4 whitespace-nowrap font-bold text-slate-800">{{ item.name }}</td>
               <td class="px-6 py-4 text-slate-500">{{ item.description }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -70,8 +74,8 @@ import { CatalogsService, Specialty } from '../../core/services/catalogs.service
                 </button>
               </td>
             </tr>
-            <tr *ngIf="specialties.length === 0">
-              <td colspan="4" class="px-6 py-8 text-center text-slate-500">
+            <tr *ngIf="filteredSpecialties.length === 0">
+              <td colspan="3" class="px-6 py-8 text-center text-slate-500">
                 No se encontraron especialidades.
               </td>
             </tr>
@@ -123,6 +127,16 @@ export class EspecialidadesListComponent implements OnInit {
   isEditing = false;
   isSaving = false;
   selectedId: string | null = null;
+  searchTerm = '';
+  
+  get filteredSpecialties() {
+    if (!this.searchTerm) return this.specialties;
+    const term = this.searchTerm.toLowerCase();
+    return this.specialties.filter(s => 
+      s.name.toLowerCase().includes(term) || 
+      (s.description && s.description.toLowerCase().includes(term))
+    );
+  }
   
   formData = {
     name: '',

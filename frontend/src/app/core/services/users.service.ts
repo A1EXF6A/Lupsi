@@ -3,12 +3,25 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
+export interface User {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  created_at: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class UsersService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/api/v1/users`;
+
+  getAll(): Observable<User[]> {
+    return this.http.get<User[]>(this.apiUrl);
+  }
 
   createDoctor(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/doctors`, data);

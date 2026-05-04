@@ -22,6 +22,11 @@ import { CatalogsService, Office } from '../../core/services/catalogs.service';
           Nueva Oficina
         </button>
       </div>
+      
+      <!-- Búsqueda -->
+      <div class="mb-4">
+        <input type="text" [(ngModel)]="searchTerm" placeholder="Buscar oficina..." class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm">
+      </div>
 
       <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
         <div *ngIf="isLoading" class="p-10 flex flex-col items-center justify-center text-slate-400">
@@ -44,15 +49,13 @@ import { CatalogsService, Office } from '../../core/services/catalogs.service';
         <table *ngIf="!isLoading && !errorMessage" class="w-full text-left text-sm text-slate-600">
           <thead class="bg-slate-50 border-b border-slate-100 text-slate-400 font-bold uppercase text-xs tracking-wider">
             <tr>
-              <th scope="col" class="px-6 py-4">ID</th>
               <th scope="col" class="px-6 py-4">Nombre Oficina</th>
               <th scope="col" class="px-6 py-4">Planta / Piso</th>
               <th scope="col" class="px-6 py-4 text-right">Acciones</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-50">
-            <tr *ngFor="let item of offices" class="hover:bg-slate-50 transition-colors">
-              <td class="px-6 py-4 whitespace-nowrap font-bold text-slate-500">{{ item.id }}</td>
+            <tr *ngFor="let item of filteredOffices" class="hover:bg-slate-50 transition-colors">
               <td class="px-6 py-4 whitespace-nowrap font-bold text-slate-800">{{ item.name }}</td>
               <td class="px-6 py-4 text-slate-500">{{ item.floor }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -70,9 +73,9 @@ import { CatalogsService, Office } from '../../core/services/catalogs.service';
                 </button>
               </td>
             </tr>
-            <tr *ngIf="offices.length === 0">
+            <tr *ngIf="filteredOffices.length === 0">
               <td colspan="4" class="px-6 py-8 text-center text-slate-500">
-                No se encontraron oficinas registradas.
+                No se encontraron oficinas.
               </td>
             </tr>
           </tbody>
@@ -123,6 +126,16 @@ export class OficinasListComponent implements OnInit {
   isEditing = false;
   isSaving = false;
   selectedId: string | null = null;
+  searchTerm = '';
+  
+  get filteredOffices() {
+    if (!this.searchTerm) return this.offices;
+    const term = this.searchTerm.toLowerCase();
+    return this.offices.filter(o => 
+      o.name.toLowerCase().includes(term) ||
+      (o.floor && o.floor.toLowerCase().includes(term))
+    );
+  }
   
   formData = {
     name: '',

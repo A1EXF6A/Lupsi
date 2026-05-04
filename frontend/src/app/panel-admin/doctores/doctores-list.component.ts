@@ -24,6 +24,11 @@ import { UsersService } from '../../core/services/users.service';
         </button>
       </div>
 
+      <!-- Búsqueda -->
+      <div class="mb-4">
+        <input type="text" [(ngModel)]="searchTerm" placeholder="Buscar doctor por nombre o especialidad..." class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm">
+      </div>
+
       <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
         <div *ngIf="isLoading" class="p-10 flex flex-col items-center justify-center text-slate-400">
           <svg class="animate-spin h-8 w-8 text-green-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -52,7 +57,7 @@ import { UsersService } from '../../core/services/users.service';
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-50">
-            <tr *ngFor="let doc of doctors" class="hover:bg-slate-50 transition-colors">
+            <tr *ngFor="let doc of filteredDoctors" class="hover:bg-slate-50 transition-colors">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center gap-4">
                   <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center">
@@ -85,7 +90,7 @@ import { UsersService } from '../../core/services/users.service';
                 </button>
               </td>
             </tr>
-            <tr *ngIf="doctors.length === 0">
+            <tr *ngIf="filteredDoctors.length === 0">
               <td colspan="4" class="px-6 py-8 text-center text-slate-500">
                 No se encontraron doctores registrados.
               </td>
@@ -155,6 +160,18 @@ export class DoctoresListComponent implements OnInit {
   errorMessage = '';
 
   showModal = false;
+  searchTerm = '';
+  
+  get filteredDoctors() {
+    if (!this.searchTerm) return this.doctors;
+    const term = this.searchTerm.toLowerCase();
+    return this.doctors.filter(d => 
+      (d.profiles?.first_name?.toLowerCase().includes(term)) ||
+      (d.profiles?.last_name?.toLowerCase().includes(term)) ||
+      (d.specialty?.toLowerCase().includes(term))
+    );
+  }
+
   formData = {
     first_name: '',
     last_name: '',

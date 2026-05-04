@@ -224,6 +224,53 @@ import { AuthService } from '../core/services/auth';
             </svg>
             Fichas Clínicas
           </a>
+          <a
+            (click)="onLinkClick()"
+            routerLink="medicamentos"
+            routerLinkActive="bg-green-600 text-white"
+            class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition-colors font-medium"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M10.5 20.5l6-6M17 14l-6-6M8.5 8.5l6 6M14 17l-6-6" />
+              <path d="M4.5 14.5l6-6a2.12 2.12 0 013 3l-6 6a2.12 2.12 0 01-3-3z" />
+              <path d="M14.5 4.5l6 6a2.12 2.12 0 01-3 3l-6-6a2.12 2.12 0 013-3z" />
+            </svg>
+            Medicamentos
+          </a>
+          <a
+            (click)="onLinkClick()"
+            routerLink="usuarios"
+            routerLinkActive="bg-green-600 text-white"
+            class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition-colors font-medium"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            Usuarios
+          </a>
 
           <div class="h-6"></div>
           <!-- separator -->
