@@ -38,6 +38,26 @@ export class UsersService {
     return data || [];
   }
 
+  async findOne(id: string) {
+    console.log('[UsersService] findOne calling Supabase for ID:', id);
+    const supabase = this.supabaseService.getClient();
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, email, first_name, last_name, role, created_at')
+      .eq('id', id)
+      .single<UserProfile>();
+
+    if (error) {
+      console.error('[UsersService] findOne error:', error.message);
+      throw new InternalServerErrorException(
+        `Error fetching user profile: ${error.message}`,
+      );
+    }
+    
+    console.log('[UsersService] findOne success for:', data?.email);
+    return data;
+  }
+
   async update(id: string, dto: UpdateUserDto) {
     const supabase = this.supabaseService.getClient();
     const updates: Partial<UserProfile> & { updated_at: string } = {

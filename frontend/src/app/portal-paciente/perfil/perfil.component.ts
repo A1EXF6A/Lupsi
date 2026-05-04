@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth';
+import { UsersService, User } from '../../core/services/users.service';
 
 @Component({
   selector: 'app-perfil-paciente',
@@ -48,11 +49,17 @@ import { AuthService } from '../../core/services/auth';
           </form>
         </div>
         
-        <!-- Info Info placeholder -->
-        <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 flex flex-col justify-center items-center text-center">
-           <div class="w-24 h-24 bg-gradient-to-tr from-green-400 to-blue-500 rounded-full shadow-lg mb-4"></div>
-           <h3 class="text-xl font-bold text-slate-800">Paciente Lupsi</h3>
-           <p class="text-sm text-slate-500 mt-1">Tu salud en las mejores manos.</p>
+        <!-- Info placeholder -->
+        <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 flex flex-col justify-center items-center text-center relative overflow-hidden">
+           <div *ngIf="isLoading" class="absolute inset-0 bg-slate-50/80 backdrop-blur-sm flex items-center justify-center z-10">
+             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-600"></div>
+           </div>
+           <div class="w-24 h-24 bg-gradient-to-tr from-green-400 to-blue-500 rounded-full shadow-lg mb-4 flex items-center justify-center text-white text-3xl font-bold">
+             {{ userProfile?.first_name?.charAt(0) || 'P' }}{{ userProfile?.last_name?.charAt(0) || '' }}
+           </div>
+           <h3 class="text-xl font-bold text-slate-800">{{ userProfile?.first_name || 'Paciente' }} {{ userProfile?.last_name || 'Lupsi' }}</h3>
+           <p class="text-sm text-slate-500 mt-1">{{ userProfile?.email || 'Cargando correo...' }}</p>
+           <span class="mt-3 px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Rol: Paciente</span>
         </div>
       </div>
     </div>
@@ -60,6 +67,10 @@ import { AuthService } from '../../core/services/auth';
 })
 export class PerfilPacienteComponent {
   authService = inject(AuthService);
+  usersService = inject(UsersService);
+
+  userProfile: User | null = null;
+  isLoading = true;
 
   passwords = {
     current_password: '',
@@ -69,6 +80,19 @@ export class PerfilPacienteComponent {
   isSubmitting = false;
   successMsg = '';
   errorMsg = '';
+
+  ngOnInit() {
+    this.usersService.getMe().subscribe({
+      next: (user) => {
+        this.userProfile = user;
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error cargando perfil:', err);
+        this.isLoading = false;
+      }
+    });
+  }
 
   changePassword() {
     this.errorMsg = '';

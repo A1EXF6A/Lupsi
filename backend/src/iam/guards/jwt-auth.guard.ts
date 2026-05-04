@@ -59,17 +59,18 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       );
     }
 
-    // Obtener el ROL real desde la tabla profiles (app_metadata puede estar vacío)
+    // Obtener el perfil completo desde la tabla profiles
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role')
+      .select('*')
       .eq('id', user.id)
-      .single<Profile>();
+      .single();
 
     const activeUser: ActiveUser = {
       id: user.id,
       email: user.email || '',
       role: profile?.role || (user.app_metadata?.role as string) || 'PATIENT',
+      profile: profile,
     };
 
     // Inyectar el usuario en la request para uso posterior

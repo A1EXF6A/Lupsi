@@ -23,6 +23,10 @@ export class UsersService {
     return this.http.get<User[]>(this.apiUrl);
   }
 
+  getMe(): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/me`);
+  }
+
   createDoctor(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/doctors`, data);
   }
