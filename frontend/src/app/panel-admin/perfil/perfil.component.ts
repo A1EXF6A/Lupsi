@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth';
@@ -51,26 +51,33 @@ import { UsersService, User } from '../../core/services/users.service';
         
         <!-- Info placeholder -->
         <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 flex flex-col justify-center items-center text-center relative overflow-hidden">
-           <div *ngIf="isLoading" class="absolute inset-0 bg-slate-50/80 backdrop-blur-sm flex items-center justify-center z-10">
+           <div *ngIf="isLoading()" class="absolute inset-0 bg-slate-50/80 backdrop-blur-sm flex items-center justify-center z-10">
              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-600"></div>
            </div>
-           <div class="w-24 h-24 bg-gradient-to-tr from-green-400 to-indigo-500 rounded-full shadow-lg mb-4 flex items-center justify-center text-white text-3xl font-bold">
-             {{ userProfile?.first_name?.charAt(0) || 'A' }}{{ userProfile?.last_name?.charAt(0) || '' }}
+
+           <ng-container *ngIf="userProfile() as profile">
+             <div class="w-24 h-24 bg-gradient-to-tr from-green-400 to-indigo-500 rounded-full shadow-lg mb-4 flex items-center justify-center text-white text-3xl font-bold">
+               {{ profile.first_name?.charAt(0) || 'A' }}{{ profile.last_name?.charAt(0) || '' }}
+             </div>
+             <h3 class="text-xl font-bold text-slate-800">{{ profile.first_name || 'Administrador' }} {{ profile.last_name || 'Lupsi' }}</h3>
+             <p class="text-sm text-slate-500 mt-1">{{ profile.email || 'Sin correo' }}</p>
+             <span class="mt-3 px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full">Rol: {{ profile.role || 'ADMIN' }}</span>
+           </ng-container>
+
+           <div *ngIf="!isLoading() && !userProfile()" class="text-slate-400 text-sm italic">
+              No se pudo cargar la información.
            </div>
-           <h3 class="text-xl font-bold text-slate-800">{{ userProfile?.first_name || 'Administrador' }} {{ userProfile?.last_name || 'Lupsi' }}</h3>
-           <p class="text-sm text-slate-500 mt-1">{{ userProfile?.email || 'Cargando correo...' }}</p>
-           <span class="mt-3 px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full">Rol: {{ userProfile?.role || 'ADMIN' }}</span>
         </div>
       </div>
     </div>
   `
 })
-export class PerfilAdminComponent {
+export class PerfilAdminComponent implements OnInit {
   authService = inject(AuthService);
   usersService = inject(UsersService);
 
-  userProfile: User | null = null;
-  isLoading = true;
+  userProfile = signal<User | null>(null);
+  isLoading = signal<boolean>(true);
 
   passwords = {
     current_password: '',
@@ -82,14 +89,23 @@ export class PerfilAdminComponent {
   errorMsg = '';
 
   ngOnInit() {
+    this.isLoading.set(true);
+    this.errorMsg = '';
+
     this.usersService.getMe().subscribe({
       next: (user) => {
-        this.userProfile = user;
-        this.isLoading = false;
+        if (user) {
+          this.userProfile.set(user);
+          console.log('[PerfilAdmin] Signal actualizado con:', user.email);
+        } else {
+          this.errorMsg = 'No se recibió información del perfil.';
+        }
+        this.isLoading.set(false);
       },
       error: (err) => {
-        console.error('Error cargando perfil:', err);
-        this.isLoading = false;
+        console.error('[PerfilAdmin] Error al cargar perfil:', err);
+        this.errorMsg = 'Error de conexión. Reintenta más tarde.';
+        this.isLoading.set(false);
       }
     });
   }

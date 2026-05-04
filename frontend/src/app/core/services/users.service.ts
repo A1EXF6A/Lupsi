@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, retry, timeout, catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface User {
@@ -24,7 +24,14 @@ export class UsersService {
   }
 
   getMe(): Observable<User> {
-    return this.http.get<User>(`${this.apiUrl}/me`);
+    return this.http.get<User>(`${this.apiUrl}/me`).pipe(
+      timeout(4000), // Reducido a 4 segundos para un reintento más ágil
+      retry(1),      // Reintentar una vez si falla o tarda
+      catchError(err => {
+        console.error('[UsersService] Error definitivo en getMe después de reintento:', err);
+        return throwError(() => err);
+      })
+    );
   }
 
   createDoctor(data: any): Observable<any> {
