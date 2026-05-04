@@ -82,10 +82,10 @@ import { UsersService } from '../../core/services/users.service';
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button (click)="deleteDoctor(doc.id)" class="text-slate-400 hover:text-red-500 transition-colors mx-1" title="Eliminar">
+                <button (click)="openModal()" class="text-slate-400 hover:text-blue-600 transition-colors mx-1" title="Editar">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M18 6 6 18" />
-                    <path d="m6 6 12 12" />
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
                   </svg>
                 </button>
               </td>
@@ -236,18 +236,5 @@ export class DoctoresListComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
-  }
-
-  deleteDoctor(id: string) {
-    if (confirm('¿Está seguro de que desea eliminar a este profesional? Esta acción no se puede deshacer.')) {
-      this.usersService.deleteUser(id).subscribe({
-        next: () => this.loadData(),
-        error: (err) => {
-          console.error('Error deleting doctor', err);
-          this.errorMessage = err.error?.message || 'Error al eliminar el doctor';
-          this.cdr.detectChanges();
-        }
-      });
-    }
   }
 }

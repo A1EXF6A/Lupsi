@@ -50,8 +50,9 @@ import { CatalogsService, AppointmentType } from '../../core/services/catalogs.s
           <thead class="bg-slate-50 border-b border-slate-100 text-slate-400 font-bold uppercase text-xs tracking-wider">
             <tr>
               <th scope="col" class="px-6 py-4">ID</th>
-              <th scope="col" class="px-6 py-4">Nombre Tipo de Cita</th>
-              <th scope="col" class="px-6 py-4 text-center">Duración (Mins)</th>
+              <th scope="col" class="px-6 py-4">Nombre</th>
+              <th scope="col" class="px-6 py-4">Descripción</th>
+              <th scope="col" class="px-6 py-4 text-center">Duración (min)</th>
               <th scope="col" class="px-6 py-4 text-right">Acciones</th>
             </tr>
           </thead>
@@ -59,13 +60,10 @@ import { CatalogsService, AppointmentType } from '../../core/services/catalogs.s
             <tr *ngFor="let item of filteredTypes" class="hover:bg-slate-50 transition-colors">
               <td class="px-6 py-4 whitespace-nowrap font-bold text-slate-500">{{ item.id }}</td>
               <td class="px-6 py-4 whitespace-nowrap font-bold text-slate-800">{{ item.name }}</td>
+              <td class="px-6 py-4 text-slate-500">{{ item.description }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-center">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="12 6 12 12 16 14" />
-                  </svg>
-                  {{ item.durationMinutes }} min
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700">
+                  {{ item.duration_minutes }} min
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -84,7 +82,7 @@ import { CatalogsService, AppointmentType } from '../../core/services/catalogs.s
               </td>
             </tr>
             <tr *ngIf="filteredTypes.length === 0">
-              <td colspan="4" class="px-6 py-8 text-center text-slate-500">
+              <td colspan="5" class="px-6 py-8 text-center text-slate-500">
                 No se encontraron tipos de cita.
               </td>
             </tr>
@@ -105,12 +103,16 @@ import { CatalogsService, AppointmentType } from '../../core/services/catalogs.s
         
         <form (ngSubmit)="saveAppointmentType()" class="p-6 space-y-4">
           <div>
-            <label class="block text-xs font-bold text-slate-500 mb-1">Nombre del Tipo</label>
+            <label class="block text-xs font-bold text-slate-500 mb-1">Nombre</label>
             <input type="text" [(ngModel)]="formData.name" name="name" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
           </div>
           <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">Descripción</label>
+            <textarea [(ngModel)]="formData.description" name="description" rows="3" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"></textarea>
+          </div>
+          <div>
             <label class="block text-xs font-bold text-slate-500 mb-1">Duración (minutos)</label>
-            <input type="number" [(ngModel)]="formData.durationMinutes" name="durationMinutes" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+            <input type="number" [(ngModel)]="formData.duration_minutes" name="duration_minutes" required min="5" step="5" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
           </div>
           
           <div class="pt-4 flex gap-3">
@@ -149,7 +151,8 @@ export class TiposCitaListComponent implements OnInit {
 
   formData = {
     name: '',
-    durationMinutes: 30
+    description: '',
+    duration_minutes: 30
   };
 
   ngOnInit() {
@@ -177,11 +180,11 @@ export class TiposCitaListComponent implements OnInit {
     if (item) {
       this.isEditing = true;
       this.selectedId = item.id;
-      this.formData = { name: item.name, durationMinutes: item.durationMinutes || 30 };
+      this.formData = { name: item.name, description: item.description || '', duration_minutes: item.duration_minutes || 30 };
     } else {
       this.isEditing = false;
       this.selectedId = null;
-      this.formData = { name: '', durationMinutes: 30 };
+      this.formData = { name: '', description: '', duration_minutes: 30 };
     }
     this.showModal = true;
   }
@@ -191,7 +194,7 @@ export class TiposCitaListComponent implements OnInit {
   }
 
   saveAppointmentType() {
-    if (!this.formData.name || !this.formData.durationMinutes) return;
+    if (!this.formData.name || !this.formData.duration_minutes) return;
     this.isSaving = true;
 
     if (this.isEditing && this.selectedId) {

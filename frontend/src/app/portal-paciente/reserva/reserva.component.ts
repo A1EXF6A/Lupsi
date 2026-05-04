@@ -158,7 +158,7 @@ import { AuthService } from '../../core/services/auth';
                 [class.text-green-100]="selectedAppointmentType?.id === type.id"
                 [class.text-slate-400]="selectedAppointmentType?.id !== type.id"
               >
-                Duración: {{ type.durationMinutes }} min
+                Duración: {{ type.duration_minutes }} min
               </div>
             </button>
           </div>

@@ -21,7 +21,8 @@ export interface Specialty {
 export interface AppointmentType {
   id: string;
   name: string;
-  durationMinutes: number;
+  description: string;
+  duration_minutes: number;
 }
 
 export interface Office {
