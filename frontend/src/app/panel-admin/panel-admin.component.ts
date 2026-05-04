@@ -301,7 +301,19 @@ import { AuthService } from '../core/services/auth';
           </a>
         </nav>
 
-        <div class="p-4 border-t border-slate-800">
+        <div class="p-4 border-t border-slate-800 space-y-2">
+          <a
+            (click)="onLinkClick()"
+            routerLink="perfil"
+            routerLinkActive="bg-slate-800 text-white"
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition-colors font-medium"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            Mi Perfil
+          </a>
           <button
             (click)="logout()"
             class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors font-medium"

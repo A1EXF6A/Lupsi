@@ -46,7 +46,7 @@ import { ClinicalHistoryService, ClinicalHistory } from '../../core/services/cli
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-50">
-            <tr *ngFor="let record of filteredHistories" class="hover:bg-slate-50 transition-colors">
+            <tr *ngFor="let record of filteredHistories | slice:0:visibleCount; let i = index" class="hover:bg-slate-50 transition-colors animate-fade-in-up" [style.animation-delay.ms]="i * 50">
               <td class="px-6 py-4 whitespace-nowrap font-medium text-slate-800">{{ record.id | slice:0:8 }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-slate-500">{{ record.patient_id | slice:0:8 }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-slate-500">{{ record.doctor_id | slice:0:8 }}</td>
@@ -59,6 +59,16 @@ import { ClinicalHistoryService, ClinicalHistory } from '../../core/services/cli
             </tr>
           </tbody>
         </table>
+
+        <!-- Paginación local -->
+        <div *ngIf="filteredHistories.length > visibleCount" class="p-6 border-t border-slate-100 flex justify-center">
+          <button (click)="loadMore()" class="px-5 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-600 text-sm font-bold rounded-xl transition-colors border border-slate-200 shadow-sm flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+            Mostrar más fichas
+          </button>
+        </div>
       </div>
     </div>
   `,
@@ -72,6 +82,7 @@ export class HistorialesListComponent implements OnInit {
   errorMessage = '';
 
   searchTerm = '';
+  visibleCount = 10;
   
   get filteredHistories() {
     if (!this.searchTerm) return this.histories;
@@ -85,6 +96,10 @@ export class HistorialesListComponent implements OnInit {
 
   ngOnInit() {
     this.loadData();
+  }
+
+  loadMore() {
+    this.visibleCount += 10;
   }
 
   loadData() {

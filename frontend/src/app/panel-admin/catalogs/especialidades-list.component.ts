@@ -49,14 +49,13 @@ import { CatalogsService, Specialty } from '../../core/services/catalogs.service
         <table *ngIf="!isLoading && !errorMessage" class="w-full text-left text-sm text-slate-600">
           <thead class="bg-slate-50 border-b border-slate-100 text-slate-400 font-bold uppercase text-xs tracking-wider">
             <tr>
-              <th scope="col" class="px-6 py-4">ID</th>
               <th scope="col" class="px-6 py-4">Nombre de Especialidad</th>
               <th scope="col" class="px-6 py-4">Descripción</th>
               <th scope="col" class="px-6 py-4 text-right">Acciones</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-50">
-            <tr *ngFor="let item of filteredSpecialties" class="hover:bg-slate-50 transition-colors">
+            <tr *ngFor="let item of filteredSpecialties | slice:0:visibleCount; let i = index" class="hover:bg-slate-50 transition-colors animate-fade-in-up" [style.animation-delay.ms]="i * 50">
               <td class="px-6 py-4 whitespace-nowrap font-bold text-slate-800">{{ item.name }}</td>
               <td class="px-6 py-4 text-slate-500">{{ item.description }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -81,6 +80,16 @@ import { CatalogsService, Specialty } from '../../core/services/catalogs.service
             </tr>
           </tbody>
         </table>
+
+        <!-- Paginación local -->
+        <div *ngIf="filteredSpecialties.length > visibleCount" class="p-6 border-t border-slate-100 flex justify-center">
+          <button (click)="loadMore()" class="px-5 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-600 text-sm font-bold rounded-xl transition-colors border border-slate-200 shadow-sm flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+            Mostrar más especialidades
+          </button>
+        </div>
       </div>
     </div>
 
@@ -128,6 +137,7 @@ export class EspecialidadesListComponent implements OnInit {
   isSaving = false;
   selectedId: string | null = null;
   searchTerm = '';
+  visibleCount = 10;
   
   get filteredSpecialties() {
     if (!this.searchTerm) return this.specialties;
@@ -145,6 +155,10 @@ export class EspecialidadesListComponent implements OnInit {
 
   ngOnInit() {
     this.loadData();
+  }
+
+  loadMore() {
+    this.visibleCount += 10;
   }
 
   loadData() {

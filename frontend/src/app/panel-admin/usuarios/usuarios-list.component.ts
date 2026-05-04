@@ -46,7 +46,7 @@ import { UsersService, User } from '../../core/services/users.service';
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-50">
-            <tr *ngFor="let user of filteredUsers" class="hover:bg-slate-50 transition-colors">
+            <tr *ngFor="let user of filteredUsers | slice:0:visibleCount; let i = index" class="hover:bg-slate-50 transition-colors animate-fade-in-up" [style.animation-delay.ms]="i * 50">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 font-bold flex items-center justify-center">
@@ -80,6 +80,16 @@ import { UsersService, User } from '../../core/services/users.service';
             </tr>
           </tbody>
         </table>
+
+        <!-- Paginación local -->
+        <div *ngIf="filteredUsers.length > visibleCount" class="p-6 border-t border-slate-100 flex justify-center">
+          <button (click)="loadMore()" class="px-5 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-600 text-sm font-bold rounded-xl transition-colors border border-slate-200 shadow-sm flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+            Mostrar más usuarios
+          </button>
+        </div>
       </div>
     </div>
   `,
@@ -92,6 +102,7 @@ export class UsuariosListComponent implements OnInit {
   isLoading = true;
   errorMessage = '';
   searchTerm = '';
+  visibleCount = 10;
 
   get filteredUsers() {
     if (!this.searchTerm) return this.users;
@@ -105,6 +116,10 @@ export class UsuariosListComponent implements OnInit {
 
   ngOnInit() {
     this.loadData();
+  }
+
+  loadMore() {
+    this.visibleCount += 10;
   }
 
   loadData() {

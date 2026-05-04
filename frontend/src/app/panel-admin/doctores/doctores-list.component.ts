@@ -53,11 +53,10 @@ import { UsersService } from '../../core/services/users.service';
               <th scope="col" class="px-6 py-4">Profesional</th>
               <th scope="col" class="px-6 py-4">Especialidad</th>
               <th scope="col" class="px-6 py-4 text-center">Estado</th>
-              <th scope="col" class="px-6 py-4 text-right">Acciones</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-50">
-            <tr *ngFor="let doc of filteredDoctors" class="hover:bg-slate-50 transition-colors">
+            <tr *ngFor="let doc of filteredDoctors | slice:0:visibleCount; let i = index" class="hover:bg-slate-50 transition-colors animate-fade-in-up" [style.animation-delay.ms]="i * 50">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center gap-4">
                   <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center">
@@ -81,22 +80,24 @@ import { UsersService } from '../../core/services/users.service';
                   <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Activo
                 </span>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button (click)="openModal()" class="text-slate-400 hover:text-blue-600 transition-colors mx-1" title="Editar">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 20h9" />
-                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                  </svg>
-                </button>
-              </td>
             </tr>
             <tr *ngIf="filteredDoctors.length === 0">
-              <td colspan="4" class="px-6 py-8 text-center text-slate-500">
+              <td colspan="3" class="px-6 py-8 text-center text-slate-500">
                 No se encontraron doctores registrados.
               </td>
             </tr>
           </tbody>
         </table>
+
+        <!-- Paginación local -->
+        <div *ngIf="filteredDoctors.length > visibleCount" class="p-6 border-t border-slate-100 flex justify-center">
+          <button (click)="loadMore()" class="px-5 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-600 text-sm font-bold rounded-xl transition-colors border border-slate-200 shadow-sm flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+            Mostrar más doctores
+          </button>
+        </div>
       </div>
     </div>
 
@@ -161,6 +162,7 @@ export class DoctoresListComponent implements OnInit {
 
   showModal = false;
   searchTerm = '';
+  visibleCount = 10;
   
   get filteredDoctors() {
     if (!this.searchTerm) return this.doctors;
@@ -182,6 +184,10 @@ export class DoctoresListComponent implements OnInit {
 
   ngOnInit() {
     this.loadData();
+  }
+
+  loadMore() {
+    this.visibleCount += 10;
   }
 
   loadData() {

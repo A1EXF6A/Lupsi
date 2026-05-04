@@ -49,7 +49,6 @@ import { CatalogsService, AppointmentType } from '../../core/services/catalogs.s
         <table *ngIf="!isLoading && !errorMessage" class="w-full text-left text-sm text-slate-600">
           <thead class="bg-slate-50 border-b border-slate-100 text-slate-400 font-bold uppercase text-xs tracking-wider">
             <tr>
-              <th scope="col" class="px-6 py-4">ID</th>
               <th scope="col" class="px-6 py-4">Nombre</th>
               <th scope="col" class="px-6 py-4">Descripción</th>
               <th scope="col" class="px-6 py-4 text-center">Duración (min)</th>
@@ -57,8 +56,7 @@ import { CatalogsService, AppointmentType } from '../../core/services/catalogs.s
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-50">
-            <tr *ngFor="let item of filteredTypes" class="hover:bg-slate-50 transition-colors">
-              <td class="px-6 py-4 whitespace-nowrap font-bold text-slate-500">{{ item.id }}</td>
+            <tr *ngFor="let item of filteredTypes | slice:0:visibleCount; let i = index" class="hover:bg-slate-50 transition-colors animate-fade-in-up" [style.animation-delay.ms]="i * 50">
               <td class="px-6 py-4 whitespace-nowrap font-bold text-slate-800">{{ item.name }}</td>
               <td class="px-6 py-4 text-slate-500">{{ item.description }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-center">
@@ -82,12 +80,22 @@ import { CatalogsService, AppointmentType } from '../../core/services/catalogs.s
               </td>
             </tr>
             <tr *ngIf="filteredTypes.length === 0">
-              <td colspan="5" class="px-6 py-8 text-center text-slate-500">
+              <td colspan="4" class="px-6 py-8 text-center text-slate-500">
                 No se encontraron tipos de cita.
               </td>
             </tr>
           </tbody>
         </table>
+
+        <!-- Paginación local -->
+        <div *ngIf="filteredTypes.length > visibleCount" class="p-6 border-t border-slate-100 flex justify-center">
+          <button (click)="loadMore()" class="px-5 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-600 text-sm font-bold rounded-xl transition-colors border border-slate-200 shadow-sm flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+            Mostrar más tipos de cita
+          </button>
+        </div>
       </div>
     </div>
 
@@ -139,6 +147,7 @@ export class TiposCitaListComponent implements OnInit {
   isSaving = false;
   selectedId: string | null = null;
   searchTerm = '';
+  visibleCount = 10;
 
   get filteredTypes() {
     if (!this.searchTerm) return this.types;
@@ -157,6 +166,10 @@ export class TiposCitaListComponent implements OnInit {
 
   ngOnInit() {
     this.loadData();
+  }
+
+  loadMore() {
+    this.visibleCount += 10;
   }
 
   loadData() {

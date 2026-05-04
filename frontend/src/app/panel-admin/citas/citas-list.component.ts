@@ -54,7 +54,7 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-50">
-            <tr *ngFor="let app of filteredAppointments" class="hover:bg-slate-50 transition-colors">
+            <tr *ngFor="let app of filteredAppointments | slice:0:visibleCount; let i = index" class="hover:bg-slate-50 transition-colors animate-fade-in-up" [style.animation-delay.ms]="i * 50">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="font-bold text-slate-800">{{ app.appointment_time | date:'mediumDate' }}</div>
                 <div class="text-xs text-slate-500">{{ app.appointment_time | date:'shortTime' }} - {{ app.appointment_end_time | date:'shortTime' }}</div>
@@ -115,6 +115,16 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
             </tr>
           </tbody>
         </table>
+
+        <!-- Paginación local -->
+        <div *ngIf="filteredAppointments.length > visibleCount" class="p-6 border-t border-slate-100 flex justify-center">
+          <button (click)="loadMore()" class="px-5 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-600 text-sm font-bold rounded-xl transition-colors border border-slate-200 shadow-sm flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+            Mostrar más resultados
+          </button>
+        </div>
       </div>
     </div>
 
@@ -197,7 +207,8 @@ export class CitasListComponent implements OnInit {
   appointments: Appointment[] = [];
   isLoading = true;
   errorMessage = '';
-  filterDate = '';
+  filterDate = new Date().toISOString().split('T')[0];
+  visibleCount = 10;
 
   showModal = false;
   isSaving = false;
@@ -223,6 +234,10 @@ export class CitasListComponent implements OnInit {
 
   ngOnInit() {
     this.loadAppointments();
+  }
+
+  loadMore() {
+    this.visibleCount += 10;
   }
 
   loadAppointments() {

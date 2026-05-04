@@ -138,7 +138,7 @@ export class AgendaDiariaComponent implements OnInit {
     });
 
     if (this.selectedDoctor) {
-      filtered = filtered.filter(app => app.doctor_id === this.selectedDoctor);
+      filtered = filtered.filter(app => app.doctor_id === this.selectedDoctor || app.doctors?.id === this.selectedDoctor);
     }
     
     // Sort by time
