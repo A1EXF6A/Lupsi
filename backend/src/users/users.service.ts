@@ -93,4 +93,62 @@ export class UsersService {
 
     return data;
   }
+
+  async remove(id: string) {
+    const supabase = this.supabaseService.getClient();
+    // Delete from Supabase Auth (this should cascade to profiles, doctors, patients if configured)
+    // If not cascading, we should manually delete from profiles, etc.
+    // Auth deletion requires service role key (admin) which our SupabaseService has.
+    const { error } = await supabase.auth.admin.deleteUser(id);
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error deleting user: ${error.message}`,
+      );
+    }
+    return { message: 'Usuario eliminado' };
+  }
+
+  async createDoctor(dto: any) {
+    const supabase = this.supabaseService.getClient();
+    
+    // 1. Create user in Auth
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      email: dto.email,
+      password: dto.password,
+      email_confirm: true,
+    });
+
+    if (authError) {
+      throw new InternalServerErrorException(`Error creating user auth: ${authError.message}`);
+    }
+
+    const userId = authData.user.id;
+
+    // 2. Create Profile
+    const { error: profileError } = await supabase.from('profiles').insert([{
+      id: userId,
+      role: 'DOCTOR',
+      email: dto.email,
+      first_name: dto.first_name,
+      last_name: dto.last_name,
+    }]);
+
+    if (profileError) {
+      await supabase.auth.admin.deleteUser(userId);
+      throw new InternalServerErrorException(`Error creating profile: ${profileError.message}`);
+    }
+
+    // 3. Create Doctor record
+    const { error: doctorError } = await supabase.from('doctors').insert([{
+      id: userId,
+      specialty: dto.specialty || 'General',
+    }]);
+
+    if (doctorError) {
+      await supabase.auth.admin.deleteUser(userId);
+      throw new InternalServerErrorException(`Error creating doctor: ${doctorError.message}`);
+    }
+
+    return { message: 'Doctor creado exitosamente', id: userId };
+  }
 }

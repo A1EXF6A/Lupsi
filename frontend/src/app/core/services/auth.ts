@@ -76,4 +76,8 @@ export class AuthService {
     this.currentUserToken.set(null);
     this.currentUserRole.set(null);
   }
+
+  changePassword(payload: { current_password: string; new_password: string; access_token: string }): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/change-password`, payload);
+  }
 }

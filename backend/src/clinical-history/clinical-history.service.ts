@@ -10,17 +10,21 @@ import {
 export class ClinicalHistoryService {
   constructor(private readonly supabaseService: SupabaseService) {}
 
-  async findByPatient(patientId: string): Promise<MedicalRecord[]> {
+  async findByPatient(patientId?: string): Promise<MedicalRecord[]> {
     const supabase = this.supabaseService.getClient();
-    const { data, error } = await supabase
+    let query = supabase
       .from('medical_records')
       .select(
         'id, patient_id, doctor_id, appointment_id, document_url, diagnosis, is_deleted',
       )
-      .eq('patient_id', patientId)
       .eq('is_deleted', false)
-      .order('created_at', { ascending: false })
-      .returns<MedicalRecord[]>();
+      .order('created_at', { ascending: false });
+
+    if (patientId) {
+      query = query.eq('patient_id', patientId);
+    }
+
+    const { data, error } = await query.returns<MedicalRecord[]>();
 
     if (error) {
       throw new InternalServerErrorException(

@@ -14,6 +14,9 @@ import { TiposCitaListComponent } from './panel-admin/catalogs/tipos-cita-list.c
 import { OficinasListComponent } from './panel-admin/catalogs/oficinas-list.component';
 import { AgendaDiariaComponent } from './panel-admin/agenda-diaria/agenda-diaria.component';
 
+import { HistorialMedicoComponent } from './portal-paciente/historial-medico/historial-medico.component';
+import { PerfilPacienteComponent } from './portal-paciente/perfil/perfil.component';
+
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'register', component: Register },
@@ -27,6 +30,8 @@ export const routes: Routes = [
       { path: '', redirectTo: 'mis-citas', pathMatch: 'full' },
       { path: 'mis-citas', component: MisCitasComponent },
       { path: 'reserva', component: ReservaComponent },
+      { path: 'historial-medico', component: HistorialMedicoComponent },
+      { path: 'perfil', component: PerfilPacienteComponent },
     ],
   },
   {
@@ -41,6 +46,8 @@ export const routes: Routes = [
       { path: 'tipos-cita', component: TiposCitaListComponent },
       { path: 'oficinas', component: OficinasListComponent },
       { path: 'agenda', component: AgendaDiariaComponent },
+      { path: 'citas', loadComponent: () => import('./panel-admin/citas/citas-list.component').then(m => m.CitasListComponent) },
+      { path: 'historiales', loadComponent: () => import('./panel-admin/historiales/historiales-list.component').then(m => m.HistorialesListComponent) },
     ],
   },
 ];

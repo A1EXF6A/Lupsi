@@ -21,7 +21,7 @@ export class ClinicalHistoryController {
   ) {}
 
   @Get()
-  getByPatient(@Query('patientId') patientId: string) {
+  getByPatient(@Query('patientId') patientId?: string) {
     return this.clinicalHistoryService.findByPatient(patientId);
   }
 

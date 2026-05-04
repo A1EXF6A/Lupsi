@@ -55,6 +55,20 @@ import { AuthService } from '../core/services/auth';
             >
               Agendar Cita
             </a>
+            <a
+              routerLink="historial-medico"
+              routerLinkActive="bg-green-50 text-green-700 font-bold border-green-200"
+              class="px-4 py-2 text-sm font-medium text-slate-500 rounded-xl hover:bg-slate-100 transition-colors border border-transparent"
+            >
+              Historial Médico
+            </a>
+            <a
+              routerLink="perfil"
+              routerLinkActive="bg-green-50 text-green-700 font-bold border-green-200"
+              class="px-4 py-2 text-sm font-medium text-slate-500 rounded-xl hover:bg-slate-100 transition-colors border border-transparent"
+            >
+              Mi Perfil
+            </a>
             <div class="h-6 w-px bg-slate-200 mx-1"></div>
             <button
               (click)="logout()"
