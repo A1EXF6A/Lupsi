@@ -14,6 +14,8 @@ import { LoginDto } from './dto/login.dto';
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
+  private static readonly defaultRole = 'PATIENT';
+
   constructor(
     private readonly supabaseService: SupabaseService,
     private readonly idValidator: EcuadorianIdValidatorService,
@@ -117,19 +119,34 @@ export class AuthService {
       message: 'Registro exitoso. Bienvenido a LUPSI.',
       userId: userId,
       session: loginResult.session,
+      role: loginResult.role,
     };
   }
 
   /**
    * Login Estándar
    */
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto): Promise<{
+    message: string;
+    session: unknown;
+    userId: string;
+    role: string;
+  }> {
     const supabase = this.supabaseService.getClient();
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data, error } = (await supabase.auth.signInWithPassword({
       email: dto.email,
       password: dto.password,
-    });
+    })) as {
+      data: {
+        user: {
+          id: string;
+          app_metadata?: { role?: string };
+        };
+        session: unknown;
+      };
+      error: { message: string } | null;
+    };
 
     if (error) {
       this.logger.warn(
@@ -138,11 +155,82 @@ export class AuthService {
       throw new BadRequestException('Credenciales inválidas.');
     }
 
-    // Opcional: Obtener perfil para devolver el ROL en la respuesta, pero el JWT ya lo puede interceptar luego.
+    // Obtener perfil para devolver el ROL en la respuesta
+    const { data: profile } = (await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .single()) as { data: { role?: string } | null };
+
+    const role =
+      profile?.role || data.user.app_metadata?.role || AuthService.defaultRole;
+
     return {
       message: 'Autenticación exitosa',
       session: data.session,
       userId: data.user.id,
+      role: role,
     };
+  }
+
+  async changePassword(
+    accessToken: string,
+    currentPassword: string,
+    newPassword: string,
+  ) {
+    const supabase = this.supabaseService.getClient();
+
+    const { data: userData, error: userError } = (await supabase.auth.getUser(
+      accessToken,
+    )) as {
+      data: { user: { id: string; email?: string | null } | null };
+      error: { message: string } | null;
+    };
+
+    if (userError || !userData?.user) {
+      throw new BadRequestException('Token inválido o sesión expirada.');
+    }
+
+    const email = userData.user.email;
+    if (!email) {
+      throw new BadRequestException('No se pudo determinar el usuario.');
+    }
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password: currentPassword,
+    });
+
+    if (signInError) {
+      throw new BadRequestException('La contraseña actual no es correcta.');
+    }
+
+    const { error: updateError } = await supabase.auth.admin.updateUserById(
+      userData.user.id,
+      {
+        password: newPassword,
+      },
+    );
+
+    if (updateError) {
+      throw new InternalServerErrorException(
+        `Error al actualizar contraseña: ${updateError.message}`,
+      );
+    }
+
+    return { message: 'Contraseña actualizada con éxito.' };
+  }
+
+  async requestPasswordRecovery(email: string) {
+    const supabase = this.supabaseService.getClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error al solicitar recuperación: ${error.message}`,
+      );
+    }
+
+    return { message: 'Se envió un correo para recuperar la contraseña.' };
   }
 }

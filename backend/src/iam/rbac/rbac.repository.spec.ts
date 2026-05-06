@@ -15,7 +15,10 @@ describe('RbacRepository', () => {
 
   it('should allow patient permissions for own appointments', () => {
     expect(
-      repository.hasPermission(UserRole.PATIENT, Permission.APPOINTMENTS_CREATE),
+      repository.hasPermission(
+        UserRole.PATIENT,
+        Permission.APPOINTMENTS_CREATE,
+      ),
     ).toBe(true);
     expect(
       repository.hasPermission(
@@ -27,7 +30,10 @@ describe('RbacRepository', () => {
 
   it('should deny patient access to read all appointments', () => {
     expect(
-      repository.hasPermission(UserRole.PATIENT, Permission.APPOINTMENTS_READ_ALL),
+      repository.hasPermission(
+        UserRole.PATIENT,
+        Permission.APPOINTMENTS_READ_ALL,
+      ),
     ).toBe(false);
   });
 

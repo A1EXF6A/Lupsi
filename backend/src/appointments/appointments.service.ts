@@ -11,6 +11,14 @@ import {
   Patient,
   Doctor,
   Profile,
+  AppointmentBase,
+  AvailableSlot,
+} from '../database/interfaces/database.interfaces';
+import { UpdateAppointmentDto } from './dto/update-appointment.dto';
+import {
+  AppointmentPayment,
+  AppointmentReminder,
+  Prescription,
 } from '../database/interfaces/database.interfaces';
 
 @Injectable()
@@ -33,6 +41,8 @@ export class AppointmentsService {
           appointment_time: startTime.toISOString(),
           appointment_end_time: endTime.toISOString(),
           status: 'SCHEDULED',
+          arrived: false,
+          paid: false,
         },
       ])
       .select()
@@ -59,14 +69,21 @@ export class AppointmentsService {
     date?: string,
   ): Promise<AppointmentWithDetails[]> {
     const supabase = this.supabaseService.getClient();
-    let query = supabase.from('appointments').select(`
+    let query = supabase
+      .from('appointments')
+      .select(
+        `
       id,
       patient_id,
       doctor_id,
       appointment_time,
       appointment_end_time,
-      status
-    `);
+      status,
+      arrived,
+      paid
+    `,
+      )
+      .eq('is_deleted', false);
 
     // El supabase client está configurado con service_role.
     // Aplicamos los filtros manualmente basados en el rol.
@@ -137,6 +154,8 @@ export class AppointmentsService {
         appointment_time: app.appointment_time,
         appointment_end_time: app.appointment_end_time,
         status: app.status,
+        arrived: app.arrived,
+        paid: app.paid,
         patients: {
           id: app.patient_id,
           first_name: pProfile?.first_name || '',
@@ -168,6 +187,7 @@ export class AppointmentsService {
       .select('appointment_time, appointment_end_time')
       .eq('doctor_id', doctorId)
       .eq('status', 'SCHEDULED')
+      .eq('is_deleted', false)
       .gte('appointment_time', startDate.toISOString())
       .lte('appointment_time', endDate.toISOString())
       .returns<Partial<Appointment>[]>();
@@ -213,5 +233,450 @@ export class AppointmentsService {
     }
 
     return slots;
+  }
+
+  async updateAppointment(
+    id: string,
+    dto: UpdateAppointmentDto,
+  ): Promise<AppointmentBase> {
+    const supabase = this.supabaseService.getClient();
+    const updates: Partial<AppointmentBase> = {};
+
+    if (dto.doctor_id !== undefined) {
+      updates.doctor_id = dto.doctor_id;
+    }
+    if (dto.appointment_time !== undefined) {
+      const startTime = new Date(dto.appointment_time);
+      const endTime = new Date(startTime.getTime() + 30 * 60000);
+      updates.appointment_time = startTime.toISOString();
+      updates.appointment_end_time = endTime.toISOString();
+    }
+    if (dto.status !== undefined) {
+      updates.status = dto.status;
+    }
+    if (dto.arrived !== undefined) {
+      updates.arrived = dto.arrived;
+    }
+    if (dto.paid !== undefined) {
+      updates.paid = dto.paid;
+    }
+
+    const { data, error } = await supabase
+      .from('appointments')
+      .update(updates)
+      .eq('id', id)
+      .eq('is_deleted', false)
+      .select(
+        'id, patient_id, doctor_id, appointment_time, appointment_end_time, status, arrived, paid, is_deleted',
+      )
+      .single<AppointmentBase>();
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error al actualizar cita: ${error.message}`,
+      );
+    }
+
+    return data;
+  }
+
+  async deleteAppointment(id: string): Promise<void> {
+    const supabase = this.supabaseService.getClient();
+    const { error } = await supabase
+      .from('appointments')
+      .update({
+        is_deleted: true,
+        deleted_at: new Date().toISOString(),
+      })
+      .eq('id', id);
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error al eliminar cita: ${error.message}`,
+      );
+    }
+  }
+
+  async createAvailableSlot(
+    doctorId: string,
+    startTime: string,
+    endTime: string,
+  ): Promise<AvailableSlot> {
+    const supabase = this.supabaseService.getClient();
+    const { data, error } = await supabase
+      .from('available_slots')
+      .insert([
+        {
+          doctor_id: doctorId,
+          start_time: startTime,
+          end_time: endTime,
+        },
+      ])
+      .select('id, doctor_id, start_time, end_time, is_deleted')
+      .single<AvailableSlot>();
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error al crear disponibilidad: ${error.message}`,
+      );
+    }
+
+    return data;
+  }
+
+  async updateAvailableSlot(
+    id: string,
+    startTime: string,
+    endTime: string,
+  ): Promise<AvailableSlot> {
+    const supabase = this.supabaseService.getClient();
+    const { data, error } = await supabase
+      .from('available_slots')
+      .update({
+        start_time: startTime,
+        end_time: endTime,
+      })
+      .eq('id', id)
+      .eq('is_deleted', false)
+      .select('id, doctor_id, start_time, end_time, is_deleted')
+      .single<AvailableSlot>();
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error al actualizar disponibilidad: ${error.message}`,
+      );
+    }
+
+    return data;
+  }
+
+  async deleteAvailableSlot(id: string): Promise<void> {
+    const supabase = this.supabaseService.getClient();
+    const { error } = await supabase
+      .from('available_slots')
+      .update({
+        is_deleted: true,
+        deleted_at: new Date().toISOString(),
+      })
+      .eq('id', id);
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error al eliminar disponibilidad: ${error.message}`,
+      );
+    }
+  }
+
+  async getReminders(appointmentId: string): Promise<AppointmentReminder[]> {
+    const supabase = this.supabaseService.getClient();
+    const { data, error } = await supabase
+      .from('appointment_reminders')
+      .select('id, appointment_id, reminder_time, channel, status, is_deleted')
+      .eq('appointment_id', appointmentId)
+      .eq('is_deleted', false)
+      .order('reminder_time', { ascending: true })
+      .returns<AppointmentReminder[]>();
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error fetching reminders: ${error.message}`,
+      );
+    }
+
+    return data || [];
+  }
+
+  async createReminder(
+    appointmentId: string,
+    reminderTime: string,
+    channel?: string,
+    status?: string,
+  ): Promise<AppointmentReminder> {
+    const supabase = this.supabaseService.getClient();
+    const { data, error } = await supabase
+      .from('appointment_reminders')
+      .insert([
+        {
+          appointment_id: appointmentId,
+          reminder_time: reminderTime,
+          channel: channel ?? null,
+          status: status ?? 'PENDING',
+        },
+      ])
+      .select('id, appointment_id, reminder_time, channel, status, is_deleted')
+      .single<AppointmentReminder>();
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error creating reminder: ${error.message}`,
+      );
+    }
+
+    return data;
+  }
+
+  async updateReminder(
+    id: string,
+    reminderTime?: string,
+    channel?: string,
+    status?: string,
+  ): Promise<AppointmentReminder> {
+    const supabase = this.supabaseService.getClient();
+    const updates: Partial<AppointmentReminder> & { updated_at: string } = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (reminderTime !== undefined) {
+      updates.reminder_time = reminderTime;
+    }
+    if (channel !== undefined) {
+      updates.channel = channel;
+    }
+    if (status !== undefined) {
+      updates.status = status;
+    }
+
+    const { data, error } = await supabase
+      .from('appointment_reminders')
+      .update(updates)
+      .eq('id', id)
+      .eq('is_deleted', false)
+      .select('id, appointment_id, reminder_time, channel, status, is_deleted')
+      .single<AppointmentReminder>();
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error updating reminder: ${error.message}`,
+      );
+    }
+
+    return data;
+  }
+
+  async deleteReminder(id: string): Promise<void> {
+    const supabase = this.supabaseService.getClient();
+    const { error } = await supabase
+      .from('appointment_reminders')
+      .update({
+        is_deleted: true,
+        deleted_at: new Date().toISOString(),
+      })
+      .eq('id', id);
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error deleting reminder: ${error.message}`,
+      );
+    }
+  }
+
+  async getPayments(appointmentId: string): Promise<AppointmentPayment[]> {
+    const supabase = this.supabaseService.getClient();
+    const { data, error } = await supabase
+      .from('appointment_payments')
+      .select('id, appointment_id, amount, method, status, paid_at')
+      .eq('appointment_id', appointmentId)
+      .order('created_at', { ascending: false })
+      .returns<AppointmentPayment[]>();
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error fetching payments: ${error.message}`,
+      );
+    }
+
+    return data || [];
+  }
+
+  async createPayment(
+    appointmentId: string,
+    amount: number,
+    method?: string,
+    status?: string,
+    paidAt?: string,
+  ): Promise<AppointmentPayment> {
+    const supabase = this.supabaseService.getClient();
+    const { data, error } = await supabase
+      .from('appointment_payments')
+      .insert([
+        {
+          appointment_id: appointmentId,
+          amount,
+          method: method ?? null,
+          status: status ?? 'PENDING',
+          paid_at: paidAt ?? null,
+        },
+      ])
+      .select('id, appointment_id, amount, method, status, paid_at')
+      .single<AppointmentPayment>();
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error creating payment: ${error.message}`,
+      );
+    }
+
+    return data;
+  }
+
+  async updatePayment(
+    id: string,
+    amount?: number,
+    method?: string,
+    status?: string,
+    paidAt?: string,
+  ): Promise<AppointmentPayment> {
+    const supabase = this.supabaseService.getClient();
+    const updates: Partial<AppointmentPayment> & { updated_at: string } = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (amount !== undefined) {
+      updates.amount = amount;
+    }
+    if (method !== undefined) {
+      updates.method = method;
+    }
+    if (status !== undefined) {
+      updates.status = status;
+    }
+    if (paidAt !== undefined) {
+      updates.paid_at = paidAt;
+    }
+
+    const { data, error } = await supabase
+      .from('appointment_payments')
+      .update(updates)
+      .eq('id', id)
+      .select('id, appointment_id, amount, method, status, paid_at')
+      .single<AppointmentPayment>();
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error updating payment: ${error.message}`,
+      );
+    }
+
+    return data;
+  }
+
+  async deletePayment(id: string): Promise<void> {
+    const supabase = this.supabaseService.getClient();
+    const { error } = await supabase
+      .from('appointment_payments')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error deleting payment: ${error.message}`,
+      );
+    }
+  }
+
+  async getPrescription(appointmentId: string): Promise<Prescription | null> {
+    const supabase = this.supabaseService.getClient();
+    const { data, error } = await supabase
+      .from('prescriptions')
+      .select(
+        'id, appointment_id, patient_id, doctor_id, notes, medications, is_deleted',
+      )
+      .eq('appointment_id', appointmentId)
+      .eq('is_deleted', false)
+      .maybeSingle<Prescription>();
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error fetching prescription: ${error.message}`,
+      );
+    }
+
+    return data || null;
+  }
+
+  async createPrescription(
+    appointmentId: string,
+    patientId: string,
+    doctorId: string,
+    notes?: string,
+    medications?: Record<string, unknown>[],
+  ): Promise<Prescription> {
+    const supabase = this.supabaseService.getClient();
+    const { data, error } = await supabase
+      .from('prescriptions')
+      .insert([
+        {
+          appointment_id: appointmentId,
+          patient_id: patientId,
+          doctor_id: doctorId,
+          notes: notes ?? null,
+          medications: medications ?? [],
+        },
+      ])
+      .select(
+        'id, appointment_id, patient_id, doctor_id, notes, medications, is_deleted',
+      )
+      .single<Prescription>();
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error creating prescription: ${error.message}`,
+      );
+    }
+
+    return data;
+  }
+
+  async updatePrescription(
+    id: string,
+    notes?: string,
+    medications?: Record<string, unknown>[],
+  ): Promise<Prescription> {
+    const supabase = this.supabaseService.getClient();
+    const updates: Partial<Prescription> & { updated_at: string } = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (notes !== undefined) {
+      updates.notes = notes;
+    }
+    if (medications !== undefined) {
+      updates.medications = medications;
+    }
+
+    const { data, error } = await supabase
+      .from('prescriptions')
+      .update(updates)
+      .eq('id', id)
+      .eq('is_deleted', false)
+      .select(
+        'id, appointment_id, patient_id, doctor_id, notes, medications, is_deleted',
+      )
+      .single<Prescription>();
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error updating prescription: ${error.message}`,
+      );
+    }
+
+    return data;
+  }
+
+  async deletePrescription(id: string): Promise<void> {
+    const supabase = this.supabaseService.getClient();
+    const { error } = await supabase
+      .from('prescriptions')
+      .update({
+        is_deleted: true,
+        deleted_at: new Date().toISOString(),
+      })
+      .eq('id', id);
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Error deleting prescription: ${error.message}`,
+      );
+    }
   }
 }

@@ -50,7 +50,12 @@ export class Login {
     this.authService.login(this.loginForm.value).subscribe({
       next: () => {
         this.isSubmitting = false;
-        this.router.navigate(['/dashboard']);
+        const role = this.authService.currentUserRole();
+        if (role === 'PATIENT') {
+          this.router.navigate(['/portal-paciente']);
+        } else {
+          this.router.navigate(['/panel']);
+        }
       },
       error: (err) => {
         this.isSubmitting = false;

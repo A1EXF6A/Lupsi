@@ -1,4 +1,8 @@
-import { ExecutionContext, ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import {
+  ExecutionContext,
+  ForbiddenException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PermissionsGuard } from './permissions.guard';
 import { RbacRepository } from '../rbac/rbac.repository';
@@ -44,9 +48,13 @@ describe('PermissionsGuard', () => {
   });
 
   it('should throw UnauthorizedException when user role is missing', () => {
-    reflector.getAllAndOverride.mockReturnValue([Permission.APPOINTMENTS_CREATE]);
+    reflector.getAllAndOverride.mockReturnValue([
+      Permission.APPOINTMENTS_CREATE,
+    ]);
 
-    expect(() => guard.canActivate(createContext())).toThrow(UnauthorizedException);
+    expect(() => guard.canActivate(createContext())).toThrow(
+      UnauthorizedException,
+    );
   });
 
   it('should allow request when user has at least one required permission', () => {
@@ -64,7 +72,9 @@ describe('PermissionsGuard', () => {
   });
 
   it('should throw ForbiddenException when user has none of the required permissions', () => {
-    reflector.getAllAndOverride.mockReturnValue([Permission.APPOINTMENTS_READ_ALL]);
+    reflector.getAllAndOverride.mockReturnValue([
+      Permission.APPOINTMENTS_READ_ALL,
+    ]);
     rbacRepository.hasPermission.mockReturnValue(false);
 
     expect(() => guard.canActivate(createContext(UserRole.PATIENT))).toThrow(

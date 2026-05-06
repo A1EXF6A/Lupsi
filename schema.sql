@@ -109,6 +109,9 @@ CREATE TABLE public.medical_records (
     appointment_id UUID REFERENCES public.appointments(id),
     document_url VARCHAR(500) NOT NULL, -- URL estática alojada en Cloudinary
     diagnosis TEXT,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    is_deleted BOOLEAN DEFAULT FALSE,
+    deleted_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ALTER TABLE public.medical_records ENABLE ROW LEVEL SECURITY;
@@ -120,3 +123,143 @@ USING (
     auth.uid() = patient_id 
     OR auth.uid() = doctor_id
 );
+
+-- ==========================================
+-- 8. CATÁLOGOS ADMINISTRABLES
+-- ==========================================
+CREATE TABLE public.specialties (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+ALTER TABLE public.specialties ENABLE ROW LEVEL SECURITY;
+
+CREATE TABLE public.appointment_types (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(120) NOT NULL,
+    description TEXT,
+    duration_minutes INTEGER NOT NULL,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+ALTER TABLE public.appointment_types ENABLE ROW LEVEL SECURITY;
+
+CREATE TABLE public.offices (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(120) NOT NULL,
+    floor VARCHAR(120),
+    description TEXT,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+ALTER TABLE public.offices ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE public.doctors
+  ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE;
+
+-- ==========================================
+-- 9. DISPONIBILIDAD DE DOCTORES
+-- ==========================================
+CREATE TABLE public.available_slots (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    doctor_id UUID REFERENCES public.doctors(id) NOT NULL,
+    start_time TIMESTAMP WITH TIME ZONE NOT NULL,
+    end_time TIMESTAMP WITH TIME ZONE NOT NULL,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+ALTER TABLE public.available_slots ENABLE ROW LEVEL SECURITY;
+
+-- ==========================================
+-- 10. MEDICAMENTOS Y RECETAS
+-- ==========================================
+CREATE TABLE public.medications (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(150) NOT NULL,
+    description TEXT,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+ALTER TABLE public.medications ENABLE ROW LEVEL SECURITY;
+
+CREATE TABLE public.prescriptions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    appointment_id UUID REFERENCES public.appointments(id) NOT NULL,
+    patient_id UUID REFERENCES public.patients(id) NOT NULL,
+    doctor_id UUID REFERENCES public.doctors(id) NOT NULL,
+    notes TEXT,
+    medications JSONB NOT NULL DEFAULT '[]'::jsonb,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+ALTER TABLE public.prescriptions ENABLE ROW LEVEL SECURITY;
+
+-- ==========================================
+-- 11. RECORDATORIOS Y PAGOS DE CITAS
+-- ==========================================
+CREATE TABLE public.appointment_reminders (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    appointment_id UUID REFERENCES public.appointments(id) NOT NULL,
+    reminder_time TIMESTAMP WITH TIME ZONE NOT NULL,
+    channel VARCHAR(50),
+    status VARCHAR(30) DEFAULT 'PENDING',
+    is_deleted BOOLEAN DEFAULT FALSE,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+ALTER TABLE public.appointment_reminders ENABLE ROW LEVEL SECURITY;
+
+CREATE TABLE public.appointment_payments (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    appointment_id UUID REFERENCES public.appointments(id) NOT NULL,
+    amount NUMERIC(10,2) NOT NULL,
+    method VARCHAR(50),
+    status VARCHAR(30) DEFAULT 'PENDING',
+    paid_at TIMESTAMP WITH TIME ZONE,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+ALTER TABLE public.appointment_payments ENABLE ROW LEVEL SECURITY;
+
+-- ==========================================
+-- 12. FICHA DE ATENCIÓN CLÍNICA
+-- ==========================================
+CREATE TABLE public.clinical_attentions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    appointment_id UUID REFERENCES public.appointments(id) NOT NULL,
+    patient_id UUID REFERENCES public.patients(id) NOT NULL,
+    doctor_id UUID REFERENCES public.doctors(id) NOT NULL,
+    notes TEXT,
+    vitals JSONB,
+    diagnosis TEXT,
+    treatment TEXT,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+ALTER TABLE public.clinical_attentions ENABLE ROW LEVEL SECURITY;
+
+-- ==========================================
+-- 13. CAMPOS EXTRA EN CITAS
+-- ==========================================
+ALTER TABLE public.appointments
+  ADD COLUMN IF NOT EXISTS arrived BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS paid BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE;

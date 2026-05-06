@@ -12,6 +12,25 @@ export interface Doctor {
   };
 }
 
+export interface Specialty {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export interface AppointmentType {
+  id: string;
+  name: string;
+  description: string;
+  duration_minutes: number;
+}
+
+export interface Office {
+  id: string;
+  name: string;
+  floor: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -21,5 +40,47 @@ export class CatalogsService {
 
   getDoctors(): Observable<Doctor[]> {
     return this.http.get<Doctor[]>(`${this.apiUrl}/doctors`);
+  }
+
+  // Specialties
+  getSpecialties(): Observable<Specialty[]> {
+    return this.http.get<Specialty[]>(`${this.apiUrl}/specialties`);
+  }
+  createSpecialty(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/specialties`, data);
+  }
+  updateSpecialty(id: string, data: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/specialties/${id}`, data);
+  }
+  deleteSpecialty(id: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/specialties/${id}`);
+  }
+
+  // Appointment Types
+  getAppointmentTypes(): Observable<AppointmentType[]> {
+    return this.http.get<AppointmentType[]>(`${this.apiUrl}/appointment-types`);
+  }
+  createAppointmentType(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/appointment-types`, data);
+  }
+  updateAppointmentType(id: string, data: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/appointment-types/${id}`, data);
+  }
+  deleteAppointmentType(id: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/appointment-types/${id}`);
+  }
+
+  // Offices
+  getOffices(): Observable<Office[]> {
+    return this.http.get<Office[]>(`${this.apiUrl}/offices`);
+  }
+  createOffice(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/offices`, data);
+  }
+  updateOffice(id: string, data: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/offices/${id}`, data);
+  }
+  deleteOffice(id: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/offices/${id}`);
   }
 }
