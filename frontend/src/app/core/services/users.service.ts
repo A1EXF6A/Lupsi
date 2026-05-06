@@ -13,7 +13,7 @@ export interface User {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class UsersService {
   private http = inject(HttpClient);
@@ -26,11 +26,11 @@ export class UsersService {
   getMe(): Observable<User> {
     return this.http.get<User>(`${this.apiUrl}/me`).pipe(
       timeout(4000), // Reducido a 4 segundos para un reintento más ágil
-      retry(1),      // Reintentar una vez si falla o tarda
-      catchError(err => {
+      retry(1), // Reintentar una vez si falla o tarda
+      catchError((err) => {
         console.error('[UsersService] Error definitivo en getMe después de reintento:', err);
         return throwError(() => err);
-      })
+      }),
     );
   }
 

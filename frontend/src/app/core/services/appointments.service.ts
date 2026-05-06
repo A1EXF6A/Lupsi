@@ -33,11 +33,18 @@ export class AppointmentsService {
     });
   }
 
-  createAvailableSlot(payload: { doctor_id: string; start_time: string; end_time: string }): Observable<any> {
+  createAvailableSlot(payload: {
+    doctor_id: string;
+    start_time: string;
+    end_time: string;
+  }): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/available-slots`, payload);
   }
 
-  updateAvailableSlot(id: string, payload: { start_time: string; end_time: string }): Observable<any> {
+  updateAvailableSlot(
+    id: string,
+    payload: { start_time: string; end_time: string },
+  ): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/available-slots/${id}`, payload);
   }
 

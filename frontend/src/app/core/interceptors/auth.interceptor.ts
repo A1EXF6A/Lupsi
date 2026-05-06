@@ -21,11 +21,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   if (token && req.url.includes('/api/v1/') && !isPublicUrl) {
     // Usamos HttpHeaders para asegurar compatibilidad total con Fetch API
     const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`
+      Authorization: `Bearer ${token}`,
     });
-    
-    console.log(`[AuthInterceptor] 🔐 Inyectando Token (Inicia con: ${token.substring(0, 10)}...) en: ${req.url}`);
-    
+
+    console.log(
+      `[AuthInterceptor] 🔐 Inyectando Token (Inicia con: ${token.substring(0, 10)}...) en: ${req.url}`,
+    );
+
     finalReq = req.clone({ headers });
   } else if (!isPublicUrl && req.url.includes('/api/v1/')) {
     console.warn(`[AuthInterceptor] ⚠️ No hay token disponible para la ruta privada: ${req.url}`);
@@ -34,11 +36,16 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(finalReq).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 504) {
-        console.error('[AuthInterceptor] 🚨 Error 504 (Gateway Timeout): El servidor no respondió a tiempo.');
+        console.error(
+          '[AuthInterceptor] 🚨 Error 504 (Gateway Timeout): El servidor no respondió a tiempo.',
+        );
       } else if (error.status === 401) {
-        console.error('[AuthInterceptor] ❌ Error 401 (Unauthorized): El servidor dice que NO recibió el token o es inválido.', error.error);
+        console.error(
+          '[AuthInterceptor] ❌ Error 401 (Unauthorized): El servidor dice que NO recibió el token o es inválido.',
+          error.error,
+        );
       }
       return throwError(() => error);
-    })
+    }),
   );
 };
