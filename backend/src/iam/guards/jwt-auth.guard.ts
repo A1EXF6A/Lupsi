@@ -9,11 +9,7 @@ import { Request } from 'express';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { SupabaseService } from '../../supabase/supabase.service';
 import { ActiveUser } from '../interfaces/active-user.interface';
-
-type ProfileRow = {
-  id: string;
-  role: string | null;
-};
+import { Profile } from '../../database/interfaces/database.interfaces';
 
 interface RequestWithUser extends Request {
   user?: ActiveUser;
@@ -62,12 +58,12 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
     const user = data.user;
 
-    // Obtener el perfil completo desde la tabla profiles (tipado)
+    // Obtener el perfil completo desde la tabla profiles (tipado completo)
     const { data: profile } = await supabase
       .from('profiles')
-      .select('id, role')
+      .select('id, first_name, last_name, role, email')
       .eq('id', user.id)
-      .single<ProfileRow>();
+      .single<Profile>();
 
     const appRole =
       typeof user.app_metadata?.role === 'string'
