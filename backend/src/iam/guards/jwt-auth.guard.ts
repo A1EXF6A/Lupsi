@@ -9,7 +9,11 @@ import { Request } from 'express';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { SupabaseService } from '../../supabase/supabase.service';
 import { ActiveUser } from '../interfaces/active-user.interface';
-import { Profile } from '../../database/interfaces/database.interfaces';
+
+type ProfileRow = {
+  id: string;
+  role: string | null;
+};
 
 interface RequestWithUser extends Request {
   user?: ActiveUser;
@@ -44,12 +48,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     const supabase = this.supabaseService.getClient();
 
     // Validar el token directamente con Supabase para evitar errores de sincronización de secretos
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser(token);
+    const { data, error } = await supabase.auth.getUser(token);
 
-    if (error || !user) {
+    if (error || !data?.user) {
       console.error(
         '[JwtAuthGuard] Token inválido o sesión expirada:',
         error?.message,
@@ -59,18 +60,25 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       );
     }
 
-    // Obtener el perfil completo desde la tabla profiles
+    const user = data.user;
+
+    // Obtener el perfil completo desde la tabla profiles (tipado)
     const { data: profile } = await supabase
       .from('profiles')
-      .select('*')
+      .select('id, role')
       .eq('id', user.id)
-      .single();
+      .single<ProfileRow>();
+
+    const appRole =
+      typeof user.app_metadata?.role === 'string'
+        ? user.app_metadata.role
+        : undefined;
 
     const activeUser: ActiveUser = {
       id: user.id,
-      email: user.email || '',
-      role: profile?.role || (user.app_metadata?.role as string) || 'PATIENT',
-      profile: profile,
+      email: user.email ?? '',
+      role: profile?.role ?? appRole ?? 'PATIENT',
+      profile,
     };
 
     // Inyectar el usuario en la request para uso posterior
