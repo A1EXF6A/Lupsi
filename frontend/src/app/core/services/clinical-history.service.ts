@@ -17,7 +17,7 @@ export interface ClinicalHistory {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ClinicalHistoryService {
   private http = inject(HttpClient);
@@ -25,7 +25,7 @@ export class ClinicalHistoryService {
 
   getByPatient(patientId: string): Observable<ClinicalHistory[]> {
     return this.http.get<ClinicalHistory[]>(this.apiUrl, {
-      params: { patientId }
+      params: { patientId },
     });
   }
 

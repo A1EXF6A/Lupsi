@@ -46,11 +46,37 @@ export const routes: Routes = [
       { path: 'tipos-cita', component: TiposCitaListComponent },
       { path: 'oficinas', component: OficinasListComponent },
       { path: 'agenda', component: AgendaDiariaComponent },
-      { path: 'citas', loadComponent: () => import('./panel-admin/citas/citas-list.component').then(m => m.CitasListComponent) },
-      { path: 'medicamentos', loadComponent: () => import('./panel-admin/medicamentos/medicamentos-list.component').then(m => m.MedicamentosListComponent) },
-      { path: 'usuarios', loadComponent: () => import('./panel-admin/usuarios/usuarios-list.component').then(m => m.UsuariosListComponent) },
-      { path: 'historiales', loadComponent: () => import('./panel-admin/historiales/historiales-list.component').then(m => m.HistorialesListComponent) },
-      { path: 'perfil', loadComponent: () => import('./panel-admin/perfil/perfil.component').then(m => m.PerfilAdminComponent) },
+      {
+        path: 'citas',
+        loadComponent: () =>
+          import('./panel-admin/citas/citas-list.component').then((m) => m.CitasListComponent),
+      },
+      {
+        path: 'medicamentos',
+        loadComponent: () =>
+          import('./panel-admin/medicamentos/medicamentos-list.component').then(
+            (m) => m.MedicamentosListComponent,
+          ),
+      },
+      {
+        path: 'usuarios',
+        loadComponent: () =>
+          import('./panel-admin/usuarios/usuarios-list.component').then(
+            (m) => m.UsuariosListComponent,
+          ),
+      },
+      {
+        path: 'historiales',
+        loadComponent: () =>
+          import('./panel-admin/historiales/historiales-list.component').then(
+            (m) => m.HistorialesListComponent,
+          ),
+      },
+      {
+        path: 'perfil',
+        loadComponent: () =>
+          import('./panel-admin/perfil/perfil.component').then((m) => m.PerfilAdminComponent),
+      },
     ],
   },
 ];

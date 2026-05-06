@@ -1,6 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { UpdateUserDto } from './dto/user.dto';
+import { CreateDoctorDto } from './dto/create-doctor.dto';
 
 type UserProfile = {
   id: string;
@@ -53,7 +54,7 @@ export class UsersService {
         `Error fetching user profile: ${error.message}`,
       );
     }
-    
+
     console.log('[UsersService] findOne success for:', data?.email);
     return data;
   }
@@ -128,45 +129,56 @@ export class UsersService {
     return { message: 'Usuario eliminado' };
   }
 
-  async createDoctor(dto: any) {
+  async createDoctor(dto: CreateDoctorDto) {
     const supabase = this.supabaseService.getClient();
-    
+
     // 1. Create user in Auth
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email: dto.email,
-      password: dto.password,
-      email_confirm: true,
-    });
+    const { data: authData, error: authError } =
+      await supabase.auth.admin.createUser({
+        email: dto.email,
+        password: dto.password,
+        email_confirm: true,
+      });
 
     if (authError) {
-      throw new InternalServerErrorException(`Error creating user auth: ${authError.message}`);
+      throw new InternalServerErrorException(
+        `Error creating user auth: ${authError.message}`,
+      );
     }
 
     const userId = authData.user.id;
 
     // 2. Create Profile
-    const { error: profileError } = await supabase.from('profiles').insert([{
-      id: userId,
-      role: 'DOCTOR',
-      email: dto.email,
-      first_name: dto.first_name,
-      last_name: dto.last_name,
-    }]);
+    const { error: profileError } = await supabase.from('profiles').insert([
+      {
+        id: userId,
+        role: 'DOCTOR',
+        email: dto.email,
+        first_name: dto.first_name,
+        last_name: dto.last_name,
+      },
+    ] as unknown as any);
 
     if (profileError) {
       await supabase.auth.admin.deleteUser(userId);
-      throw new InternalServerErrorException(`Error creating profile: ${profileError.message}`);
+      throw new InternalServerErrorException(
+        `Error creating profile: ${profileError.message}`,
+      );
     }
 
     // 3. Create Doctor record
-    const { error: doctorError } = await supabase.from('doctors').insert([{
-      id: userId,
-      specialty: dto.specialty || 'General',
-    }]);
+    const { error: doctorError } = await supabase.from('doctors').insert([
+      {
+        id: userId,
+        specialty: dto.specialty || 'General',
+      },
+    ] as unknown as any);
 
     if (doctorError) {
       await supabase.auth.admin.deleteUser(userId);
-      throw new InternalServerErrorException(`Error creating doctor: ${doctorError.message}`);
+      throw new InternalServerErrorException(
+        `Error creating doctor: ${doctorError.message}`,
+      );
     }
 
     return { message: 'Doctor creado exitosamente', id: userId };

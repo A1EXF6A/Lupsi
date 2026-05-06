@@ -1,17 +1,30 @@
-import { Body, Controller, Get, Param, Put, Post, Delete, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Put,
+  Post,
+  Delete,
+  Req,
+} from '@nestjs/common';
+import { Request } from 'express';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/user.dto';
-import { Public } from '../iam/decorators/public.decorator';
+import { CreateDoctorDto } from './dto/create-doctor.dto';
+import { ActiveUser } from '../iam/interfaces/active-user.interface';
+
+type RequestWithUser = Request & { user?: ActiveUser };
 
 @Controller('api/v1/users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get('me')
-  getMe(@Req() req: any) {
+  getMe(@Req() req: RequestWithUser) {
     console.log('[UsersController] getMe reached for user:', req.user?.id);
     // El perfil ya fue cargado por el JwtAuthGuard global para optimizar
-    return req.user.profile;
+    return req.user?.profile ?? null;
   }
 
   @Get()
@@ -25,7 +38,7 @@ export class UsersController {
   }
 
   @Post('doctors')
-  createDoctor(@Body() dto: any) {
+  createDoctor(@Body() dto: CreateDoctorDto) {
     return this.usersService.createDoctor(dto);
   }
 
