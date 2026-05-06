@@ -65,6 +65,46 @@ CREATE POLICY "Lectura pública de doctores"
 ON public.doctors FOR SELECT
 USING (auth.uid() IS NOT NULL);
 
+-- Política RLS: Solo ADMIN/RECEPTIONIST pueden crear doctores
+CREATE POLICY "Crear doctores por rol"
+ON public.doctors FOR INSERT
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.profiles
+        WHERE id = auth.uid()
+          AND role IN ('ADMIN', 'RECEPTIONIST')
+    )
+);
+
+-- Política RLS: Solo ADMIN/RECEPTIONIST pueden actualizar doctores
+CREATE POLICY "Actualizar doctores por rol"
+ON public.doctors FOR UPDATE
+USING (
+    EXISTS (
+        SELECT 1 FROM public.profiles
+        WHERE id = auth.uid()
+          AND role IN ('ADMIN', 'RECEPTIONIST')
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.profiles
+        WHERE id = auth.uid()
+          AND role IN ('ADMIN', 'RECEPTIONIST')
+    )
+);
+
+-- Política RLS: Solo ADMIN/RECEPTIONIST pueden eliminar doctores
+CREATE POLICY "Eliminar doctores por rol"
+ON public.doctors FOR DELETE
+USING (
+    EXISTS (
+        SELECT 1 FROM public.profiles
+        WHERE id = auth.uid()
+          AND role IN ('ADMIN', 'RECEPTIONIST')
+    )
+);
+
 -- ==========================================
 -- 6. TABLA DE CITAS (Appointments)
 -- ==========================================
