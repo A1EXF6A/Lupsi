@@ -21,8 +21,16 @@ export class ClinicalAttentionsController {
   ) {}
 
   @Get()
-  getByPatient(@Query('patientId') patientId: string) {
-    return this.clinicalAttentionsService.findByPatient(patientId);
+  getAll(
+    @Query('patientId') patientId?: string,
+    @Query('doctorId') doctorId?: string,
+    @Query('appointmentId') appointmentId?: string,
+  ) {
+    return this.clinicalAttentionsService.findAll({
+      patientId,
+      doctorId,
+      appointmentId,
+    });
   }
 
   @Post()

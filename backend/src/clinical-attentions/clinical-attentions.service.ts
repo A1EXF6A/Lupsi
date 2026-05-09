@@ -1,6 +1,11 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
-import { ClinicalAttention } from '../database/interfaces/database.interfaces';
+import {
+  ClinicalAttention,
+  Patient,
+  Doctor,
+  Profile,
+} from '../database/interfaces/database.interfaces';
 import {
   CreateClinicalAttentionDto,
   UpdateClinicalAttentionDto,
@@ -10,17 +15,31 @@ import {
 export class ClinicalAttentionsService {
   constructor(private readonly supabaseService: SupabaseService) {}
 
-  async findByPatient(patientId: string): Promise<ClinicalAttention[]> {
+  async findAll(filters?: {
+    patientId?: string;
+    doctorId?: string;
+    appointmentId?: string;
+  }): Promise<ClinicalAttention[]> {
     const supabase = this.supabaseService.getClient();
-    const { data, error } = await supabase
+    let query = supabase
       .from('clinical_attentions')
       .select(
-        'id, appointment_id, patient_id, doctor_id, notes, vitals, diagnosis, treatment, is_deleted',
+        'id, appointment_id, patient_id, doctor_id, notes, vitals, diagnosis, treatment, is_deleted, created_at',
       )
-      .eq('patient_id', patientId)
       .eq('is_deleted', false)
-      .order('created_at', { ascending: false })
-      .returns<ClinicalAttention[]>();
+      .order('created_at', { ascending: false });
+
+    if (filters?.patientId) {
+      query = query.eq('patient_id', filters.patientId);
+    }
+    if (filters?.doctorId) {
+      query = query.eq('doctor_id', filters.doctorId);
+    }
+    if (filters?.appointmentId) {
+      query = query.eq('appointment_id', filters.appointmentId);
+    }
+
+    const { data, error } = await query.returns<ClinicalAttention[]>();
 
     if (error) {
       throw new InternalServerErrorException(
@@ -28,7 +47,58 @@ export class ClinicalAttentionsService {
       );
     }
 
-    return data || [];
+    if (!data || data.length === 0) return [];
+
+    const patientIds = [...new Set(data.map((a) => a.patient_id))];
+    const doctorIds = [...new Set(data.map((a) => a.doctor_id))];
+
+    const { data: patientsData } = await supabase
+      .from('patients')
+      .select('id, dni')
+      .in('id', patientIds)
+      .returns<Patient[]>();
+    const { data: doctorsData } = await supabase
+      .from('doctors')
+      .select('id, specialty')
+      .in('id', doctorIds)
+      .returns<Doctor[]>();
+    const { data: profilesData } = await supabase
+      .from('profiles')
+      .select('id, first_name, last_name')
+      .in('id', [...patientIds, ...doctorIds])
+      .returns<Profile[]>();
+
+    return data.map((record) => {
+      const pProfile = profilesData?.find(
+        (p: Profile) => p.id === record.patient_id,
+      );
+      const patient = patientsData?.find(
+        (p: Patient) => p.id === record.patient_id,
+      );
+
+      const dProfile = profilesData?.find(
+        (p: Profile) => p.id === record.doctor_id,
+      );
+      const doctor = doctorsData?.find((d: Doctor) => d.id === record.doctor_id);
+
+      return {
+        ...record,
+        patients: {
+          id: record.patient_id,
+          first_name: pProfile?.first_name || '',
+          last_name: pProfile?.last_name || '',
+          dni: patient?.dni || '',
+        },
+        doctors: {
+          id: record.doctor_id,
+          specialty: doctor?.specialty || '',
+          profiles: {
+            first_name: dProfile?.first_name || '',
+            last_name: dProfile?.last_name || '',
+          },
+        },
+      } as ClinicalAttention;
+    });
   }
 
   async create(dto: CreateClinicalAttentionDto): Promise<ClinicalAttention> {

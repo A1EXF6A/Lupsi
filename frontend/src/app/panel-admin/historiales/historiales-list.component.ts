@@ -16,14 +16,24 @@ import {
         <h2 class="text-3xl font-black text-slate-800 tracking-tight">Fichas Clínicas</h2>
       </div>
 
-      <!-- Búsqueda -->
-      <div class="mb-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <input
           type="text"
-          [(ngModel)]="searchTerm"
-          placeholder="Buscar por ID de ficha, paciente o doctor..."
+          [(ngModel)]="filters.search"
+          placeholder="Buscar por paciente, doctor o diagnóstico..."
           class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm"
         />
+        <input
+          type="date"
+          [(ngModel)]="filters.date"
+          class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm"
+        />
+        <button
+          (click)="loadData()"
+          class="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-5 rounded-xl transition-colors"
+        >
+          Actualizar
+        </button>
       </div>
 
       <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
@@ -81,9 +91,9 @@ import {
             class="bg-slate-50 border-b border-slate-100 text-slate-400 font-bold uppercase text-xs tracking-wider"
           >
             <tr>
-              <th scope="col" class="px-6 py-4">ID de Ficha</th>
-              <th scope="col" class="px-6 py-4">ID Paciente</th>
-              <th scope="col" class="px-6 py-4">ID Doctor</th>
+              <th scope="col" class="px-6 py-4">Fecha</th>
+              <th scope="col" class="px-6 py-4">Paciente</th>
+              <th scope="col" class="px-6 py-4">Doctor</th>
               <th scope="col" class="px-6 py-4">Diagnóstico</th>
             </tr>
           </thead>
@@ -93,14 +103,14 @@ import {
               class="hover:bg-slate-50 transition-colors animate-fade-in-up"
               [style.animation-delay.ms]="i * 50"
             >
+              <td class="px-6 py-4 whitespace-nowrap text-slate-600">
+                {{ record.created_at | date: 'shortDate' }}
+              </td>
               <td class="px-6 py-4 whitespace-nowrap font-medium text-slate-800">
-                {{ record.id | slice: 0 : 8 }}
+                {{ record.patients?.first_name }} {{ record.patients?.last_name }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-slate-500">
-                {{ record.patient_id | slice: 0 : 8 }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-slate-500">
-                {{ record.doctor_id | slice: 0 : 8 }}
+                {{ record.doctors?.profiles?.first_name }} {{ record.doctors?.profiles?.last_name }}
               </td>
               <td class="px-6 py-4 text-slate-500 truncate max-w-[200px]">
                 {{ record.diagnosis || 'Sin diagnóstico' }}
@@ -151,17 +161,27 @@ export class HistorialesListComponent implements OnInit {
   isLoading = true;
   errorMessage = '';
 
-  searchTerm = '';
+  filters = {
+    search: '',
+    date: '',
+  };
   visibleCount = 10;
 
   get filteredHistories() {
-    if (!this.searchTerm) return this.histories;
-    const term = this.searchTerm.toLowerCase();
-    return this.histories.filter(
+    let filtered = this.histories;
+    if (this.filters.date) {
+      filtered = filtered.filter((h) => (h.created_at || '').startsWith(this.filters.date));
+    }
+    if (!this.filters.search) return filtered;
+    const term = this.filters.search.toLowerCase();
+    return filtered.filter(
       (h) =>
         h.id?.toLowerCase().includes(term) ||
-        h.patient_id?.toLowerCase().includes(term) ||
-        h.doctor_id?.toLowerCase().includes(term),
+        h.patients?.first_name?.toLowerCase().includes(term) ||
+        h.patients?.last_name?.toLowerCase().includes(term) ||
+        h.doctors?.profiles?.first_name?.toLowerCase().includes(term) ||
+        h.doctors?.profiles?.last_name?.toLowerCase().includes(term) ||
+        h.diagnosis?.toLowerCase().includes(term),
     );
   }
 

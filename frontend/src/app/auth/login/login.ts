@@ -53,6 +53,8 @@ export class Login {
         const role = this.authService.currentUserRole();
         if (role === 'PATIENT') {
           this.router.navigate(['/portal-paciente']);
+        } else if (role === 'DOCTOR') {
+          this.router.navigate(['/panel-doctor']);
         } else {
           this.router.navigate(['/panel']);
         }

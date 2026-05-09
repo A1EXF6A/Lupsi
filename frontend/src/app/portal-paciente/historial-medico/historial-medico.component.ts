@@ -89,79 +89,50 @@ import { AuthService } from '../../core/services/auth';
         </p>
       </div>
 
-      <div
-        *ngIf="!isLoading && records.length > 0"
-        class="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent"
-      >
-        <div
-          *ngFor="let record of records"
-          class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active"
-        >
-          <div
-            class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-blue-100 text-blue-600 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M2 12h4l3-9 5 18 3-9h5" />
-            </svg>
-          </div>
+       <div
+         *ngIf="!isLoading && records.length > 0"
+         class="space-y-6"
+       >
+         <div
+           *ngFor="let record of records"
+           class="p-5 rounded-2xl border border-slate-100 bg-slate-50 shadow-sm"
+         >
+           <div class="flex items-center justify-between mb-3">
+             <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+               {{ record.created_at | date: 'dd MMM, yyyy' }}
+             </span>
+             <span class="text-xs font-bold text-slate-500">
+               Dr/Dra. {{ record.doctors?.profiles?.last_name || 'Especialista' }}
+             </span>
+           </div>
 
-          <div
-            class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-2xl border border-slate-100 bg-slate-50 shadow-sm"
-          >
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">{{
-                record.created_at | date: 'dd MMM, yyyy'
-              }}</span>
-              <span class="text-xs font-bold text-slate-500"
-                >Dr/Dra. {{ record.doctors?.profiles?.last_name || 'Especialista' }}</span
-              >
-            </div>
-
-            <div class="space-y-3">
-              <div *ngIf="record.previous_conditions && record.previous_conditions.length > 0">
-                <h4 class="text-xs font-bold text-slate-400 uppercase">Condiciones Previas</h4>
-                <div class="flex flex-wrap gap-1 mt-1">
-                  <span
-                    *ngFor="let cond of record.previous_conditions"
-                    class="text-xs bg-white border border-slate-200 text-slate-600 px-2 py-0.5 rounded-md"
-                    >{{ cond }}</span
-                  >
-                </div>
-              </div>
-
-              <div *ngIf="record.allergies && record.allergies.length > 0">
-                <h4 class="text-xs font-bold text-rose-400 uppercase">Alergias</h4>
-                <div class="flex flex-wrap gap-1 mt-1">
-                  <span
-                    *ngFor="let alg of record.allergies"
-                    class="text-xs bg-rose-50 border border-rose-100 text-rose-600 px-2 py-0.5 rounded-md"
-                    >{{ alg }}</span
-                  >
-                </div>
-              </div>
-
-              <div *ngIf="record.notes">
-                <h4 class="text-xs font-bold text-slate-400 uppercase mb-1">Notas</h4>
-                <p
-                  class="text-sm text-slate-700 bg-white p-3 rounded-xl border border-slate-100 leading-relaxed"
-                >
-                  {{ record.notes }}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+           <div class="space-y-3">
+             <div *ngIf="record.diagnosis">
+               <h4 class="text-xs font-bold text-slate-400 uppercase mb-1">Diagnostico</h4>
+               <p class="text-sm text-slate-700 bg-white p-3 rounded-xl border border-slate-100">
+                 {{ record.diagnosis }}
+               </p>
+             </div>
+             <div *ngIf="record.notes">
+               <h4 class="text-xs font-bold text-slate-400 uppercase mb-1">Notas</h4>
+               <p class="text-sm text-slate-700 bg-white p-3 rounded-xl border border-slate-100">
+                 {{ record.notes }}
+               </p>
+             </div>
+             <div *ngIf="record.document_url">
+               <h4 class="text-xs font-bold text-slate-400 uppercase mb-1">Documento</h4>
+               <a
+                 class="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                 [href]="record.document_url"
+                 target="_blank"
+                 rel="noopener"
+               >
+                 Ver documento
+               </a>
+             </div>
+           </div>
+         </div>
+       </div>
     </div>
   `,
 })

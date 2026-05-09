@@ -1,6 +1,11 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
-import { MedicalRecord } from '../database/interfaces/database.interfaces';
+import {
+  MedicalRecord,
+  Patient,
+  Doctor,
+  Profile,
+} from '../database/interfaces/database.interfaces';
 import {
   CreateClinicalHistoryDto,
   UpdateClinicalHistoryDto,
@@ -10,18 +15,28 @@ import {
 export class ClinicalHistoryService {
   constructor(private readonly supabaseService: SupabaseService) {}
 
-  async findByPatient(patientId?: string): Promise<MedicalRecord[]> {
+  async findByFilters(filters?: {
+    patientId?: string;
+    doctorId?: string;
+    appointmentId?: string;
+  }): Promise<MedicalRecord[]> {
     const supabase = this.supabaseService.getClient();
     let query = supabase
       .from('medical_records')
       .select(
-        'id, patient_id, doctor_id, appointment_id, document_url, diagnosis, is_deleted',
+        'id, patient_id, doctor_id, appointment_id, document_url, diagnosis, is_deleted, created_at',
       )
       .eq('is_deleted', false)
       .order('created_at', { ascending: false });
 
-    if (patientId) {
-      query = query.eq('patient_id', patientId);
+    if (filters?.patientId) {
+      query = query.eq('patient_id', filters.patientId);
+    }
+    if (filters?.doctorId) {
+      query = query.eq('doctor_id', filters.doctorId);
+    }
+    if (filters?.appointmentId) {
+      query = query.eq('appointment_id', filters.appointmentId);
     }
 
     const { data, error } = await query.returns<MedicalRecord[]>();
@@ -32,7 +47,58 @@ export class ClinicalHistoryService {
       );
     }
 
-    return data || [];
+    if (!data || data.length === 0) return [];
+
+    const patientIds = [...new Set(data.map((r) => r.patient_id))];
+    const doctorIds = [...new Set(data.map((r) => r.doctor_id))];
+
+    const { data: patientsData } = await supabase
+      .from('patients')
+      .select('id, dni')
+      .in('id', patientIds)
+      .returns<Patient[]>();
+    const { data: doctorsData } = await supabase
+      .from('doctors')
+      .select('id, specialty')
+      .in('id', doctorIds)
+      .returns<Doctor[]>();
+    const { data: profilesData } = await supabase
+      .from('profiles')
+      .select('id, first_name, last_name')
+      .in('id', [...patientIds, ...doctorIds])
+      .returns<Profile[]>();
+
+    return data.map((record) => {
+      const pProfile = profilesData?.find(
+        (p: Profile) => p.id === record.patient_id,
+      );
+      const patient = patientsData?.find(
+        (p: Patient) => p.id === record.patient_id,
+      );
+
+      const dProfile = profilesData?.find(
+        (p: Profile) => p.id === record.doctor_id,
+      );
+      const doctor = doctorsData?.find((d: Doctor) => d.id === record.doctor_id);
+
+      return {
+        ...record,
+        patients: {
+          id: record.patient_id,
+          first_name: pProfile?.first_name || '',
+          last_name: pProfile?.last_name || '',
+          dni: patient?.dni || '',
+        },
+        doctors: {
+          id: record.doctor_id,
+          specialty: doctor?.specialty || '',
+          profiles: {
+            first_name: dProfile?.first_name || '',
+            last_name: dProfile?.last_name || '',
+          },
+        },
+      } as MedicalRecord;
+    });
   }
 
   async create(dto: CreateClinicalHistoryDto): Promise<MedicalRecord> {
@@ -44,7 +110,7 @@ export class ClinicalHistoryService {
           patient_id: dto.patient_id,
           doctor_id: dto.doctor_id,
           appointment_id: dto.appointment_id ?? null,
-          document_url: dto.document_url,
+          document_url: dto.document_url ?? '-',
           diagnosis: dto.diagnosis ?? null,
         },
       ])
@@ -60,6 +126,10 @@ export class ClinicalHistoryService {
     }
 
     return data;
+  }
+
+  async findByPatient(patientId?: string): Promise<MedicalRecord[]> {
+    return this.findByFilters({ patientId });
   }
 
   async update(

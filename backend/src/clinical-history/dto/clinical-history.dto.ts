@@ -12,6 +12,7 @@ export class CreateClinicalHistoryDto {
   appointment_id?: string | null;
 
   @IsString()
+  @IsOptional()
   document_url: string;
 
   @IsString()

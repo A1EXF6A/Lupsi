@@ -3,6 +3,7 @@ import { ClinicalHistoryController } from './clinical-history.controller';
 import { ClinicalHistoryService } from './clinical-history.service';
 
 const mockClinicalHistoryService = {
+  findByFilters: jest.fn().mockResolvedValue([]),
   findByPatient: jest.fn().mockResolvedValue([]),
   create: jest.fn().mockResolvedValue({ id: '1' }),
   update: jest.fn().mockResolvedValue({ id: '1' }),
@@ -33,10 +34,12 @@ describe('ClinicalHistoryController', () => {
   });
 
   it('gets by patient id', async () => {
-    await controller.getByPatient('patient-1');
-    expect(mockClinicalHistoryService.findByPatient).toHaveBeenCalledWith(
-      'patient-1',
-    );
+    await controller.getAll('patient-1');
+    expect(mockClinicalHistoryService.findByFilters).toHaveBeenCalledWith({
+      patientId: 'patient-1',
+      doctorId: undefined,
+      appointmentId: undefined,
+    });
   });
 
   it('creates clinical history', async () => {
