@@ -211,11 +211,11 @@ import { CatalogsService } from '../../core/services/catalogs.service';
                 <span class="text-amber-600 flex items-center gap-1"
                   ><span class="w-2 h-2 rounded-full bg-amber-500"></span> Programadas</span
                 >
-                <span class="text-slate-600"
-                  >{{ appointmentsByStatus.pending }} ({{
+                <span class="text-slate-600">
+                  {{ appointmentsByStatus.pending }} ({{
                     (appointmentsByStatus.pending / totalAppointments) * 100 | number: '1.0-0'
-                  }}%)</span
-                >
+                  }}%)
+                </span>
               </div>
               <div class="w-full bg-slate-100 rounded-full h-2.5">
                 <div
@@ -231,11 +231,11 @@ import { CatalogsService } from '../../core/services/catalogs.service';
                 <span class="text-green-600 flex items-center gap-1"
                   ><span class="w-2 h-2 rounded-full bg-green-500"></span> Completadas</span
                 >
-                <span class="text-slate-600"
-                  >{{ appointmentsByStatus.completed }} ({{
+                <span class="text-slate-600">
+                  {{ appointmentsByStatus.completed }} ({{
                     (appointmentsByStatus.completed / totalAppointments) * 100 | number: '1.0-0'
-                  }}%)</span
-                >
+                  }}%)
+                </span>
               </div>
               <div class="w-full bg-slate-100 rounded-full h-2.5">
                 <div
@@ -251,11 +251,11 @@ import { CatalogsService } from '../../core/services/catalogs.service';
                 <span class="text-rose-600 flex items-center gap-1"
                   ><span class="w-2 h-2 rounded-full bg-rose-500"></span> Canceladas</span
                 >
-                <span class="text-slate-600"
-                  >{{ appointmentsByStatus.cancelled }} ({{
+                <span class="text-slate-600">
+                  {{ appointmentsByStatus.cancelled }} ({{
                     (appointmentsByStatus.cancelled / totalAppointments) * 100 | number: '1.0-0'
-                  }}%)</span
-                >
+                  }}%)
+                </span>
               </div>
               <div class="w-full bg-slate-100 rounded-full h-2.5">
                 <div

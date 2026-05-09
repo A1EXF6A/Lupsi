@@ -137,7 +137,6 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
                     'bg-green-50 text-green-700 border border-green-100':
                       app.status === 'COMPLETED',
                     'bg-red-50 text-red-700 border border-red-100': app.status === 'CANCELLED',
-                    'bg-slate-50 text-slate-700 border border-slate-200': app.status === 'NO_SHOW',
                   }"
                 >
                   {{
@@ -145,9 +144,7 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
                       ? 'Programada'
                       : app.status === 'COMPLETED'
                         ? 'Completada'
-                        : app.status === 'CANCELLED'
-                          ? 'Cancelada'
-                          : 'No asistió'
+                      : 'Cancelada'
                   }}
                 </span>
               </td>
@@ -306,7 +303,6 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
             <option value="SCHEDULED">Programada</option>
             <option value="COMPLETED">Completada</option>
             <option value="CANCELLED">Cancelada</option>
-            <option value="NO_SHOW">No Asistió</option>
           </select>
 
           <div class="pt-4 flex gap-3">
@@ -513,7 +509,7 @@ export class CitasListComponent implements OnInit {
 
     this.appointmentsService.getPrescription(app.id).subscribe({
       next: (data) => {
-        this.prescriptions = data;
+        this.prescriptions = Array.isArray(data) ? data : [data];
         this.isLoadingPrescription = false;
         this.cdr.detectChanges();
       },

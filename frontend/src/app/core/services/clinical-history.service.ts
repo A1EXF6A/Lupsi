@@ -14,6 +14,7 @@ export interface ClinicalHistory {
   document_url?: string;
   created_at: string;
   doctors?: any;
+  patients?: any;
 }
 
 @Injectable({
@@ -26,6 +27,12 @@ export class ClinicalHistoryService {
   getByPatient(patientId: string): Observable<ClinicalHistory[]> {
     return this.http.get<ClinicalHistory[]>(this.apiUrl, {
       params: { patientId },
+    });
+  }
+
+  getByDoctor(doctorId: string): Observable<ClinicalHistory[]> {
+    return this.http.get<ClinicalHistory[]>(this.apiUrl, {
+      params: { doctorId },
     });
   }
 

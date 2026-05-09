@@ -76,6 +76,21 @@ export class AppointmentsService {
     return this.http.get<any[]>(`${this.apiUrl}/${appointmentId}/prescription`);
   }
 
+  createPrescription(appointmentId: string, payload: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${appointmentId}/prescription`, payload);
+  }
+
+  updatePrescription(appointmentId: string, prescriptionId: string, payload: any): Observable<any> {
+    return this.http.put<any>(
+      `${this.apiUrl}/${appointmentId}/prescription/${prescriptionId}`,
+      payload,
+    );
+  }
+
+  deletePrescription(appointmentId: string, prescriptionId: string): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/${appointmentId}/prescription/${prescriptionId}`);
+  }
+
   getPayments(appointmentId: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/${appointmentId}/payments`);
   }

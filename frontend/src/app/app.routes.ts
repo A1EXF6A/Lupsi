@@ -13,6 +13,11 @@ import { EspecialidadesListComponent } from './panel-admin/catalogs/especialidad
 import { TiposCitaListComponent } from './panel-admin/catalogs/tipos-cita-list.component';
 import { OficinasListComponent } from './panel-admin/catalogs/oficinas-list.component';
 import { AgendaDiariaComponent } from './panel-admin/agenda-diaria/agenda-diaria.component';
+import { PanelDoctorComponent } from './panel-doctor/panel-doctor.component';
+import { DoctorAgendaDiariaComponent } from './panel-doctor/agenda-diaria/agenda-diaria.component';
+import { AtenderComponent } from './panel-doctor/atender/atender.component';
+import { DoctorFichasComponent } from './panel-doctor/fichas/fichas.component';
+import { DoctorRecetasComponent } from './panel-doctor/recetas/recetas.component';
 
 import { HistorialMedicoComponent } from './portal-paciente/historial-medico/historial-medico.component';
 import { PerfilPacienteComponent } from './portal-paciente/perfil/perfil.component';
@@ -72,6 +77,23 @@ export const routes: Routes = [
             (m) => m.HistorialesListComponent,
           ),
       },
+      {
+        path: 'perfil',
+        loadComponent: () =>
+          import('./panel-admin/perfil/perfil.component').then((m) => m.PerfilAdminComponent),
+      },
+    ],
+  },
+  {
+    path: 'panel-doctor',
+    component: PanelDoctorComponent,
+    canActivate: [authGuard],
+    children: [
+      { path: '', redirectTo: 'agenda', pathMatch: 'full' },
+      { path: 'agenda', component: DoctorAgendaDiariaComponent },
+      { path: 'atender', component: AtenderComponent },
+      { path: 'fichas', component: DoctorFichasComponent },
+      { path: 'recetas', component: DoctorRecetasComponent },
       {
         path: 'perfil',
         loadComponent: () =>

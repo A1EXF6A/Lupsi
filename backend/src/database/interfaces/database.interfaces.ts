@@ -109,6 +109,9 @@ export interface MedicalRecord {
   document_url: string;
   diagnosis: string | null;
   is_deleted?: boolean;
+  created_at?: string;
+  patients?: PatientWithProfile;
+  doctors?: DoctorWithProfile;
 }
 
 export interface ClinicalAttention {
@@ -121,6 +124,9 @@ export interface ClinicalAttention {
   diagnosis: string | null;
   treatment: string | null;
   is_deleted?: boolean;
+  created_at?: string;
+  patients?: PatientWithProfile;
+  doctors?: DoctorWithProfile;
 }
 
 export interface Medication {

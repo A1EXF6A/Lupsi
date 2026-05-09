@@ -3,7 +3,7 @@ import { ClinicalAttentionsController } from './clinical-attentions.controller';
 import { ClinicalAttentionsService } from './clinical-attentions.service';
 
 const mockClinicalAttentionsService = {
-  findByPatient: jest.fn().mockResolvedValue([]),
+  findAll: jest.fn().mockResolvedValue([]),
   create: jest.fn().mockResolvedValue({ id: '1' }),
   update: jest.fn().mockResolvedValue({ id: '1' }),
   remove: jest.fn().mockResolvedValue(undefined),
@@ -33,10 +33,12 @@ describe('ClinicalAttentionsController', () => {
   });
 
   it('gets by patient id', async () => {
-    await controller.getByPatient('patient-1');
-    expect(mockClinicalAttentionsService.findByPatient).toHaveBeenCalledWith(
-      'patient-1',
-    );
+    await controller.getAll('patient-1');
+    expect(mockClinicalAttentionsService.findAll).toHaveBeenCalledWith({
+      patientId: 'patient-1',
+      doctorId: undefined,
+      appointmentId: undefined,
+    });
   });
 
   it('creates clinical attention', async () => {

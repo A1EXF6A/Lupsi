@@ -2,48 +2,32 @@ import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AppointmentsService, Appointment } from '../../core/services/appointments.service';
-import { CatalogsService } from '../../core/services/catalogs.service';
 
 @Component({
-  selector: 'app-agenda-diaria',
+  selector: 'app-doctor-agenda-diaria',
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
     <div class="space-y-6">
       <div class="flex items-center justify-between">
-        <h2 class="text-3xl font-black text-slate-800 tracking-tight">Sala de Espera</h2>
+        <h2 class="text-3xl font-black text-slate-800 tracking-tight">Agenda Diaria</h2>
       </div>
 
       <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden p-6">
         <div class="flex flex-wrap gap-4 items-end mb-6">
-          <div class="flex-1 min-w-[200px]">
-            <label class="block text-xs font-bold text-slate-500 mb-1">Doctor</label>
-            <select
-              [(ngModel)]="selectedDoctor"
-              (ngModelChange)="loadAppointments()"
-              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
-              <option value="">Todos los doctores</option>
-              <option *ngFor="let doc of doctors" [value]="doc.id">
-                Dr/Dra. {{ doc.profiles?.first_name }} {{ doc.profiles?.last_name }} ({{
-                  doc.specialty
-                }})
-              </option>
-            </select>
-          </div>
           <div>
             <label class="block text-xs font-bold text-slate-500 mb-1">Fecha</label>
             <input
               type="date"
               [(ngModel)]="selectedDate"
               (ngModelChange)="loadAppointments()"
-              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
             <button
               (click)="loadAppointments()"
-              class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-indigo-700 disabled:opacity-50 text-sm h-10"
+              class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-blue-700 disabled:opacity-50 text-sm h-10"
             >
               Actualizar
             </button>
@@ -55,7 +39,7 @@ import { CatalogsService } from '../../core/services/catalogs.service';
           class="p-10 flex flex-col items-center justify-center text-slate-400"
         >
           <svg
-            class="animate-spin h-8 w-8 text-green-500 mb-4"
+            class="animate-spin h-8 w-8 text-blue-500 mb-4"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -89,13 +73,9 @@ import { CatalogsService } from '../../core/services/catalogs.service';
             class="mb-6 p-4 rounded-xl bg-slate-50 border border-slate-200 flex justify-between items-center"
           >
             <div>
-              <p class="text-slate-500 font-medium text-sm">Resumen del día</p>
+              <p class="text-slate-500 font-medium text-sm">Resumen del dia</p>
               <p class="text-xl font-bold text-slate-800">
-                {{
-                  selectedDoctor
-                    ? 'El Dr. tiene ' + filteredAppointments.length + ' cita(s) hoy'
-                    : 'Este día hay ' + filteredAppointments.length + ' citas programadas en total'
-                }}
+                {{ filteredAppointments.length }} cita(s) hoy
               </p>
             </div>
             <div class="text-right">
@@ -123,9 +103,9 @@ import { CatalogsService } from '../../core/services/catalogs.service';
                 </div>
                 <span
                   [ngClass]="{
-                    'bg-indigo-100 text-indigo-700': app.status === 'SCHEDULED',
+                    'bg-blue-100 text-blue-700': app.status === 'SCHEDULED',
                     'bg-green-100 text-green-700': app.status === 'COMPLETED',
-                    'bg-red-100 text-red-700': app.status === 'CANCELLED',
+                    'bg-red-100 text-red-700': app.status === 'CANCELLED'
                   }"
                   class="px-2.5 py-1 rounded-full text-xs font-bold"
                 >
@@ -134,7 +114,7 @@ import { CatalogsService } from '../../core/services/catalogs.service';
                       ? 'Programada'
                       : app.status === 'COMPLETED'
                         ? 'Completada'
-                      : 'Cancelada'
+                        : 'Cancelada'
                   }}
                 </span>
               </div>
@@ -162,38 +142,7 @@ import { CatalogsService } from '../../core/services/catalogs.service';
                   <div>
                     <p class="text-xs font-medium text-slate-500">Paciente</p>
                     <p class="text-sm font-bold text-slate-800">
-                      {{ app.patients?.profiles?.first_name }}
-                      {{ app.patients?.profiles?.last_name }}
-                    </p>
-                  </div>
-                </div>
-
-                <div *ngIf="!selectedDoctor" class="flex items-center gap-2">
-                  <div
-                    class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                      <circle cx="11" cy="7" r="4" />
-                      <path d="m22 21-3-3" />
-                      <path d="m19 18 3-3" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p class="text-xs font-medium text-slate-500">Doctor</p>
-                    <p class="text-sm font-bold text-slate-800">
-                      Dr/Dra. {{ app.doctors?.profiles?.first_name }}
-                      {{ app.doctors?.profiles?.last_name }}
+                      {{ app.patients?.first_name }} {{ app.patients?.last_name }}
                     </p>
                   </div>
                 </div>
@@ -204,7 +153,7 @@ import { CatalogsService } from '../../core/services/catalogs.service';
               *ngIf="filteredAppointments.length === 0"
               class="col-span-full text-center py-12 text-slate-500"
             >
-              No hay citas programadas para esta fecha y/o doctor.
+              No hay citas programadas para esta fecha.
             </div>
           </div>
         </div>
@@ -212,34 +161,21 @@ import { CatalogsService } from '../../core/services/catalogs.service';
     </div>
   `,
 })
-export class AgendaDiariaComponent implements OnInit {
+export class DoctorAgendaDiariaComponent implements OnInit {
   appointmentsService = inject(AppointmentsService);
-  catalogsService = inject(CatalogsService);
   cdr = inject(ChangeDetectorRef);
 
-  doctors: any[] = [];
   appointments: Appointment[] = [];
-  selectedDoctor: string = '';
   selectedDate: string = new Date().toISOString().split('T')[0];
 
   isLoading = false;
   errorMessage = '';
 
   get filteredAppointments() {
-    let filtered = this.appointments.filter((app) => {
-      // Filtrar por fecha local
-      // app.appointment_time is ISO "YYYY-MM-DDTHH:mm:ssZ"
+    const filtered = this.appointments.filter((app) => {
       const appDate = app.appointment_time.split('T')[0];
       return appDate === this.selectedDate;
     });
-
-    if (this.selectedDoctor) {
-      filtered = filtered.filter(
-        (app) => app.doctor_id === this.selectedDoctor || app.doctors?.id === this.selectedDoctor,
-      );
-    }
-
-    // Sort by time
     return filtered.sort((a, b) => a.appointment_time.localeCompare(b.appointment_time));
   }
 
@@ -248,10 +184,6 @@ export class AgendaDiariaComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.catalogsService.getDoctors().subscribe({
-      next: (data) => (this.doctors = data),
-      error: () => (this.errorMessage = 'Error cargando doctores.'),
-    });
     this.loadAppointments();
   }
 
@@ -259,7 +191,7 @@ export class AgendaDiariaComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.appointmentsService.getAppointments().subscribe({
+    this.appointmentsService.getAppointments(this.selectedDate || undefined).subscribe({
       next: (data) => {
         this.appointments = data;
         this.isLoading = false;
@@ -267,7 +199,7 @@ export class AgendaDiariaComponent implements OnInit {
       },
       error: (err) => {
         console.error(err);
-        this.errorMessage = 'Error cargando las citas del día.';
+        this.errorMessage = 'Error cargando las citas del dia.';
         this.isLoading = false;
         this.cdr.detectChanges();
       },
