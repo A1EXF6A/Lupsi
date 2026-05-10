@@ -5,6 +5,8 @@ import { UsersService } from './users.service';
 const mockUsersService = {
   findAll: jest.fn().mockResolvedValue([]),
   update: jest.fn().mockResolvedValue({ id: '1' }),
+  createDoctor: jest.fn().mockResolvedValue({ id: '1' }),
+  createReceptionist: jest.fn().mockResolvedValue({ id: '1' }),
 };
 
 describe('UsersController', () => {
@@ -33,5 +35,17 @@ describe('UsersController', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await controller.update('user-1', dto as any);
     expect(mockUsersService.update).toHaveBeenCalledWith('user-1', dto);
+  });
+
+  it('creates receptionist', async () => {
+    const dto = {
+      email: 'recep@example.com',
+      password: 'Secret123',
+      first_name: 'Ana',
+      last_name: 'Perez',
+    };
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    await controller.createReceptionist(dto as any);
+    expect(mockUsersService.createReceptionist).toHaveBeenCalledWith(dto);
   });
 });
