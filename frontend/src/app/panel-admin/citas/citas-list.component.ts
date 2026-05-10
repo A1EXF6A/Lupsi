@@ -397,21 +397,23 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
               *ngFor="let pres of prescriptions"
               class="p-4 border border-slate-200 rounded-xl bg-slate-50"
             >
-              <div class="font-bold text-slate-800 mb-1">{{ pres.medications?.name }}</div>
-              <div class="text-sm text-slate-600 mb-2">
-                <strong>Dosis:</strong> {{ pres.dosage }}
+              <p class="text-sm text-slate-600 mb-3">
+                <span class="font-bold">Notas:</span>
+                {{ pres.notes || 'Sin notas.' }}
+              </p>
+              <div *ngIf="pres.medications?.length" class="space-y-2">
+                <div
+                  *ngFor="let med of pres.medications"
+                  class="p-3 bg-white rounded-xl border border-slate-200"
+                >
+                  <div class="font-bold text-slate-800">{{ med.name }}</div>
+                  <div class="text-xs text-slate-500">
+                    {{ med.dosage }} - {{ med.frequency }} - {{ med.duration }}
+                  </div>
+                </div>
               </div>
-              <div class="text-sm text-slate-600">
-                <strong>Frecuencia:</strong> {{ pres.frequency }}
-              </div>
-              <div class="text-sm text-slate-600">
-                <strong>Duración:</strong> {{ pres.duration }}
-              </div>
-              <div
-                *ngIf="pres.notes"
-                class="text-xs text-slate-500 mt-3 pt-3 border-t border-slate-200"
-              >
-                <em>{{ pres.notes }}</em>
+              <div *ngIf="!pres.medications?.length" class="text-xs text-slate-500">
+                Sin medicamentos registrados.
               </div>
             </div>
           </div>
