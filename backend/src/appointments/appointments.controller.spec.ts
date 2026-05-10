@@ -69,6 +69,7 @@ describe('AppointmentsController', () => {
       'patient-1',
       dto,
     );
+    expect(mockAppointmentsService.create).toHaveBeenCalledTimes(1);
   });
 
   it('gets appointments', async () => {
@@ -80,6 +81,26 @@ describe('AppointmentsController', () => {
       'PATIENT',
       '2026-05-01',
     );
+    expect(mockAppointmentsService.findAll).toHaveBeenCalledTimes(1);
+  });
+
+  it('passes patient and doctor ids in appointment list payload', async () => {
+    const req = { user: { id: 'doctor-1', role: 'DOCTOR' } };
+    const appointments = [
+      {
+        id: 'appt-1',
+        patient_id: 'pat-1',
+        doctor_id: 'doc-1',
+        appointment_time: '2026-05-01T10:00:00Z',
+      },
+    ];
+    mockAppointmentsService.findAll.mockResolvedValueOnce(appointments);
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    const result = await controller.findAll(req as any, '2026-05-01');
+
+    expect(result[0].patient_id).toBe('pat-1');
+    expect(result[0].doctor_id).toBe('doc-1');
   });
 
   it('creates available slot', async () => {

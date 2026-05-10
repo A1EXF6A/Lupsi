@@ -151,6 +151,8 @@ export class AppointmentsService {
 
       return {
         id: app.id,
+        patient_id: app.patient_id,
+        doctor_id: app.doctor_id,
         appointment_time: app.appointment_time,
         appointment_end_time: app.appointment_end_time,
         status: app.status,
