@@ -12,6 +12,7 @@ import { Request } from 'express';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/user.dto';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
+import { CreateReceptionistDto } from './dto/create-receptionist.dto';
 import { ActiveUser } from '../iam/interfaces/active-user.interface';
 
 type RequestWithUser = Request & { user?: ActiveUser };
@@ -40,6 +41,11 @@ export class UsersController {
   @Post('doctors')
   createDoctor(@Body() dto: CreateDoctorDto) {
     return this.usersService.createDoctor(dto);
+  }
+
+  @Post('receptionists')
+  createReceptionist(@Body() dto: CreateReceptionistDto) {
+    return this.usersService.createReceptionist(dto);
   }
 
   @Delete(':id')

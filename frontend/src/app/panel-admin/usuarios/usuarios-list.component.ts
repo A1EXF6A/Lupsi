@@ -11,6 +11,26 @@ import { UsersService, User } from '../../core/services/users.service';
     <div class="space-y-6">
       <div class="flex items-center justify-between">
         <h2 class="text-3xl font-black text-slate-800 tracking-tight">Usuarios del Sistema</h2>
+        <button
+          (click)="openModal()"
+          class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-5 rounded-xl transition-colors shadow-sm flex items-center gap-2"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="12" x2="12" y1="5" y2="19" />
+            <line x1="5" x2="19" y1="12" y2="12" />
+          </svg>
+          Añadir Recepcionista
+        </button>
       </div>
 
       <!-- Búsqueda -->
@@ -157,6 +177,101 @@ import { UsersService, User } from '../../core/services/users.service';
         </div>
       </div>
     </div>
+
+    <!-- Modal Formulario -->
+    <div
+      *ngIf="showModal"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
+    >
+      <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col">
+        <div
+          class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50"
+        >
+          <h3 class="font-bold text-lg text-slate-800">Añadir Recepcionista</h3>
+          <button
+            (click)="closeModal()"
+            class="text-slate-400 hover:text-slate-600 transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <form (ngSubmit)="saveReceptionist()" class="p-6 space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-500 mb-1">Nombre</label>
+              <input
+                type="text"
+                [(ngModel)]="formData.first_name"
+                name="first_name"
+                required
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-500 mb-1">Apellido</label>
+              <input
+                type="text"
+                [(ngModel)]="formData.last_name"
+                name="last_name"
+                required
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">Correo Electrónico</label>
+            <input
+              type="email"
+              [(ngModel)]="formData.email"
+              name="email"
+              required
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">Contraseña</label>
+            <input
+              type="password"
+              [(ngModel)]="formData.password"
+              name="password"
+              required
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+
+          <div class="pt-4 flex gap-3">
+            <button
+              type="button"
+              (click)="closeModal()"
+              class="flex-1 py-2.5 bg-slate-100 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              [disabled]="isSaving"
+              class="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 transition-colors disabled:opacity-50"
+            >
+              {{ isSaving ? 'Guardando...' : 'Guardar Recepcionista' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   `,
 })
 export class UsuariosListComponent implements OnInit {
@@ -165,9 +280,11 @@ export class UsuariosListComponent implements OnInit {
 
   users: User[] = [];
   isLoading = true;
+  isSaving = false;
   errorMessage = '';
   searchTerm = '';
   visibleCount = 10;
+  showModal = false;
 
   get filteredUsers() {
     if (!this.searchTerm) return this.users;
@@ -184,12 +301,28 @@ export class UsuariosListComponent implements OnInit {
     this.loadData();
   }
 
+  openModal() {
+    this.formData = {
+      first_name: '',
+      last_name: '',
+      email: '',
+      password: '',
+    };
+    this.errorMessage = '';
+    this.showModal = true;
+  }
+
+  closeModal() {
+    this.showModal = false;
+  }
+
   loadMore() {
     this.visibleCount += 10;
   }
 
   loadData() {
     this.isLoading = true;
+    this.errorMessage = '';
     this.usersService.getAll().subscribe({
       next: (data) => {
         this.users = data;
@@ -200,6 +333,33 @@ export class UsuariosListComponent implements OnInit {
         console.error(err);
         this.errorMessage = 'No se pudo cargar la información.';
         this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  formData = {
+    first_name: '',
+    last_name: '',
+    email: '',
+    password: '',
+  };
+
+  saveReceptionist() {
+    if (!this.formData.email || !this.formData.password) return;
+    this.isSaving = true;
+
+    this.usersService.createReceptionist(this.formData).subscribe({
+      next: () => {
+        this.isSaving = false;
+        this.closeModal();
+        this.loadData();
+      },
+      error: (err) => {
+        console.error('Error saving receptionist', err);
+        this.errorMessage = err.error?.message || 'Error al guardar el recepcionista';
+        this.isSaving = false;
+        this.closeModal();
         this.cdr.detectChanges();
       },
     });

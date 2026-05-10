@@ -38,6 +38,10 @@ export class UsersService {
     return this.http.post(`${this.apiUrl}/doctors`, data);
   }
 
+  createReceptionist(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/receptionists`, data);
+  }
+
   updateUser(id: string, data: any): Observable<any> {
     return this.http.put(`${this.apiUrl}/${id}`, data);
   }
