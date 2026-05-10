@@ -60,7 +60,7 @@ CREATE TABLE public.doctors (
 );
 ALTER TABLE public.doctors ENABLE ROW LEVEL SECURITY;
 
--- Política RLS: Cualquier persona autenticada puede ver la lista de doctores para poder agendar.
+-- Política RLS: Cualquier persona autenticada (incluye recepcionista) puede ver la lista de doctores.
 CREATE POLICY "Lectura pública de doctores"
 ON public.doctors FOR SELECT
 USING (auth.uid() IS NOT NULL);
@@ -247,6 +247,54 @@ CREATE TABLE public.prescriptions (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ALTER TABLE public.prescriptions ENABLE ROW LEVEL SECURITY;
+
+-- Políticas RLS Recetas: paciente/doctor/admin ven, doctor/admin crean/actualizan, admin elimina.
+CREATE POLICY "Recetas: select paciente/doctor/admin"
+ON public.prescriptions FOR SELECT
+USING (
+    auth.uid() = patient_id
+    OR auth.uid() = doctor_id
+    OR EXISTS (
+        SELECT 1 FROM public.profiles
+        WHERE id = auth.uid() AND role = 'ADMIN'
+    )
+);
+
+CREATE POLICY "Recetas: insert doctor/admin"
+ON public.prescriptions FOR INSERT
+WITH CHECK (
+    auth.uid() = doctor_id
+    OR EXISTS (
+        SELECT 1 FROM public.profiles
+        WHERE id = auth.uid() AND role = 'ADMIN'
+    )
+);
+
+CREATE POLICY "Recetas: update doctor/admin"
+ON public.prescriptions FOR UPDATE
+USING (
+    auth.uid() = doctor_id
+    OR EXISTS (
+        SELECT 1 FROM public.profiles
+        WHERE id = auth.uid() AND role = 'ADMIN'
+    )
+)
+WITH CHECK (
+    auth.uid() = doctor_id
+    OR EXISTS (
+        SELECT 1 FROM public.profiles
+        WHERE id = auth.uid() AND role = 'ADMIN'
+    )
+);
+
+CREATE POLICY "Recetas: delete admin"
+ON public.prescriptions FOR DELETE
+USING (
+    EXISTS (
+        SELECT 1 FROM public.profiles
+        WHERE id = auth.uid() AND role = 'ADMIN'
+    )
+);
 
 -- ==========================================
 -- 11. RECORDATORIOS Y PAGOS DE CITAS

@@ -119,6 +119,7 @@ export class AppointmentsService {
     // Manually fetch and merge relationships to bypass PostgREST RLS recursion bugs
     const patientIds = [...new Set(data.map((a: Appointment) => a.patient_id))];
     const doctorIds = [...new Set(data.map((a: Appointment) => a.doctor_id))];
+    const appointmentIds = data.map((a: Appointment) => a.id);
 
     const { data: patientsData } = await supabase
       .from('patients')
@@ -135,6 +136,23 @@ export class AppointmentsService {
       .select('id, first_name, last_name')
       .in('id', [...patientIds, ...doctorIds])
       .returns<Profile[]>();
+
+    const { data: paymentsData } = await supabase
+      .from('appointment_payments')
+      .select('appointment_id, status')
+      .in('appointment_id', appointmentIds)
+      .returns<Pick<AppointmentPayment, 'appointment_id' | 'status'>[]>();
+
+    const paidByAppointmentId = new Map<string, boolean>();
+    (paymentsData || []).forEach((payment) => {
+      if (!payment.appointment_id) return;
+      const isPaid = payment.status === 'COMPLETED';
+      if (isPaid) {
+        paidByAppointmentId.set(payment.appointment_id, true);
+      } else if (!paidByAppointmentId.has(payment.appointment_id)) {
+        paidByAppointmentId.set(payment.appointment_id, false);
+      }
+    });
 
     return data.map((app: Appointment) => {
       const pProfile = profilesData?.find(
@@ -157,7 +175,7 @@ export class AppointmentsService {
         appointment_end_time: app.appointment_end_time,
         status: app.status,
         arrived: app.arrived,
-        paid: app.paid,
+        paid: paidByAppointmentId.get(app.id) ?? app.paid ?? false,
         patients: {
           id: app.patient_id,
           first_name: pProfile?.first_name || '',
@@ -518,6 +536,19 @@ export class AppointmentsService {
       );
     }
 
+    const paid = data.status === 'COMPLETED';
+    const { error: appointmentError } = await supabase
+      .from('appointments')
+      .update({ paid })
+      .eq('id', appointmentId)
+      .eq('is_deleted', false);
+
+    if (appointmentError) {
+      throw new InternalServerErrorException(
+        `Error updating appointment payment status: ${appointmentError.message}`,
+      );
+    }
+
     return data;
   }
 
@@ -556,6 +587,19 @@ export class AppointmentsService {
     if (error) {
       throw new InternalServerErrorException(
         `Error updating payment: ${error.message}`,
+      );
+    }
+
+    const paid = data.status === 'COMPLETED';
+    const { error: appointmentError } = await supabase
+      .from('appointments')
+      .update({ paid })
+      .eq('id', data.appointment_id)
+      .eq('is_deleted', false);
+
+    if (appointmentError) {
+      throw new InternalServerErrorException(
+        `Error updating appointment payment status: ${appointmentError.message}`,
       );
     }
 
