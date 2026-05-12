@@ -94,7 +94,7 @@ type PrescriptionMedication = {
           </div>
 
           <div
-            *ngIf="selectedAppointment"
+            *ngIf="selectedAppointment && selectedAppointment.status !== 'CANCELLED'"
             class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6"
           >
             <div class="flex items-center justify-between">
@@ -279,6 +279,14 @@ type PrescriptionMedication = {
                 {{ isSaving ? 'Guardando...' : 'Guardar ficha y completar' }}
               </button>
               <span *ngIf="saveMessage" class="text-sm font-medium text-slate-500">{{ saveMessage }}</span>
+            </div>
+          </div>
+          <div
+            *ngIf="selectedAppointment && selectedAppointment.status === 'CANCELLED'"
+            class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6"
+          >
+            <div class="text-slate-500 text-sm">
+              Esta cita fue cancelada y no se puede completar la ficha clinica.
             </div>
           </div>
         </div>
