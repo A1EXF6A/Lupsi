@@ -2,6 +2,7 @@ import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AppointmentsService, Appointment } from '../../core/services/appointments.service';
+import { AuthService } from '../../core/services/auth';
 
 @Component({
   selector: 'app-citas-list',
@@ -164,6 +165,7 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
                 <button
                   *ngIf="app.status === 'COMPLETED'"
                   (click)="openPrescriptionModal(app)"
+                  [class.hidden]="isReceptionist"
                   class="text-slate-400 hover:text-green-600 transition-colors mx-1"
                   title="Ver Receta"
                 >
@@ -301,7 +303,7 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
             class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-green-500"
           >
             <option value="SCHEDULED">Programada</option>
-            <option value="COMPLETED">Completada</option>
+            <option *ngIf="!isReceptionist" value="COMPLETED">Completada</option>
             <option value="CANCELLED">Cancelada</option>
           </select>
 
@@ -433,6 +435,7 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
 })
 export class CitasListComponent implements OnInit {
   appointmentsService = inject(AppointmentsService);
+  authService = inject(AuthService);
   cdr = inject(ChangeDetectorRef);
 
   appointments: Appointment[] = [];
@@ -450,6 +453,7 @@ export class CitasListComponent implements OnInit {
   showPrescriptionModal = false;
   isLoadingPrescription = false;
   prescriptions: any[] = [];
+  isReceptionist = false;
 
   get filteredAppointments() {
     if (!this.searchTerm) return this.appointments;
@@ -465,6 +469,7 @@ export class CitasListComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.isReceptionist = this.authService.currentUserRole() === 'RECEPTIONIST';
     this.loadAppointments();
   }
 
@@ -494,7 +499,12 @@ export class CitasListComponent implements OnInit {
   openStatusModal(app: Appointment) {
     if (!app.id) return;
     this.selectedAppointmentId = app.id;
-    this.newStatus = app.status || 'SCHEDULED';
+    const currentStatus = app.status || 'SCHEDULED';
+    if (this.isReceptionist && currentStatus === 'COMPLETED') {
+      this.newStatus = 'SCHEDULED';
+    } else {
+      this.newStatus = currentStatus;
+    }
     this.showModal = true;
   }
 
@@ -529,6 +539,11 @@ export class CitasListComponent implements OnInit {
 
   updateStatus() {
     if (!this.selectedAppointmentId) return;
+    if (this.isReceptionist && this.newStatus === 'COMPLETED') {
+      this.errorMessage = 'No tienes permisos para marcar citas como completadas.';
+      this.closeModal();
+      return;
+    }
     this.isSaving = true;
 
     this.appointmentsService
