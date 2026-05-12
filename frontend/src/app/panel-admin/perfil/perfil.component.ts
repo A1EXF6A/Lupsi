@@ -114,7 +114,7 @@ import { UsersService, User } from '../../core/services/users.service';
             <div
               class="w-24 h-24 bg-gradient-to-tr from-green-400 to-indigo-500 rounded-full shadow-lg mb-4 flex items-center justify-center text-white text-3xl font-bold"
             >
-              {{ profile.first_name?.charAt(0) || 'A' }}{{ profile.last_name?.charAt(0) || '' }}
+              {{ profile.first_name.charAt(0) || 'A' }}{{ profile.last_name.charAt(0) || '' }}
             </div>
             <h3 class="text-xl font-bold text-slate-800">
               {{ profile.first_name || 'Administrador' }} {{ profile.last_name || 'Lupsi' }}

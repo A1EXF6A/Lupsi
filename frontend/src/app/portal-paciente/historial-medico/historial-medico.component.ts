@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   ClinicalHistoryService,
@@ -119,17 +119,21 @@ import { AuthService } from '../../core/services/auth';
                  {{ record.notes }}
                </p>
              </div>
-             <div *ngIf="record.document_url">
-               <h4 class="text-xs font-bold text-slate-400 uppercase mb-1">Documento</h4>
-               <a
-                 class="text-sm text-blue-600 hover:text-blue-700 font-medium"
-                 [href]="record.document_url"
-                 target="_blank"
-                 rel="noopener"
-               >
-                 Ver documento
-               </a>
-             </div>
+              <div *ngIf="isValidDocumentUrl(record.document_url)">
+                <h4 class="text-xs font-bold text-slate-400 uppercase mb-1">Documento</h4>
+                <a
+                  class="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                  [href]="record.document_url"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  Ver documento
+                </a>
+              </div>
+              <div *ngIf="record.document_url && !isValidDocumentUrl(record.document_url)">
+                <h4 class="text-xs font-bold text-slate-400 uppercase mb-1">Documento</h4>
+                <p class="text-sm text-slate-500">Sin documento adjunto.</p>
+              </div>
            </div>
          </div>
        </div>
@@ -139,9 +143,16 @@ import { AuthService } from '../../core/services/auth';
 export class HistorialMedicoComponent implements OnInit {
   clinicalHistoryService = inject(ClinicalHistoryService);
   authService = inject(AuthService);
+  cdr = inject(ChangeDetectorRef);
 
   records: ClinicalHistory[] = [];
   isLoading = false;
+
+  isValidDocumentUrl(url?: string | null): boolean {
+    if (!url) return false;
+    if (url === '-') return false;
+    return /^https?:\/\//i.test(url);
+  }
 
   ngOnInit() {
     this.loadHistory();
@@ -149,7 +160,11 @@ export class HistorialMedicoComponent implements OnInit {
 
   loadHistory() {
     const token = this.authService.currentUserToken();
-    if (!token) return;
+    if (!token) {
+      this.isLoading = false;
+      this.cdr.detectChanges();
+      return;
+    }
 
     try {
       // Decode JWT to get patient (user) ID
@@ -162,14 +177,18 @@ export class HistorialMedicoComponent implements OnInit {
         next: (data) => {
           this.records = data;
           this.isLoading = false;
+          this.cdr.detectChanges();
         },
         error: (err) => {
           console.error('Error fetching history', err);
           this.isLoading = false;
+          this.cdr.detectChanges();
         },
       });
     } catch (e) {
       console.error('Invalid token', e);
+      this.isLoading = false;
+      this.cdr.detectChanges();
     }
   }
 }

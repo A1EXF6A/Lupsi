@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CatalogsService, Doctor } from '../../core/services/catalogs.service';
 import { UsersService } from '../../core/services/users.service';
+import { AuthService } from '../../core/services/auth';
 
 @Component({
   selector: 'app-doctores-list',
@@ -13,6 +14,7 @@ import { UsersService } from '../../core/services/users.service';
       <div class="flex items-center justify-between">
         <h2 class="text-3xl font-black text-slate-800 tracking-tight">Doctores Registrados</h2>
         <button
+          *ngIf="isAdmin"
           (click)="openModal()"
           class="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-5 rounded-xl transition-colors shadow-sm flex items-center gap-2"
         >
@@ -182,7 +184,7 @@ import { UsersService } from '../../core/services/users.service';
 
     <!-- Modal Formulario -->
     <div
-      *ngIf="showModal"
+      *ngIf="showModal && isAdmin"
       class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
     >
       <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col">
@@ -290,6 +292,7 @@ import { UsersService } from '../../core/services/users.service';
 export class DoctoresListComponent implements OnInit {
   catalogsService = inject(CatalogsService);
   usersService = inject(UsersService);
+  authService = inject(AuthService);
   cdr = inject(ChangeDetectorRef);
 
   doctors: any[] = [];
@@ -297,6 +300,7 @@ export class DoctoresListComponent implements OnInit {
   isLoading = true;
   isSaving = false;
   errorMessage = '';
+  isAdmin = false;
 
   showModal = false;
   searchTerm = '';
@@ -322,6 +326,7 @@ export class DoctoresListComponent implements OnInit {
   };
 
   ngOnInit() {
+    this.isAdmin = this.authService.currentUserRole() === 'ADMIN';
     this.loadData();
   }
 
@@ -355,6 +360,7 @@ export class DoctoresListComponent implements OnInit {
   }
 
   openModal() {
+    if (!this.isAdmin) return;
     this.formData = {
       first_name: '',
       last_name: '',

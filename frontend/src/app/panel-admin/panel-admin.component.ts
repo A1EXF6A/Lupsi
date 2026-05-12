@@ -78,7 +78,7 @@ import { AuthService } from '../core/services/auth';
             Métricas
           </a>
           <a
-            *ngIf="isAdmin"
+            *ngIf="isAdmin || isReceptionist"
             (click)="onLinkClick()"
             routerLink="doctores"
             routerLinkActive="bg-green-600 text-white"
