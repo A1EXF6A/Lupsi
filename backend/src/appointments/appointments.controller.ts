@@ -112,6 +112,7 @@ export class AppointmentsController {
   @Permissions(
     Permission.APPOINTMENTS_READ_SELF,
     Permission.APPOINTMENTS_READ_ASSIGNED,
+    Permission.APPOINTMENTS_READ_ALL,
   )
   getReminders(@Param('id') appointmentId: string) {
     return this.appointmentsService.getReminders(appointmentId);
@@ -160,6 +161,7 @@ export class AppointmentsController {
   @Permissions(
     Permission.APPOINTMENTS_READ_SELF,
     Permission.APPOINTMENTS_READ_ASSIGNED,
+    Permission.APPOINTMENTS_READ_ALL,
   )
   getPrescription(@Param('id') appointmentId: string) {
     return this.appointmentsService.getPrescription(appointmentId);
@@ -208,6 +210,7 @@ export class AppointmentsController {
   @Permissions(
     Permission.APPOINTMENTS_READ_SELF,
     Permission.APPOINTMENTS_READ_ASSIGNED,
+    Permission.APPOINTMENTS_READ_ALL,
   )
   getPayments(@Param('id') appointmentId: string) {
     return this.appointmentsService.getPayments(appointmentId);
