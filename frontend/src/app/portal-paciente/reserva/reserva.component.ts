@@ -331,10 +331,15 @@ import { AuthService } from '../../core/services/auth';
               [class.bg-green-600]="selectedAppointmentType?.id === type.id"
               [class.text-white]="selectedAppointmentType?.id === type.id"
               [class.border-transparent]="selectedAppointmentType?.id === type.id"
+              [class.hover:bg-green-700]="selectedAppointmentType?.id === type.id"
+              [class.hover:text-white]="selectedAppointmentType?.id === type.id"
               [class.bg-slate-50]="selectedAppointmentType?.id !== type.id"
               [class.text-slate-600]="selectedAppointmentType?.id !== type.id"
               [class.border-slate-200]="selectedAppointmentType?.id !== type.id"
-              class="text-left border rounded-2xl p-4 transition-all hover:border-green-300"
+              [class.hover:bg-green-50]="selectedAppointmentType?.id !== type.id"
+              [class.hover:text-green-700]="selectedAppointmentType?.id !== type.id"
+              [class.hover:border-green-300]="selectedAppointmentType?.id !== type.id"
+              class="text-left border rounded-2xl p-4 transition-all focus:outline-none"
             >
               <div class="font-bold text-sm">{{ type.name }}</div>
               <div
@@ -431,10 +436,15 @@ import { AuthService } from '../../core/services/auth';
               [class.bg-green-600]="selectedSlot === slot"
               [class.text-white]="selectedSlot === slot"
               [class.border-transparent]="selectedSlot === slot"
+              [class.hover:bg-green-700]="selectedSlot === slot"
+              [class.hover:text-white]="selectedSlot === slot"
               [class.bg-white]="selectedSlot !== slot"
               [class.text-slate-600]="selectedSlot !== slot"
               [class.border-slate-200]="selectedSlot !== slot"
-              class="border rounded-2xl p-3 text-sm font-bold transition-all hover:bg-slate-50 focus:outline-none"
+              [class.hover:bg-green-50]="selectedSlot !== slot"
+              [class.hover:text-green-700]="selectedSlot !== slot"
+              [class.hover:border-green-300]="selectedSlot !== slot"
+              class="border rounded-2xl p-3 text-sm font-bold transition-all focus:outline-none"
             >
               {{ slot.start | date: 'shortTime' }}
             </button>
