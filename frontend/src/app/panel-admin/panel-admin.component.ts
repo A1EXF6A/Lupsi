@@ -16,23 +16,9 @@ import { AuthService } from '../core/services/auth';
         class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 min-h-screen flex flex-col shadow-xl transition-transform duration-300 ease-in-out"
       >
         <div class="p-6 border-b border-slate-800 flex items-center justify-between">
-          <h2 class="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-green-600 flex items-center justify-center">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="white"
-                stroke-width="3"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-              </svg>
-            </div>
-            {{ isReceptionist ? 'Recepcion' : 'Admin' }}
+          <h2 class="text-xl font-black text-white tracking-tight flex items-center gap-2">
+            <img src="/lupsi_logo-Photoroom.png" alt="LUPSI" class="h-8 w-auto object-contain">
+            <span class="text-slate-200">{{ isReceptionist ? 'Recepción' : 'Admin' }}</span>
           </h2>
           <!-- Close button -->
           <button (click)="toggleSidebar()" class="text-slate-400 hover:text-white">

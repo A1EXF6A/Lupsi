@@ -15,26 +15,7 @@ import { AuthService } from '../core/services/auth';
           class="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4"
         >
           <div class="flex items-center gap-3">
-            <div
-              class="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center shadow-md shadow-green-200"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="white"
-                stroke-width="2.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                <polyline points="10 17 15 12 10 7" />
-                <line x1="15" x2="15" y1="12" y2="12" />
-                <line x1="3" x2="15" y1="12" y2="12" />
-              </svg>
-            </div>
+            <img src="/lupsi_logo-Photoroom.png" alt="LUPSI" class="h-10 w-auto object-contain">
             <h1 class="text-xl font-black text-gray-900 tracking-tight">
               Portal <span class="text-green-600">Paciente</span>
             </h1>

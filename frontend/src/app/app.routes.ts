@@ -37,6 +37,11 @@ export const routes: Routes = [
       { path: 'reserva', component: ReservaComponent },
       { path: 'historial-medico', component: HistorialMedicoComponent },
       { path: 'perfil', component: PerfilPacienteComponent },
+      {
+        path: 'pagos',
+        loadComponent: () =>
+          import('./portal-paciente/pagos/pagos.component').then((m) => m.PagosPacienteComponent),
+      },
     ],
   },
   {
@@ -75,6 +80,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./panel-admin/historiales/historiales-list.component').then(
             (m) => m.HistorialesListComponent,
+          ),
+      },
+      {
+        path: 'pagos',
+        loadComponent: () =>
+          import('./panel-admin/pagos/pagos-admin.component').then(
+            (m) => m.PagosAdminComponent,
           ),
       },
       {

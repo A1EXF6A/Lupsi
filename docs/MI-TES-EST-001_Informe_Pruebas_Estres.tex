@@ -1,0 +1,226 @@
+  \documentclass[a4paper,11pt]{article}
+
+  \usepackage[utf8]{inputenc}
+  \usepackage[spanish, es-noshorthands]{babel}
+  \usepackage{geometry}
+  \usepackage{graphicx}
+  \usepackage{multirow}
+  \usepackage{array}
+  \usepackage{fancyhdr}
+  \usepackage{lastpage}
+  \usepackage{hyperref}
+  \usepackage{float}
+  \usepackage{caption}
+  \usepackage{booktabs}
+  \usepackage[table]{xcolor}
+  \usepackage[T1]{fontenc}
+  \usepackage{tabularx}
+  \usepackage{amssymb}
+  \usepackage{amsmath}
+  \usepackage{pifont}
+  \usepackage{listings}
+  \usepackage{tcolorbox}
+  \usepackage{parskip}
+  \usepackage{titlesec}
+
+  \hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+
+  % ---------------- COLORES PARA LAS TABLAS ----------------
+  \definecolor{SKTPrimary}{HTML}{3F4A4F}
+  \definecolor{SKTDark}{HTML}{242B2E}
+  \definecolor{SKTAccent}{HTML}{979C9D}
+  \definecolor{SKTLight}{HTML}{CDCFD2}
+  \definecolor{rowPASS}{HTML}{DFF0D8}
+  \definecolor{rowFAIL}{HTML}{F2DEDE}
+  \definecolor{rowINFO}{HTML}{D9EDF7}
+  \definecolor{codeGray}{HTML}{F5F5F5}
+
+  % ---------------- CONFIGURACIÓN DE TÍTULOS ----------------
+  \titleformat{\section}{\normalfont\Large\bfseries\color{black}}{}{0em}{}
+  \titleformat{\subsection}{\normalfont\large\bfseries\color{black}}{}{0em}{}
+
+  \geometry{
+    top=2.5cm, bottom=2.5cm, left=3cm, right=3cm,
+    includehead, headheight=130pt, headsep=1cm
+  }
+
+  % ---------------- ENCABEZADO ----------------
+  \pagestyle{fancy}
+  \fancyhf{}
+  \renewcommand{\headrulewidth}{0pt}
+
+  \fancyhead[C]{
+    \small
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.1}
+    \begin{tabular}{|m{3cm}|m{7.5cm}|m{3.8cm}|}
+      \hline
+      \multirow{5}{*}{
+        \parbox[c][3.5cm][c]{2.5cm}{
+          \centering
+          \includegraphics[width=2.2cm]{SKTLogo.png}
+        }
+      }
+      & \centering\textbf{LUPSI - SISTEMA MÉDICO}
+      & \parbox[c]{\linewidth}{\centering \textbf{CÓDIGO:}\\ MI-TES-EST-001 \vspace{3pt}} \\ \cline{2-3}
+      & \centering\textbf{CONTROL DE CALIDAD DEL SOFTWARE}
+      & \parbox[c]{\linewidth}{\centering \textbf{VERSIÓN:}\\ 5.1 \vspace{3pt}} \\ \cline{2-3}
+      & \centering Gestión de Citas Médicas
+      & \parbox[c]{\linewidth}{\centering \textbf{FECHA:}\\ 13/05/2026} \\ \cline{2-3}
+      & \centering Informe Detallado de Pruebas de Estrés y Concurrencia
+      & \parbox[c]{\linewidth}{\centering \textbf{PÁGINA:}\\ \thepage\ de \pageref{LastPage}} \\ \hline
+    \end{tabular}
+  }
+
+  \fancyfoot[R]{\small Lupsi v2.0 - Reporte de Pruebas}
+
+  \begin{document}
+  \raggedbottom
+
+  \begin{center}
+      {\LARGE \textbf{LUPSI - SISTEMA MÉDICO}} \\[0.4cm]
+      {\large \textbf{INFORME DETALLADO DE PRUEBAS DE ESTRÉS Y CONCURRENCIA}} \\[1cm]
+  \end{center}
+
+  % ==========================================
+  \section{Resumen del Informe}
+  % ==========================================
+  Este documento explica paso a paso cómo pusimos a prueba el motor de citas de LUPSI. No es solo un chequeo rápido; es una revisión a fondo para estar seguros de que si 20 personas intentan agendar al mismo tiempo con el mismo doctor, el sistema no se vuelva loco y solo le dé la cita a uno. 
+
+  Hemos probado casos de traslapes, citas seguidas, cancelaciones y hasta cirugías largas para ver cómo reacciona el servidor. Todo esto se hizo usando un script especial que dispara muchas peticiones al mismo tiempo para simular un día de mucha gente en la clínica. El objetivo final es garantizar que la base de datos sea 100\% confiable y que ningún paciente se quede sin su espacio por un error técnico de concurrencia.
+
+  % ==========================================
+  \section{¿Qué herramientas usamos?}
+  % ==========================================
+  Para que estas pruebas fueran reales y no solo teóricas, usamos un conjunto de herramientas modernas que nos permitieron simular un entorno de alta demanda:
+
+  \begin{itemize}
+      \item \textbf{Node.js y Axios}: Estas fueron nuestras herramientas principales para crear el script "estresador". Node.js nos permite manejar muchas peticiones al mismo tiempo sin bloquearse, y Axios es ideal para hacer llamadas a nuestra API de forma rápida y controlada.
+      \item \textbf{Docker y Contenedores}: Corrimos todo el backend de LUPSI dentro de Docker. Esto es genial porque nos permite ver exactamente cuánta CPU y cuánta memoria RAM consume el sistema cuando recibe una ráfaga de 20 o 50 citas de golpe.
+      \item \textbf{Supabase y PostgreSQL}: Es nuestra base de datos en la nube. Aquí es donde ocurre la verdadera "magia" de los bloqueos de seguridad. PostgreSQL tiene funciones avanzadas (como los rangos de tiempo) que evitan los choques de horarios de forma nativa.
+      \item \textbf{Autenticación JWT (Tokens)}: Para que las pruebas sean lo más reales posible, cada petición usó un token JWT de un paciente diferente. Esto asegura que el sistema también esté validando quién hace la cita mientras revisa si hay espacio disponible.
+  \end{itemize}
+
+  % ==========================================
+  \section{El "Corazón" de la Seguridad: Los Bloqueos}
+  % ==========================================
+  Para evitar que dos personas reserven el mismo horario, implementamos algo que en computación llamamos \textit{Índice de Exclusión}. Imagina que la agenda del doctor tiene un guardia de seguridad invisible que solo deja que una persona escriba en un papel a la vez.
+
+  Este guardia revisa dos cosas antes de dejarte anotar:
+  \begin{enumerate}
+      \item ¿Es el mismo doctor?
+      \item ¿El horario que pides se choca aunque sea por un segundo con otro?
+  \end{enumerate}
+
+  Si la respuesta a ambas es "Sí", el guardia te detiene y te da un error de "Conflicto". Lo mejor de todo es que este guardia vive dentro de la base de datos, lo que lo hace virtualmente imposible de engañar, incluso si las peticiones llegan al mismo milisegundo.
+
+  % ==========================================
+  \newpage
+  \section{Resultados de las Pruebas (Detalle de cada Caso)}
+  % ==========================================
+
+  \begin{tcolorbox}[colback=blue!5,colframe=blue!70!black,title=\textbf{PRUEBA ST-01: Concurrencia Pura (Ataque de Citas)}]
+  \textbf{¿Qué probamos?}: Intentamos "engañar" al sistema enviando una ráfaga de 20 citas exactamente para las 08:00 AM del mismo día con el mismo doctor. \\
+  \textbf{Pasos realizados}:
+  \begin{enumerate}
+      \item Se crearon 20 pacientes de prueba en el sistema.
+      \item Se generaron 20 tokens JWT válidos.
+      \item Se usó \texttt{Promise.all} en Node.js para disparar todas las peticiones al mismo tiempo.
+  \end{enumerate}
+  \textbf{Resultado}: El sistema se comportó perfecto. La base de datos aceptó la primera petición que llegó y rechazó las otras 19 al instante. En los logs vimos que el motor de PostgreSQL detectó el intento de choque y protegió la integridad del dato. \\
+  \textbf{Estado}: \color{blue}\textbf{PASADO CON ÉXITO}
+  \end{tcolorbox}
+
+  \begin{tcolorbox}[colback=green!5,colframe=green!50!black,title=\textbf{PRUEBA ST-02: Traslape Parcial (Choque de Horas)}]
+  \textbf{¿Qué probamos?}: ¿Qué pasa si alguien quiere una cita de 08:15 a 08:45 cuando ya hay una registrada de 08:00 a 08:30? No empiezan igual, pero se chocan al medio. \\
+  \textbf{Resultado}: El sistema es inteligente y detectó que esos 15 minutos (de 08:15 a 08:30) ya estaban ocupados por el primer paciente. Bloqueó la segunda cita de inmediato. \\
+  \textbf{Estado}: \color{green!60!black}\textbf{PASADO}
+  \end{tcolorbox}
+
+  \begin{tcolorbox}[colback=yellow!5,colframe=orange!70!black,title=\textbf{PRUEBA ST-03: Citas Seguidas (Adyacencia)}]
+  \textbf{¿Qué probamos?}: Queremos que un doctor pueda atender a un paciente a las 08:30 y al siguiente justo a las 08:30 sin que el sistema piense que se chocan. Esto es clave para no perder tiempo en la clínica. \\
+  \textbf{Resultado}: Todo funcionó como se esperaba. El motor de tiempos entiende que donde termina una cita puede empezar la siguiente sin conflicto. \\
+  \textbf{Estado}: \color{orange}\textbf{PASADO}
+  \end{tcolorbox}
+
+  \begin{tcolorbox}[colback=purple!5,colframe=purple!70!black,title=\textbf{PRUEBA ST-04: Cancelar y Reusar (Slot Libre)}]
+  \textbf{¿Qué probamos?}: Si un paciente cancela su cita de las 10:00 AM, ¿puede otra persona tomar ese hueco rápidamente? \\
+  \textbf{Problema detectado}: Al principio, el sistema no liberaba el espacio porque el "borrado lógico" seguía ocupando el índice. \\
+  \textbf{Solución}: Ajustamos el código para que al cambiar el estado a \texttt{CANCELLED}, el slot se libere físicamente en el índice de seguridad. \\
+  \textbf{Estado}: \color{purple}\textbf{CORREGIDO Y PASADO}
+  \end{tcolorbox}
+
+  \begin{tcolorbox}[colback=cyan!5,colframe=cyan!70!black,title=\textbf{PRUEBA ST-05: Citas con Doctores Diferentes}]
+  \textbf{¿Qué probamos?}: Que un paciente pueda tener una cita a las 09:00 con el cardiólogo y otra a las 09:00 con el dentista. Esto es muy común en clínicas grandes. \\
+  \textbf{Resultado}: Funcionó de maravilla. El sistema es lo suficientemente inteligente para saber que el bloqueo solo aplica si es el \textbf{mismo} profesional. \\
+  \textbf{Estado}: \color{cyan!80!black}\textbf{PASADO}
+  \end{tcolorbox}
+
+  \begin{tcolorbox}[colback=gray!5,colframe=gray!70!black,title=\textbf{PRUEBA ST-06: Citas Largas (Duración Dinámica)}]
+  \textbf{¿Qué probamos?}: Si un doctor tiene una cirugía que dura 1 hora (de 08:00 a 09:00), nadie debería poder pedir una cita de control de 30 min a las 08:30. \\
+  \textbf{Resultado}: El sistema calculó el tiempo final sumando los 60 minutos de la cirugía y bloqueó cualquier intento que cayera dentro de esa hora completa. \\
+  \textbf{Estado}: \color{gray}\textbf{PASADO}
+  \end{tcolorbox}
+
+  % ==========================================
+  \newpage
+  \section{Resumen Gráfico de Resultados}
+  % ==========================================
+  En la siguiente tabla se muestra de forma visual y resumida todo lo que se probó en el sistema de LUPSI:
+
+  \begin{table}[H]
+  \centering
+  \renewcommand{\arraystretch}{1.8}
+  \begin{tabular}{|c|l|l|c|}
+  \hline
+  \rowcolor{SKTPrimary}
+  \textbf{\textcolor{white}{ID}} & \textbf{\textcolor{white}{Nombre de la Prueba}} & \textbf{\textcolor{white}{Respuesta del Sistema LUPSI}} & \textbf{\textcolor{white}{Estado}} \\ \hline
+  \rowcolor{rowPASS}
+  ST-01 & Concurrencia Total & Solo aceptó 1 cita; rechazó 19 intentos simultáneos. & \checkmark \\ \hline
+  \rowcolor{rowPASS}
+  ST-02 & Traslape Parcial & Detectó choque de minutos y bloqueó la reserva. & \checkmark \\ \hline
+  \rowcolor{rowPASS}
+  ST-03 & Citas Adyacentes & Permitió citas contiguas (ej. 08:30 y 08:30). & \checkmark \\ \hline
+  \rowcolor{rowPASS}
+  ST-04 & Reuso de Slots & El slot quedó disponible inmediatamente tras cancelar. & \checkmark \\ \hline
+  \rowcolor{rowPASS}
+  ST-05 & Multi-Doctor & Permitió citas paralelas con doctores distintos. & \checkmark \\ \hline
+  \rowcolor{rowPASS}
+  ST-06 & Duración Variable & Bloqueó citas cortas dentro de una cirugía larga. & \checkmark \\ \hline
+  \end{tabular}
+  \end{table}
+
+  % ==========================================
+  \section{¿Qué aprendimos y qué recomendamos?}
+  % ==========================================
+  Realizar estas pruebas de estrés fue vital para el proyecto. Gracias a esto pudimos encontrar el error en el borrado de citas (ST-04) antes de que el sistema saliera a producción, lo que nos ahorró muchos dolores de cabeza con pacientes reales.
+
+  Confirmamos que la tecnología de Supabase y PostgreSQL es extremadamente sólida. El servidor apenas se esforzó para manejar las ráfagas de 20 peticiones, lo que nos da confianza para escalar el sistema a más doctores y clínicas en el futuro.
+
+  \textbf{Nuestras recomendaciones finales son:}
+  \begin{itemize}
+      \item \textbf{Interfaz de Usuario}: Cuando una cita falle por choque de horarios (Error 409), el sistema debería avisar amigablemente al paciente: "¡Uy! Alguien acaba de ganar este turno. Por favor selecciona otro horario".
+      \item \textbf{Monitoreo}: Seguir revisando los logs del servidor una vez al mes para ver si hay muchos intentos de choque, lo que podría significar que necesitamos más doctores en ciertas horas pico.
+      \item \textbf{Mantenimiento}: Realizar una limpieza de la base de datos (Vacuum) cada cierto tiempo para que los índices de seguridad sigan siendo igual de rápidos.
+  \end{itemize}
+
+  \vspace{1.5cm}
+
+  % ==========================================
+  \section{Firmas de Aprobación del Equipo}
+  % ==========================================
+
+  \renewcommand{\arraystretch}{2.2}
+  \noindent
+  \begin{tabular}{p{0.28\textwidth} p{0.30\textwidth} >{\centering\arraybackslash}p{0.22\textwidth} >{\centering\arraybackslash}p{0.12\textwidth}}
+  \hline
+  \textbf{Responsabilidad} & \textbf{Nombre y Apellido} & \textbf{Sello / Firma} & \textbf{Fecha} \\
+  \hline
+  Líder de Proyecto & Angel Ayuquina & \includegraphics[width=3.2cm]{QR_Sello_Angel_Ayuquina.png} & 13/05/2026 \\[0.6cm]
+  Control de Calidad & Sebastián Ortiz & \includegraphics[width=3.2cm]{QR_Sello_Sebastían_Ortiz.png} & 13/05/2026 \\[0.6cm]
+  Desarrollo Backend & Daniel Luisa & \includegraphics[width=3.2cm]{QR_Sello_Daniel_Luisa.png} & 13/05/2026 \\[0.6cm]
+  Analista de Sistemas & Alex Guachi & \includegraphics[width=3.2cm]{QR_Sello_Alex_Guachi.png} & 13/05/2026 \\[0.6cm]
+  \hline
+  \end{tabular}
+
+  \end{document}

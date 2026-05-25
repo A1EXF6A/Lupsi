@@ -15,5 +15,10 @@
     "backend:start": "pnpm --filter backend start",
     "backend:dev": "pnpm --filter backend start:dev",
     "backend:build": "pnpm --filter backend build"
+  },
+  "devDependencies": {
+    "@supabase/supabase-js": "^2.100.1",
+    "axios": "^1.16.0",
+    "dotenv": "^17.3.1"
   }
 }

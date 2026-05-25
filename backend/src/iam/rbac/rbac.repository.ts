@@ -11,6 +11,7 @@ export class RbacRepository {
       Permission.APPOINTMENTS_CREATE,
       Permission.APPOINTMENTS_READ_SELF,
       Permission.APPOINTMENTS_UPDATE,
+      Permission.APPOINTMENTS_DELETE,
     ],
     [UserRole.DOCTOR]: [
       Permission.APPOINTMENTS_READ_ASSIGNED,

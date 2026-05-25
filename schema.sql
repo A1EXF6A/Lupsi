@@ -316,13 +316,52 @@ CREATE TABLE public.appointment_payments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     appointment_id UUID REFERENCES public.appointments(id) NOT NULL,
     amount NUMERIC(10,2) NOT NULL,
-    method VARCHAR(50),
-    status VARCHAR(30) DEFAULT 'PENDING',
+    method VARCHAR(50) CHECK (method IN ('CASH', 'CARD', 'TRANSFER')),
+    status VARCHAR(30) DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'COMPLETED', 'FAILED', 'REFUNDED')),
+    receipt_url VARCHAR(500),
     paid_at TIMESTAMP WITH TIME ZONE,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ALTER TABLE public.appointment_payments ENABLE ROW LEVEL SECURITY;
+
+-- Políticas RLS Pagos: Paciente ve los suyos y crea, Recepcionista/Admin gestiona todos.
+CREATE POLICY "Pagos: select multirrol"
+ON public.appointment_payments FOR SELECT
+USING (
+    EXISTS (
+        SELECT 1 FROM public.appointments a 
+        WHERE a.id = appointment_payments.appointment_id 
+        AND a.patient_id = auth.uid()
+    )
+    OR EXISTS (
+        SELECT 1 FROM public.profiles
+        WHERE id = auth.uid() AND role IN ('ADMIN', 'RECEPTIONIST')
+    )
+);
+
+CREATE POLICY "Pagos: insert paciente y admin"
+ON public.appointment_payments FOR INSERT
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.appointments a 
+        WHERE a.id = appointment_payments.appointment_id 
+        AND a.patient_id = auth.uid()
+    )
+    OR EXISTS (
+        SELECT 1 FROM public.profiles
+        WHERE id = auth.uid() AND role IN ('ADMIN', 'RECEPTIONIST')
+    )
+);
+
+CREATE POLICY "Pagos: update admin/recepcionista"
+ON public.appointment_payments FOR UPDATE
+USING (
+    EXISTS (
+        SELECT 1 FROM public.profiles
+        WHERE id = auth.uid() AND role IN ('ADMIN', 'RECEPTIONIST')
+    )
+);
 
 -- ==========================================
 -- 12. FICHA DE ATENCIÓN CLÍNICA
@@ -351,3 +390,22 @@ ALTER TABLE public.appointments
   ADD COLUMN IF NOT EXISTS paid BOOLEAN DEFAULT FALSE,
   ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE,
   ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE;
+
+-- ==========================================
+-- 14. BUCKETS DE STORAGE (COMPROBANTES)
+-- ==========================================
+-- Configuración del bucket para subir los comprobantes de pago
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('payment_receipts', 'payment_receipts', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Política 1: Cualquier usuario autenticado puede subir un comprobante
+CREATE POLICY "Permitir subida de comprobantes a usuarios autenticados" 
+ON storage.objects FOR INSERT 
+TO authenticated 
+WITH CHECK (bucket_id = 'payment_receipts');
+
+-- Política 2: Cualquier persona puede ver/leer los comprobantes (ya que es un bucket público)
+CREATE POLICY "Permitir lectura publica de comprobantes" 
+ON storage.objects FOR SELECT 
+USING (bucket_id = 'payment_receipts');

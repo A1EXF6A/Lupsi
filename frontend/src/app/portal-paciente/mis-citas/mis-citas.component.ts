@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AppointmentsService, Appointment } from '../../core/services/appointments.service';
 
 @Component({
@@ -255,26 +256,53 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
               </svg>
               Ver Receta
             </button>
-            <button
-              (click)="openPaymentModal(apt)"
-              class="text-xs font-bold px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors flex items-center gap-1.5"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+              <button
+                *ngIf="apt.status === 'SCHEDULED' && !checkIfPast(apt.appointment_time) && !apt.paid"
+                (click)="goToPayment(apt)"
+                class="text-xs font-bold px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors flex items-center gap-1.5"
               >
-                <rect x="2" y="5" width="20" height="14" rx="2" ry="2" />
-                <line x1="2" y1="10" x2="22" y2="10" />
-              </svg>
-              Gestionar Pago
-            </button>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect x="2" y="5" width="20" height="14" rx="2" ry="2" />
+                  <line x1="2" y1="10" x2="22" y2="10" />
+                </svg>
+                Pagar Cita
+              </button>
+              <span *ngIf="apt.paid" class="text-xs font-bold px-3 py-1.5 bg-green-50 text-green-600 rounded-lg border border-green-200 flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                Pagada
+              </span>
+              <button
+                *ngIf="apt.paid"
+                (click)="viewReceipt(apt)"
+                class="text-xs font-bold px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg border border-emerald-200 transition-colors flex items-center gap-1.5"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" x2="12" y1="15" y2="3" />
+                </svg>
+                Ver Recibo
+              </button>
             <button
               *ngIf="apt.status === 'SCHEDULED' && !checkIfPast(apt.appointment_time)"
               (click)="confirmCancelAppointment(apt.id!)"
@@ -604,6 +632,375 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
 export class MisCitasComponent implements OnInit {
   appointmentsService = inject(AppointmentsService);
   cdr = inject(ChangeDetectorRef);
+  router = inject(Router);
+
+  goToPayment(apt: Appointment) {
+    this.router.navigate(['/portal-paciente/pagos'], { queryParams: { appointmentId: apt.id } });
+  }
+
+  viewReceipt(apt: Appointment) {
+    if (!apt.id) return;
+    this.appointmentsService.getPayments(apt.id).subscribe({
+      next: (payments) => {
+        const completedPayment = payments.find(
+          (p) => p.status === 'COMPLETED'
+        );
+        if (completedPayment) {
+          const dateStr = new Date(completedPayment.paid_at || completedPayment.created_at || new Date()).toLocaleString('es-EC', {
+            year: 'numeric', month: 'long', day: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+          });
+          
+          const receiptWindow = window.open('', '_blank');
+          if (receiptWindow) {
+            receiptWindow.document.write(`
+              <!DOCTYPE html>
+              <html lang="es">
+              <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Comprobante de Pago #LUPSI-${completedPayment.id.substring(0,8).toUpperCase()} - Clínica Lupsi</title>
+                <link rel="preconnect" href="https://fonts.googleapis.com">
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+                <style>
+                  body {
+                    font-family: 'Inter', sans-serif;
+                    background-color: #f8fafc;
+                    color: #0f172a;
+                    margin: 0;
+                    padding: 50px 20px;
+                    display: flex;
+                    justify-content: center;
+                    -webkit-font-smoothing: antialiased;
+                  }
+                  .receipt-container {
+                    background: white;
+                    max-width: 620px;
+                    width: 100%;
+                    border-radius: 24px;
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.06);
+                    overflow: hidden;
+                    padding: 40px;
+                    box-sizing: border-box;
+                  }
+                  .header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    border-bottom: 1px solid #f1f5f9;
+                    padding-bottom: 24px;
+                    margin-bottom: 28px;
+                  }
+                  .logo-container {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                  }
+                  .logo-img {
+                    height: 40px;
+                    object-fit: contain;
+                  }
+                  .logo-fallback {
+                    background: linear-gradient(135deg, #059669, #10b981);
+                    color: white;
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 12px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-family: 'Outfit', sans-serif;
+                    font-weight: 800;
+                    font-size: 18px;
+                    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+                  }
+                  .brand-name {
+                    font-family: 'Outfit', sans-serif;
+                    font-weight: 800;
+                    font-size: 22px;
+                    color: #0f172a;
+                    margin: 0;
+                    letter-spacing: -0.5px;
+                  }
+                  .brand-name span {
+                    color: #10b981;
+                  }
+                  .meta-info {
+                    text-align: right;
+                  }
+                  .invoice-title {
+                    font-family: 'Outfit', sans-serif;
+                    font-size: 13px;
+                    font-weight: 700;
+                    color: #64748b;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    margin: 0 0 4px 0;
+                  }
+                  .invoice-id {
+                    font-size: 15px;
+                    font-weight: 700;
+                    color: #0f172a;
+                    margin: 0;
+                  }
+                  .status-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    background-color: #ecfdf5;
+                    color: #065f46;
+                    padding: 5px 12px;
+                    border-radius: 9999px;
+                    font-size: 11px;
+                    font-weight: 700;
+                    letter-spacing: 0.5px;
+                    margin-top: 8px;
+                    border: 1px solid #a7f3d0;
+                  }
+                  .status-dot {
+                    width: 6px;
+                    height: 6px;
+                    background-color: #10b981;
+                    border-radius: 50%;
+                  }
+                  .details-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 24px;
+                    margin-bottom: 28px;
+                  }
+                  .details-section-title {
+                    font-size: 10px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    color: #94a3b8;
+                    letter-spacing: 1px;
+                    margin-bottom: 8px;
+                    display: block;
+                  }
+                  .details-text {
+                    font-size: 13px;
+                    line-height: 1.5;
+                    color: #475569;
+                    margin: 0;
+                  }
+                  .details-highlight {
+                    font-weight: 600;
+                    color: #0f172a;
+                  }
+                  .summary-card {
+                    background-color: #f8fafc;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 16px;
+                    padding: 20px;
+                    margin-bottom: 28px;
+                  }
+                  .summary-title {
+                    font-size: 10px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    color: #64748b;
+                    letter-spacing: 1px;
+                    margin-bottom: 14px;
+                    display: block;
+                  }
+                  .summary-row {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 8px 0;
+                  }
+                  .summary-label {
+                    color: #475569;
+                    font-size: 13px;
+                    font-weight: 500;
+                  }
+                  .summary-value {
+                    color: #0f172a;
+                    font-size: 13px;
+                    font-weight: 600;
+                  }
+                  .amount-row {
+                    border-top: 1px dashed #cbd5e1;
+                    margin-top: 14px;
+                    padding-top: 14px;
+                  }
+                  .amount-label {
+                    font-family: 'Outfit', sans-serif;
+                    font-size: 15px;
+                    font-weight: 700;
+                    color: #0f172a;
+                  }
+                  .amount-value {
+                    font-family: 'Outfit', sans-serif;
+                    font-size: 22px;
+                    font-weight: 800;
+                    color: #047857;
+                  }
+                  .footer {
+                    border-top: 1px solid #f1f5f9;
+                    padding-top: 24px;
+                    text-align: center;
+                  }
+                  .footer-text {
+                    font-size: 12px;
+                    color: #64748b;
+                    line-height: 1.6;
+                    margin: 0 0 16px 0;
+                  }
+                  .footer-text a {
+                    color: #059669;
+                    text-decoration: none;
+                    font-weight: 600;
+                  }
+                  .stripe-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 6px;
+                    font-size: 11px;
+                    color: #94a3b8;
+                    font-weight: 500;
+                  }
+                  .stripe-badge svg {
+                    fill: #94a3b8;
+                  }
+                  .actions-container {
+                    display: flex;
+                    justify-content: center;
+                    margin-top: 20px;
+                  }
+                  .btn-print {
+                    font-family: 'Inter', sans-serif;
+                    background-color: #0f172a;
+                    color: white;
+                    border: none;
+                    padding: 12px 24px;
+                    font-size: 13px;
+                    font-weight: 600;
+                    border-radius: 10px;
+                    cursor: pointer;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -1px rgba(15, 23, 42, 0.04);
+                    transition: all 0.15s ease;
+                  }
+                  .btn-print:hover {
+                    background-color: #1e293b;
+                    transform: translateY(-1px);
+                    box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -2px rgba(15, 23, 42, 0.05);
+                  }
+                  .btn-print:active {
+                    transform: translateY(0);
+                  }
+                  @media print {
+                    body {
+                      background: white;
+                      padding: 0;
+                    }
+                    .receipt-container {
+                      box-shadow: none;
+                      border: none;
+                      padding: 0;
+                      max-width: 100%;
+                    }
+                    .btn-print {
+                      display: none;
+                    }
+                  }
+                </style>
+              </head>
+              <body>
+                <div class="receipt-container">
+                  <div class="header">
+                    <div class="logo-container">
+                      <img src="/lupsi_logo-Photoroom.png" alt="LUPSI+" class="logo-img" onerror="this.style.display='none'; document.getElementById('logo-fallback-id').style.display='flex'">
+                      <div id="logo-fallback-id" class="logo-fallback" style="display:none">L</div>
+                      <h1 class="brand-name">LUPSI<span>+</span></h1>
+                    </div>
+                    <div class="meta-info">
+                      <p class="invoice-title">Comprobante Digital</p>
+                      <p class="invoice-id">#LUPSI-${completedPayment.id.substring(0, 8).toUpperCase()}</p>
+                      <div class="status-badge">
+                        <span class="status-dot"></span>
+                        PAGO COMPLETADO
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="details-grid">
+                    <div>
+                      <span class="details-section-title">Información del Paciente</span>
+                      <p class="details-text details-highlight">Paciente Registrado</p>
+                      <p class="details-text">Portal de Pacientes Lupsi</p>
+                    </div>
+                    <div>
+                      <span class="details-section-title">Detalles del Proveedor</span>
+                      <p class="details-text details-highlight">Clínica Lupsi S.A.</p>
+                      <p class="details-text">Ambato, Ecuador</p>
+                      <p class="details-text">RUC: 1792847583001</p>
+                    </div>
+                  </div>
+
+                  <div class="summary-card">
+                    <span class="summary-title">Resumen de la Transacción</span>
+                    <div class="summary-row">
+                      <span class="summary-label">Concepto</span>
+                      <span class="summary-value">Agendamiento de Cita Médica</span>
+                    </div>
+                    <div class="summary-row">
+                      <span class="summary-label">Médico Tratante</span>
+                      <span class="summary-value">Dr/Dra. ${apt.doctors?.profiles?.first_name || 'No especificado'} ${apt.doctors?.profiles?.last_name || ''}</span>
+                    </div>
+                    <div class="summary-row">
+                      <span class="summary-label">Fecha y Hora</span>
+                      <span class="summary-value">${dateStr}</span>
+                    </div>
+                    <div class="summary-row">
+                      <span class="summary-label">Método de Pago</span>
+                      <span class="summary-value">Tarjeta de Crédito (Stripe Secure)</span>
+                    </div>
+                    <div class="summary-row amount-row">
+                      <span class="amount-label">Monto Total Liquidado</span>
+                      <span class="amount-value">$50.00 USD</span>
+                    </div>
+                  </div>
+
+                  <div class="footer">
+                    <p class="footer-text">
+                      Si tienes alguna duda o deseas solicitar asistencia con tu cita médica, contáctanos a:<br>
+                      <a href="mailto:soporte@lupsi.com">soporte@lupsi.com</a> o llama a nuestra central técnica.
+                    </p>
+                    <div class="stripe-badge">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                      Procesado de forma segura con Stripe Secure
+                    </div>
+                    <div class="actions-container">
+                      <button class="btn-print" onclick="window.print()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                        Imprimir o Guardar Recibo (PDF)
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </body>
+              </html>
+            `);
+            receiptWindow.document.close();
+          }
+        } else {
+          alert(
+            'Este pago fue realizado por un método alternativo o no cuenta con comprobante digital en Stripe.'
+          );
+        }
+      },
+      error: (err) => {
+        console.error('Error al obtener el recibo:', err);
+      },
+    });
+  }
 
   appointments: Appointment[] = [];
   isLoading = false;

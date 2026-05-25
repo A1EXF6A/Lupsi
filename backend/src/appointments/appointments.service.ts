@@ -21,16 +21,33 @@ import {
   Prescription,
 } from '../database/interfaces/database.interfaces';
 
+import Stripe from 'stripe';
+
 @Injectable()
 export class AppointmentsService {
-  constructor(private readonly supabaseService: SupabaseService) {}
+  private stripe: any;
+
+  constructor(private readonly supabaseService: SupabaseService) {
+    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+      apiVersion: '2026-04-22.dahlia',
+    });
+  }
 
   async create(patientId: string, createAppointmentDto: CreateAppointmentDto) {
     const supabase = this.supabaseService.getClient();
 
-    // Sumamos 30 minutos fijos asumiendo que es la duración de la cita médica
+    // Calculamos el tiempo de fin basado en la duración proporcionada o 30 min por defecto
+    const duration = createAppointmentDto.duration_minutes ?? 30;
     const startTime = new Date(createAppointmentDto.appointment_time);
-    const endTime = new Date(startTime.getTime() + 30 * 60000); // +30 mins
+    const endTime = new Date(startTime.getTime() + duration * 60000);
+
+    // Validación lógica: No permitir citas en el pasado
+    const now = new Date();
+    if (startTime < now) {
+      throw new ConflictException(
+        'No es posible agendar una cita médica en una fecha u hora que ya ha transcurrido.',
+      );
+    }
 
     const { data, error } = await supabase
       .from('appointments')
@@ -233,6 +250,12 @@ export class AppointmentsService {
           currentSlotStart.getTime() + 30 * 60000,
         );
 
+        // Validación lógica: No retornar horarios que ya han pasado en la hora actual del sistema
+        const now = new Date();
+        if (currentSlotStart < now) {
+          continue;
+        }
+
         // Comprobar si hay superposición con alguna cita existente
         const isOccupied = (appointments || []).some(
           (app: Partial<Appointment>) => {
@@ -306,6 +329,7 @@ export class AppointmentsService {
       .from('appointments')
       .update({
         is_deleted: true,
+        status: 'CANCELLED',
         deleted_at: new Date().toISOString(),
       })
       .eq('id', id);
@@ -494,7 +518,7 @@ export class AppointmentsService {
     const supabase = this.supabaseService.getClient();
     const { data, error } = await supabase
       .from('appointment_payments')
-      .select('id, appointment_id, amount, method, status, paid_at')
+      .select('id, appointment_id, amount, method, status, paid_at, receipt_url')
       .eq('appointment_id', appointmentId)
       .order('created_at', { ascending: false })
       .returns<AppointmentPayment[]>();
@@ -505,7 +529,46 @@ export class AppointmentsService {
       );
     }
 
-    return data || [];
+    const payments = data || [];
+    
+    // Auto-recuperación (Self-healing): si hay un pago de tarjeta exitoso pero sin receipt_url
+    const cardPaymentWithoutReceipt = payments.find(p => p.method === 'CARD' && p.status === 'COMPLETED' && !p.receipt_url);
+    if (cardPaymentWithoutReceipt) {
+      console.log(`[getPayments] 🩺 Pago de tarjeta sin recibo detectado para cita ${appointmentId}. Buscando en Stripe...`);
+      try {
+        const listResults = await this.stripe.paymentIntents.list({ limit: 30 });
+        const pi = listResults.data.find(
+          (item) =>
+            item.metadata?.appointmentId === appointmentId &&
+            item.status === 'succeeded'
+        );
+        if (pi && pi.latest_charge) {
+          console.log(`[getPayments] Encontrado PaymentIntent en Stripe, recuperando cargo: ${pi.latest_charge}`);
+          const charge = await this.stripe.charges.retrieve(pi.latest_charge as string);
+          const receiptUrl = charge?.receipt_url || null;
+          if (receiptUrl) {
+            console.log(`[getPayments] 🎉 Recibo encontrado en Stripe: ${receiptUrl}. Actualizando base de datos...`);
+            const { data: updatedPay } = await supabase
+              .from('appointment_payments')
+              .update({ receipt_url: receiptUrl })
+              .eq('id', cardPaymentWithoutReceipt.id)
+              .select('id, appointment_id, amount, method, status, paid_at, receipt_url')
+              .single();
+              
+            if (updatedPay) {
+              const index = payments.findIndex(p => p.id === cardPaymentWithoutReceipt.id);
+              if (index !== -1) {
+                payments[index] = updatedPay as AppointmentPayment;
+              }
+            }
+          }
+        }
+      } catch (e: any) {
+        console.error('[getPayments] Error en auto-recuperación de recibo:', e.message);
+      }
+    }
+
+    return payments;
   }
 
   async createPayment(
@@ -527,7 +590,7 @@ export class AppointmentsService {
           paid_at: paidAt ?? null,
         },
       ])
-      .select('id, appointment_id, amount, method, status, paid_at')
+      .select('id, appointment_id, amount, method, status, paid_at, receipt_url')
       .single<AppointmentPayment>();
 
     if (error) {
@@ -581,7 +644,7 @@ export class AppointmentsService {
       .from('appointment_payments')
       .update(updates)
       .eq('id', id)
-      .select('id, appointment_id, amount, method, status, paid_at')
+      .select('id, appointment_id, amount, method, status, paid_at, receipt_url')
       .single<AppointmentPayment>();
 
     if (error) {

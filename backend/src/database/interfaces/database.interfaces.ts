@@ -162,4 +162,5 @@ export interface AppointmentPayment {
   method: string | null;
   status: string;
   paid_at: string | null;
+  receipt_url?: string | null;
 }

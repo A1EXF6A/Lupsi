@@ -1,0 +1,205 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[spanish, es-noshorthands]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage[table]{xcolor}
+\usepackage[T1]{fontenc}
+\usepackage{tabularx}
+\usepackage{pdflscape}
+
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+
+\definecolor{SKTPrimary}{HTML}{3F4A4F}   % propuesta primario
+\definecolor{SKTDark}{HTML}{242B2E}      % propuesta secundario
+\definecolor{SKTAccent}{HTML}{979C9D}    % acento gris
+\definecolor{SKTLight}{HTML}{CDCFD2}     % claro
+\definecolor{SKTMid}{HTML}{6E7375}       % matiz intermedio
+
+\geometry{
+top=2.5cm,
+bottom=2.5cm,
+left=3cm,
+right=3cm,
+includehead,
+headheight=130pt,
+headsep=1cm
+}
+% ---------------- ENCABEZADO ----------------
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+
+\fancyhead[C]{%
+\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{|m{3cm}|m{7.5cm}|m{3.8cm}|}
+\hline
+\multirow{5}{*}{
+\parbox[c][3.5cm][c]{2.5cm}{
+\centering
+\includegraphics[width=2.2cm]{SKTLogo.png}
+}
+}
+& \centering\textbf{SKT Software Solution}
+& \parbox[c]{\linewidth}{\centering
+\textbf{CÓDIGO:}\\
+DI-GDR-PLA-001
+\vspace{3pt}
+} \\ \cline{2-3}
+
+& \centering\textbf{PROCESO: Gestión de Proyectos}
+& \parbox[c]{\linewidth}{\centering
+\textbf{VERSIÓN:}\\
+1.0
+\vspace{3pt}
+} \\ \cline{2-3}
+
+& \centering Plan de Comunicación
+& \parbox[c]{\linewidth}{\centering
+\textbf{ELABORACIÓN:}\\
+15/05/2026
+} \\ \cline{2-3}
+
+& \centering Plan y Matriz de Comunicación
+& \parbox[c]{\linewidth}{\centering
+\textbf{ÚLTIMA REVISIÓN:}\\
+15/05/2026
+} \\ \hline
+\end{tabular}%
+}
+
+\begin{document}
+\raggedbottom
+
+\section{Plan de Comunicación}
+Este documento establece el plan de comunicación para el desarrollo del Sistema de Gestión de Citas Médicas "Lupsi".
+
+\section{Introducción}
+El éxito del proyecto para el desarrollo del Sistema de Gestión de Citas Médicas "Lupsi" depende en gran medida de una comunicación efectiva, oportuna y transparente entre todos los interesados. En proyectos de desarrollo de software con metodologías ágiles, la sincronización entre el equipo técnico, el cliente final y los evaluadores académicos es un factor crítico de éxito. Este documento define los canales, la frecuencia y los responsables de transmitir la información clave a lo largo de todo el ciclo de vida del proyecto, asegurando el alineamiento de expectativas, la mitigación de riesgos y la resolución ágil de impedimentos técnicos o de negocio.
+
+\section{Objetivo}
+\textbf{Objetivo General:} Establecer un marco de referencia estandarizado y automatizado que garantice el flujo de información adecuado entre todos los actores del proyecto Lupsi, definiendo claramente qué se debe comunicar, a quién, cómo, cuándo y quién es el responsable de la emisión y recepción del mensaje.
+
+\textbf{Objetivos Específicos:}
+\begin{itemize}
+    \item Formalizar las interacciones académicas y de evaluación con el Sponsor del proyecto.
+    \item Definir los canales de demostración y retroalimentación iterativa con el cliente final.
+    \item Estandarizar la comunicación interna del equipo de desarrollo, integrando herramientas de control de versiones y tableros ágiles.
+    \item Automatizar la generación de reportes y alertas de bloqueo mediante la integración de un Agente virtual en plataformas de mensajería.
+\end{itemize}
+
+\section{Definiciones}
+Para la correcta interpretación de este plan, se establecen los siguientes términos:
+\begin{itemize}
+    \item \textbf{Sponsor Académico:} Rol que provee el respaldo institucional, evalúa el cumplimiento de los hitos técnicos y aprueba formalmente las entregas.
+    \item \textbf{Cliente Final:} Rol que representa a los usuarios del sistema, provee las reglas del negocio, valida el diseño y otorga retroalimentación funcional (Centro Médico Lupsi).
+    \item \textbf{Sprint:} Iteración de desarrollo corta y estructurada (típicamente 1 a 2 semanas) característica del marco de trabajo ágil, al final de la cual se entrega una porción funcional de software.
+    \item \textbf{Daily Sync / Stand-up:} Reunión diaria o reporte asíncrono para sincronizar al equipo técnico, donde cada desarrollador reporta su progreso y levanta la mano ante bloqueos en el código.
+    \item \textbf{Agente Lupsi:} Entidad robótica automatizada integrada en Telegram que facilita el registro de las \textit{Daily Syncs} y genera documentos PDF ejecutivos sin intervención humana.
+\end{itemize}
+
+\section{Alcance}
+Este plan de comunicación aplica a todas las fases del ciclo de vida del desarrollo del proyecto Lupsi, desde la toma de requerimientos iniciales hasta la fase de pruebas de estrés, despliegue y cierre formal del proyecto. Involucra a todos los miembros del equipo de desarrollo de SKT Software Solution, a la representación del Centro Médico Lupsi y al cuerpo docente evaluador.
+
+\section{Público Objetivo}
+Los principales actores involucrados en este plan son:
+\begin{itemize}
+    \item \textbf{Sponsor Académico:} Ing. Paulo Torres, encargado de la evaluación formal y validación de los entregables documentales.
+    \item \textbf{Cliente Final:} Dra. Luz Marina Saenz, representante del Centro Médico Lupsi, principal interesada en la funcionalidad y diseño del software.
+    \item \textbf{Gestor del Proyecto:} Angel Ayuquina, responsable principal de la articulación y cumplimiento de este plan.
+    \item \textbf{Equipo de Desarrollo:} Sebastián Ortiz, Daniel Luisa y Alex Huachi, responsables de la ejecución técnica y el reporte continuo de avance operativo.
+\end{itemize}
+
+\section{Herramientas y Canales}
+Para garantizar la fluidez de la información, el equipo ha adoptado un stack tecnológico que incluye:
+\begin{itemize}
+    \item \textbf{Reuniones Presenciales:} Exclusivas para entregas formales, firmas de actas y defensa académica.
+    \item \textbf{Plataformas de Videoconferencia (Meet/Zoom/Teams):} Para demostraciones (Demos) quincenales y resolución de problemas técnicos complejos.
+    \item \textbf{Mensajería Instantánea (WhatsApp/Telegram):} Para consultas ágiles, resolución de bloqueos diarios y recepción de notificaciones del Agente Lupsi.
+    \item \textbf{Herramientas de Gestión (Trello y GitHub):} Para el seguimiento milimétrico del estado de las tareas, control de código fuente y métricas de avance del sprint.
+\end{itemize}
+
+\section{Matriz de Comunicación}
+A continuación se presenta la matriz formal de comunicación, la cual detalla las estrategias adoptadas por el equipo para mantener a todos los interesados informados y coordinados.
+
+\vspace{0.5cm}
+\noindent
+\makebox[\textwidth][c]{
+{\footnotesize
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|>{\raggedright\arraybackslash}p{4.4cm}|>{\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}p{3.4cm}|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}p{2.5cm}|}
+\hline
+\rowcolor{SKTPrimary}
+\textcolor{white}{\textbf{QUÉ COMUNICAR}} & \textcolor{white}{\textbf{PERSONAS A QUIEN COMUNICAR}} & \textcolor{white}{\textbf{RESPONSABLE DE LA COMUNICACIÓN}} & \textcolor{white}{\textbf{CÓMO COMUNICAR (Medio/Formato)}} & \textcolor{white}{\textbf{FRECUENCIA}} \\ \hline
+
+\textbf{1. Evaluación Académica y Aprobación Formal} \newline \textit{(Presentación de documentos, revisión del estado global y rúbricas)} & Sponsor (Docente Ing. Paulo Torres) & Gestor Angel Ayuquina & \textbf{Reunión Presencial} y entrega de actas firmadas & \textbf{Mensual} \\ \hline
+
+\textbf{2. Seguimiento y Demostración de Avances (Demo)} \newline \textit{(Mostrar módulos funcionales, recopilar feedback y validar diseño)} & Cliente Final (Dra. Luz Marina Saenz) & Gestor Angel Ayuquina & Reunión Virtual (Meet/Zoom/Teams) & \textbf{Quincenal} \textit{(Al final de cada Sprint)} \\ \hline
+
+\textbf{3. Consultas Funcionales y Requerimientos} \newline \textit{(Aclaración de reglas de negocio, horarios, flujos del centro médico)} & Cliente Final y Equipo de Desarrollo & Gestor Angel Ayuquina & Grupo de WhatsApp con el Cliente o Reunión Corta & Según sea necesario (Ad-hoc) \\ \hline
+
+\textbf{4. Asignación y Seguimiento Operativo Interno} \newline \textit{(Coordinación de código, backend/frontend, actualización de tareas)} & Equipo de Desarrollo (Sebastián, Daniel, Alex) & Todos los Desarrolladores & Tablero Kanban en \textbf{Trello} y control de ramas en \textbf{GitHub} & Diaria / Continua \\ \hline
+
+\textbf{5. Resolución de Bloqueos Internos (Daily Sync)} \newline \textit{(Standup diario y alertas de estancamiento en el código)} & Equipo de Desarrollo Lupsi y Gestor PM & \textbf{Agente Lupsi (Automático)} y Desarrolladores & Interacción con el bot en el grupo de \textbf{Telegram} \newline (Comando \texttt{/standup}) & Diaria \\ \hline
+
+\textbf{6. Resultados de Calidad y Estado Técnico} \newline \textit{(Progreso del código, métricas, presupuesto y cumplimiento en Trello)} & Sponsor (Docente), Cliente y Equipo & \textbf{Agente Lupsi (Automático)} & \textbf{Reporte Ejecutivo en PDF} generado por el bot y enviado vía Telegram & Al finalizar cada sprint \newline (Semanal) \\ \hline
+
+\textbf{7. Cierre Formal del Proyecto} \newline \textit{(Defensa final del software funcionando, entrega de código y manuales)} & Sponsor (Docente) y Cliente Final & Gestor Angel Ayuquina & Presentación formal presencial (Defensa) & Al finalizar el proyecto \\ \hline
+\end{tabular}
+}
+}
+\vspace{0.5cm}
+
+\section{Firmas de Responsabilidad}
+
+\renewcommand{\arraystretch}{2}
+
+\noindent
+\begin{tabular}{
+p{0.28\textwidth}
+p{0.30\textwidth}
+>{\centering\arraybackslash}p{0.22\textwidth}
+>{\centering\arraybackslash}p{0.12\textwidth}
+}
+\hline
+\textbf{Rol} &
+\textbf{Nombre / Representante} &
+\textbf{Firma (QR)} &
+\textbf{Fecha} \\
+\hline
+
+Gestor del Proyecto
+& Angel Ayuquina
+& \includegraphics[width=3.2cm]{QR_Sello_Angel_Ayuquina.png}
+& 25/03/2026 \\[0.6cm]
+
+Desarrollador Backend
+& Sebastián Ortiz
+& \includegraphics[width=3.2cm]{QR_Sello_Sebastían_Ortiz.png}
+& 25/03/2026 \\[0.6cm]
+
+Desarrollador Fullstack
+& Daniel Luisa
+& \includegraphics[width=3.2cm]{QR_Sello_Daniel_Luisa.png}
+& 25/03/2026 \\[0.6cm]
+
+Desarrollador Frontend
+& Alex Huachi
+& \includegraphics[width=3.2cm]{QR_Sello_Alex_Huachi.png}
+& 25/03/2026 \\[0.6cm]
+
+\hline
+\end{tabular}
+
+\end{document}

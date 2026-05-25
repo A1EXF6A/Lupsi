@@ -11,6 +11,7 @@ import { ClinicalHistoryModule } from './clinical-history/clinical-history.modul
 import { ClinicalAttentionsModule } from './clinical-attentions/clinical-attentions.module';
 import { MedicationsModule } from './medications/medications.module';
 import { UsersModule } from './users/users.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { UsersModule } from './users/users.module';
     ClinicalAttentionsModule,
     MedicationsModule,
     UsersModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
