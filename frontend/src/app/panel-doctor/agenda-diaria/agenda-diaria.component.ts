@@ -95,7 +95,7 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
               <div class="flex justify-between items-start mb-3">
                 <div>
                   <div class="text-lg font-bold text-slate-800">
-                    {{ app.appointment_time | slice: 11 : 16 }}
+                    {{ app.appointment_time | date: 'HH:mm' }}
                   </div>
                   <div class="text-xs text-slate-400">
                     {{ app.appointment_time | date: 'fullDate' }}
@@ -166,15 +166,25 @@ export class DoctorAgendaDiariaComponent implements OnInit {
   cdr = inject(ChangeDetectorRef);
 
   appointments: Appointment[] = [];
-  selectedDate: string = new Date().toISOString().split('T')[0];
+  selectedDate: string = (() => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  })();
 
   isLoading = false;
   errorMessage = '';
 
   get filteredAppointments() {
     const filtered = this.appointments.filter((app) => {
-      const appDate = app.appointment_time.split('T')[0];
-      return appDate === this.selectedDate;
+      const d = new Date(app.appointment_time);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const localDate = `${year}-${month}-${day}`;
+      return localDate === this.selectedDate;
     });
     return filtered.sort((a, b) => a.appointment_time.localeCompare(b.appointment_time));
   }

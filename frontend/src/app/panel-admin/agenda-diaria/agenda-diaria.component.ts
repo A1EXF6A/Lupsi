@@ -115,7 +115,7 @@ import { CatalogsService } from '../../core/services/catalogs.service';
               <div class="flex justify-between items-start mb-3">
                 <div>
                   <div class="text-lg font-bold text-slate-800">
-                    {{ app.appointment_time | slice: 11 : 16 }}
+                    {{ app.appointment_time | date: 'HH:mm' }}
                   </div>
                   <div class="text-xs text-slate-400">
                     {{ app.appointment_time | date: 'fullDate' }}
@@ -220,17 +220,25 @@ export class AgendaDiariaComponent implements OnInit {
   doctors: any[] = [];
   appointments: Appointment[] = [];
   selectedDoctor: string = '';
-  selectedDate: string = new Date().toISOString().split('T')[0];
+  selectedDate: string = (() => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  })();
 
   isLoading = false;
   errorMessage = '';
 
   get filteredAppointments() {
     let filtered = this.appointments.filter((app) => {
-      // Filtrar por fecha local
-      // app.appointment_time is ISO "YYYY-MM-DDTHH:mm:ssZ"
-      const appDate = app.appointment_time.split('T')[0];
-      return appDate === this.selectedDate;
+      const d = new Date(app.appointment_time);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const localDate = `${year}-${month}-${day}`;
+      return localDate === this.selectedDate;
     });
 
     if (this.selectedDoctor) {

@@ -1,7 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, RouterOutlet, Router } from '@angular/router';
 import { AuthService } from '../core/services/auth';
+import { UsersService } from '../core/services/users.service';
 
 @Component({
   selector: 'app-panel-doctor',
@@ -220,8 +221,8 @@ import { AuthService } from '../core/services/auth';
 
           <div class="flex items-center gap-3">
             <div class="text-right hidden sm:block">
-              <div class="text-sm font-bold text-slate-800">Doctor</div>
-              <div class="text-xs font-medium text-slate-400">Atencion Medica</div>
+              <div class="text-sm font-bold text-slate-800">{{ doctorName }}</div>
+              <div class="text-xs font-medium text-slate-400">Atención Médica</div>
             </div>
             <div
               class="w-10 h-10 rounded-full bg-slate-200 border-2 border-white shadow-sm flex items-center justify-center shrink-0"
@@ -252,11 +253,28 @@ import { AuthService } from '../core/services/auth';
     </div>
   `,
 })
-export class PanelDoctorComponent {
+export class PanelDoctorComponent implements OnInit {
   authService = inject(AuthService);
+  usersService = inject(UsersService);
   router = inject(Router);
 
   isSidebarOpen = true;
+  doctorName = 'Cargando...';
+
+  ngOnInit() {
+    this.usersService.getMe().subscribe({
+      next: (user) => {
+        if (user) {
+          this.doctorName = `Dr/Dra. ${user.first_name} ${user.last_name}`;
+        } else {
+          this.doctorName = 'Médico Especialista';
+        }
+      },
+      error: () => {
+        this.doctorName = 'Médico Especialista';
+      }
+    });
+  }
 
   toggleSidebar() {
     this.isSidebarOpen = !this.isSidebarOpen;
