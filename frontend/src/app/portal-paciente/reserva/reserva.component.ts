@@ -466,7 +466,7 @@ import { AuthService } from '../../core/services/auth';
         <div class="mb-4 bg-emerald-50/50 border border-emerald-100/50 p-4 rounded-2xl flex justify-between items-center" *ngIf="selectedSlot && selectedAppointmentType">
           <div>
             <h4 class="text-xs font-black text-emerald-800 uppercase tracking-wider mb-1">Monto a Liquidar</h4>
-            <p class="text-slate-500 text-xs font-semibold">{{ selectedSpecialty?.name }} - {{ selectedAppointmentType?.name }}</p>
+            <p class="text-slate-500 text-xs font-semibold">{{ selectedSpecialty?.name }} - {{ selectedAppointmentType.name }}</p>
           </div>
           <div class="text-right">
             <span class="text-2xl font-black text-emerald-700">\${{ getAppointmentPrice(selectedAppointmentType.name) }}.00</span>
