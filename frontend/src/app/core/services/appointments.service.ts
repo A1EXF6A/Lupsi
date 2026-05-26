@@ -18,6 +18,10 @@ export interface Appointment {
   paid?: boolean;
   patients?: any;
   doctors?: any;
+  hasPendingPayment?: boolean;
+  hasCompletedPayment?: boolean;
+  hasPendingTransfer?: boolean;
+  pendingTransferPayment?: any;
 }
 
 @Injectable({

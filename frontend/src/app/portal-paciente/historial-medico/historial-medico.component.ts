@@ -207,11 +207,6 @@ import { AuthService } from '../../core/services/auth';
             </div>
           </div>
 
-          <!-- Observaciones Adicionales -->
-          <div *ngIf="record.notes" class="bg-slate-50/50 p-4 rounded-2xl text-xs text-slate-500 font-semibold space-y-1">
-            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Observaciones adicionales del Especialista</span>
-            <p class="text-slate-600 whitespace-pre-wrap leading-relaxed">{{ record.notes }}</p>
-          </div>
         </div>
       </div>
     </div>

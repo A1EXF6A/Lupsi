@@ -133,7 +133,7 @@ import { CatalogsService, Specialty } from '../../core/services/catalogs.service
                   </svg>
                 </button>
                 <button
-                  (click)="deleteSpecialty(item.id)"
+                  (click)="triggerDelete(item.id)"
                   class="text-slate-400 hover:text-red-500 transition-colors mx-1"
                   title="Eliminar"
                 >
@@ -263,6 +263,57 @@ import { CatalogsService, Specialty } from '../../core/services/catalogs.service
         </form>
       </div>
     </div>
+
+    <!-- Modal Confirmación Personalizado -->
+    <div
+      *ngIf="showDeleteConfirm"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
+    >
+      <div
+        class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col p-6 items-center text-center animate-fade-in-up border border-slate-100"
+      >
+        <!-- Icono Alerta Personalizado -->
+        <div class="h-14 w-14 bg-red-50 rounded-full flex items-center justify-center text-red-500 mb-4 border border-red-100/50 select-none">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+        </div>
+
+        <h3 class="font-black text-xl text-slate-800 mb-2">¿Confirmar Eliminación?</h3>
+        <p class="text-sm text-slate-500 mb-6 leading-relaxed">
+          Esta acción es permanente y eliminará el registro seleccionado de forma irreversible del sistema.
+        </p>
+
+        <div class="flex gap-3 w-full">
+          <button
+            type="button"
+            (click)="cancelDelete()"
+            class="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors focus:outline-none"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            (click)="confirmDelete()"
+            class="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold transition-colors focus:outline-none shadow-md shadow-red-100"
+          >
+            Sí, Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
   `,
 })
 export class EspecialidadesListComponent implements OnInit {
@@ -370,12 +421,33 @@ export class EspecialidadesListComponent implements OnInit {
     }
   }
 
-  deleteSpecialty(id: string) {
-    if (confirm('¿Eliminar esta especialidad permanentemente?')) {
-      this.catalogsService.deleteSpecialty(id).subscribe({
-        next: () => this.loadData(),
-        error: (err) => console.error(err),
-      });
-    }
+  showDeleteConfirm = false;
+  idToDelete: string | null = null;
+
+  triggerDelete(id: string) {
+    this.idToDelete = id;
+    this.showDeleteConfirm = true;
+    this.cdr.detectChanges();
+  }
+
+  cancelDelete() {
+    this.showDeleteConfirm = false;
+    this.idToDelete = null;
+  }
+
+  confirmDelete() {
+    if (!this.idToDelete) return;
+    this.catalogsService.deleteSpecialty(this.idToDelete).subscribe({
+      next: () => {
+        this.showDeleteConfirm = false;
+        this.idToDelete = null;
+        this.loadData();
+      },
+      error: (err) => {
+        console.error(err);
+        this.showDeleteConfirm = false;
+        this.idToDelete = null;
+      },
+    });
   }
 }

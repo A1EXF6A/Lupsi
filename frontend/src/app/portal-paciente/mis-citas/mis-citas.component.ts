@@ -257,9 +257,9 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
               Ver Receta
             </button>
               <button
-                *ngIf="apt.status === 'SCHEDULED' && !checkIfPast(apt.appointment_time) && !apt.paid"
+                *ngIf="apt.status === 'SCHEDULED' && !checkIfPast(apt.appointment_time) && !apt.paid && !apt.hasPendingPayment"
                 (click)="goToPayment(apt)"
-                class="text-xs font-bold px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors flex items-center gap-1.5"
+                class="text-xs font-bold px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors flex items-center gap-1.5 focus:outline-none"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -277,6 +277,17 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
                 </svg>
                 Pagar Cita
               </button>
+
+              <span 
+                *ngIf="apt.status === 'SCHEDULED' && !apt.paid && apt.hasPendingPayment" 
+                class="text-xs font-bold px-3 py-1.5 bg-amber-50 text-amber-700 rounded-lg border border-amber-200 flex items-center gap-1.5 select-none"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 animate-pulse text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Pago Pendiente de Aprobación
+              </span>
+
               <span *ngIf="apt.paid" class="text-xs font-bold px-3 py-1.5 bg-green-50 text-green-600 rounded-lg border border-green-200 flex items-center gap-1.5">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                 Pagada
@@ -623,6 +634,46 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
             class="flex-1 py-2.5 text-sm font-bold bg-amber-500 hover:bg-amber-600 text-white rounded-xl transition-colors"
           >
             Sí, continuar
+          </button>
+    </div>
+
+    <!-- Modal Alerta/Advertencia Personalizado -->
+    <div
+      *ngIf="showWarningModal"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
+    >
+      <div
+        class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col border border-slate-100 animate-fade-in-up"
+      >
+        <div class="p-6 text-center">
+          <div
+            class="w-14 h-14 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 mx-auto mb-4 border border-indigo-100/50"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-black text-slate-800 mb-2">Comprobante No Disponible</h3>
+          <p class="text-sm text-slate-500 leading-relaxed">{{ warningModalMessage }}</p>
+        </div>
+        <div class="p-4 bg-slate-50 flex border-t border-slate-100">
+          <button
+            (click)="showWarningModal = false"
+            class="w-full py-3 text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-md shadow-indigo-100 focus:outline-none"
+          >
+            Entendido
           </button>
         </div>
       </div>
@@ -991,9 +1042,9 @@ export class MisCitasComponent implements OnInit {
             receiptWindow.document.close();
           }
         } else {
-          alert(
-            'Este pago fue realizado por un método alternativo o no cuenta con comprobante digital en Stripe.'
-          );
+          this.warningModalMessage = 'Este pago fue realizado por un método alternativo o no cuenta con comprobante digital en Stripe.';
+          this.showWarningModal = true;
+          this.cdr.detectChanges();
         }
       },
       error: (err) => {
@@ -1013,6 +1064,8 @@ export class MisCitasComponent implements OnInit {
   showPrescriptionModal = false;
   showPaymentModal = false;
   showConfirmModal = false;
+  showWarningModal = false;
+  warningModalMessage = '';
   isLoadingModal = false;
   selectedAppointment: Appointment | null = null;
 
@@ -1078,6 +1131,33 @@ export class MisCitasComponent implements OnInit {
     this.appointmentsService.getAppointments().subscribe({
       next: (data) => {
         this.appointments = data.reverse();
+        
+        // Consultar el estado de los pagos asociados a cada cita en paralelo
+        this.appointments.forEach((apt) => {
+          if (apt.id) {
+            this.appointmentsService.getPayments(apt.id).subscribe({
+              next: (payments) => {
+                const hasPending = payments.some((p) => p.status === 'PENDING');
+                const hasCompleted = payments.some((p) => p.status === 'COMPLETED');
+                
+                (apt as any).hasPendingPayment = hasPending;
+                (apt as any).hasCompletedPayment = hasCompleted;
+                
+                // Si ya está pagado en base a Stripe o aprobación, forzamos renderizado
+                if (hasCompleted) {
+                  apt.paid = true;
+                }
+                
+                this.cdr.detectChanges();
+              },
+              error: () => {
+                (apt as any).hasPendingPayment = false;
+                (apt as any).hasCompletedPayment = false;
+              }
+            });
+          }
+        });
+
         this.isLoading = false;
         this.cdr.detectChanges();
       },

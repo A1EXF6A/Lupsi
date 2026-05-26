@@ -296,12 +296,50 @@ type PrescriptionMedication = {
                   class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all text-slate-700 placeholder-slate-400 flex-1 resize-none"
                 ></textarea>
               </div>
-              <div class="md:col-span-1 flex flex-col">
-                <label class="text-xs font-bold text-slate-500 mb-1.5 px-0.5">Diagnóstico Clínico</label>
+              <div class="md:col-span-1 flex flex-col space-y-3">
+                <div class="flex items-center justify-between">
+                  <label class="text-xs font-bold text-slate-500 px-0.5">Diagnóstico Clínico</label>
+                  <span *ngIf="isControlAppointment" class="text-[9px] font-black text-blue-600 bg-blue-50 px-2.5 py-1 rounded uppercase tracking-wider">
+                    Control Activo
+                  </span>
+                </div>
+                
+                <!-- 1. El Diagnóstico se Hereda (Lectura) -->
+                <div *ngIf="isControlAppointment && previousDiagnosis" class="bg-blue-50/40 p-4 rounded-2xl border border-blue-100/30 space-y-2.5">
+                  <div class="flex items-center gap-1.5 text-blue-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    <span class="text-[9px] font-black uppercase tracking-wider">Diagnóstico de Seguimiento</span>
+                  </div>
+                  <p class="text-xs font-bold text-slate-800 leading-relaxed bg-white px-3.5 py-2.5 rounded-xl border border-slate-100 shadow-sm">
+                    {{ previousDiagnosis }}
+                  </p>
+                  
+                  <!-- Acción Rápida: Evolucionar Diagnóstico -->
+                  <div class="flex gap-2">
+                    <button
+                      type="button"
+                      (click)="evolucionarDiagnostico()"
+                      class="text-[9px] font-black bg-white text-blue-600 hover:bg-blue-100/50 hover:text-blue-750 px-2.5 py-1.5 rounded-lg border border-blue-100 shadow-sm transition-all flex items-center gap-1 focus:outline-none"
+                    >
+                      📝 Evolucionar Diagnóstico
+                    </button>
+                    <button
+                      *ngIf="attentionForm.diagnosis"
+                      type="button"
+                      (click)="attentionForm.diagnosis = ''"
+                      class="text-[9px] font-black bg-slate-100 text-slate-500 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg transition-all focus:outline-none"
+                    >
+                      Limpiar
+                    </button>
+                  </div>
+                </div>
+
                 <textarea
                   [(ngModel)]="attentionForm.diagnosis"
-                  rows="5"
-                  placeholder="Ingresa el diagnóstico formal de la consulta médica..."
+                  rows="4"
+                  [placeholder]="isControlAppointment ? 'Opcional. Registra cambios de estado o agrega nuevos diagnósticos por complicaciones...' : 'Ingresa el diagnóstico formal de la consulta médica...'"
                   class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all text-slate-700 placeholder-slate-400 flex-1 resize-none"
                 ></textarea>
               </div>
@@ -324,6 +362,42 @@ type PrescriptionMedication = {
                 </svg>
                 Receta Médica y Prescripciones
               </h4>
+
+              <!-- Tratamiento Anterior (Modo Control) -->
+              <div *ngIf="isControlAppointment && previousPrescription" class="bg-blue-50/40 p-5 rounded-2xl border border-blue-100/30 space-y-3">
+                <div class="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-blue-100/30">
+                  <div class="flex items-center gap-2 text-blue-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span class="text-xs font-black uppercase tracking-wider">Receta de Tratamiento Anterior (Historial)</span>
+                  </div>
+                  <button
+                    type="button"
+                    (click)="copiarRecetaAnterior()"
+                    class="text-xs font-black bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl transition-all shadow-md active:scale-[0.98] flex items-center gap-1.5 focus:outline-none"
+                  >
+                    🔄 Copiar Receta Anterior (Mantener Tratamiento)
+                  </button>
+                </div>
+
+                <!-- Detalle de Medicamentos Anteriores -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+                  <div 
+                    *ngFor="let med of previousPrescription.medications" 
+                    class="bg-white px-3.5 py-2.5 rounded-xl border border-slate-100 shadow-sm text-xs font-bold text-slate-700"
+                  >
+                    <span class="text-slate-800 font-black block">{{ med.name }}</span>
+                    <span class="text-slate-400 font-medium block mt-0.5">
+                      Dosis: {{ med.dosage }} | ⏱️ {{ med.frequency }} | 📅 {{ med.duration }}
+                    </span>
+                  </div>
+                </div>
+
+                <div *ngIf="previousPrescription.notes" class="text-xs font-semibold text-slate-500 italic bg-white/70 p-2.5 rounded-xl border border-slate-100">
+                  💡 <span class="font-bold text-slate-400">Instrucciones anteriores:</span> {{ previousPrescription.notes }}
+                </div>
+              </div>
               
               <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="md:col-span-1">
@@ -388,12 +462,22 @@ type PrescriptionMedication = {
                       Dosis: {{ med.dosage }} | Frecuencia: {{ med.frequency }} | Duración: {{ med.duration }}
                     </div>
                   </div>
-                  <button
-                    (click)="removeMedication(i)"
-                    class="text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100/70 px-3 py-1.5 rounded-lg transition-all"
-                  >
-                    Quitar
-                  </button>
+                  <div class="flex items-center gap-2">
+                    <button
+                      type="button"
+                      (click)="editarMedication(i)"
+                      class="text-xs font-black text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100/70 px-3 py-1.5 rounded-lg transition-all focus:outline-none"
+                    >
+                      ✏️ Editar
+                    </button>
+                    <button
+                      type="button"
+                      (click)="removeMedication(i)"
+                      class="text-xs font-black text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100/70 px-3 py-1.5 rounded-lg transition-all focus:outline-none"
+                    >
+                      Quitar
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -428,6 +512,7 @@ type PrescriptionMedication = {
                 {{ saveMessage }}
               </span>
             </div>
+            </div> <!-- Cierre de Ficha de Consulta Activa -->
 
             <!-- Línea de Tiempo del Historial del Paciente -->
             <div *ngIf="activeTab === 'historial'" class="space-y-6 mt-6 animate-fade-in">
@@ -495,7 +580,6 @@ type PrescriptionMedication = {
                 </div>
               </div>
             </div>
-          </div>
 
           <div
             *ngIf="selectedAppointment && selectedAppointment.status === 'CANCELLED'"
@@ -567,6 +651,9 @@ export class AtenderComponent implements OnInit {
   // Navegación de Pestañas e Historial Clínico
   activeTab: any = 'ficha';
   pastAttentions: any[] = [];
+  isControlAppointment = false;
+  previousDiagnosis = '';
+  previousPrescription: any = null;
 
   isLoading = false;
   isSaving = false;
@@ -626,10 +713,73 @@ export class AtenderComponent implements OnInit {
             const dateB = b.created_at || '';
             return dateB.localeCompare(dateA);
           });
+
+        if (this.pastAttentions.length > 0) {
+          this.isControlAppointment = true;
+          this.previousDiagnosis = this.pastAttentions[0].diagnosis || '';
+
+          // Carga de receta de la consulta de control anterior
+          const prevApptId = this.pastAttentions[0].appointment_id;
+          if (prevApptId) {
+            this.appointmentsService.getPrescription(prevApptId).subscribe({
+              next: (prescData) => {
+                const presc = Array.isArray(prescData) ? prescData[0] : prescData;
+                this.previousPrescription = presc || null;
+                this.cdr.detectChanges();
+              },
+              error: () => {
+                this.previousPrescription = null;
+                this.cdr.detectChanges();
+              }
+            });
+          } else {
+            this.previousPrescription = null;
+          }
+        } else {
+          this.isControlAppointment = false;
+          this.previousDiagnosis = '';
+          this.previousPrescription = null;
+        }
+
         this.cdr.detectChanges();
       },
       error: (err) => console.error(err),
     });
+  }
+
+  evolucionarDiagnostico() {
+    this.attentionForm.diagnosis = this.previousDiagnosis;
+    this.cdr.detectChanges();
+  }
+
+  copiarRecetaAnterior() {
+    if (this.previousPrescription) {
+      const meds = Array.isArray(this.previousPrescription.medications)
+        ? this.previousPrescription.medications
+        : [];
+
+      this.prescriptionMedications = meds.map((m: any) => ({
+        id: '',
+        name: m.name || '',
+        dosage: m.dosage || '',
+        frequency: m.frequency || '',
+        duration: m.duration || '',
+      }));
+
+      this.prescriptionNotes = this.previousPrescription.notes || '';
+      this.cdr.detectChanges();
+    }
+  }
+
+  editarMedication(index: number) {
+    const med = this.prescriptionMedications[index];
+    if (med) {
+      this.customMedicationName = med.name;
+      this.medicationForm.dosage = med.dosage;
+      this.medicationForm.frequency = med.frequency;
+      this.medicationForm.duration = med.duration;
+      this.removeMedication(index);
+    }
   }
 
   checkPaymentStatus(app: Appointment) {
@@ -705,6 +855,9 @@ export class AtenderComponent implements OnInit {
     this.isPaymentPaid = false;
     this.activeTab = 'ficha';
     this.pastAttentions = [];
+    this.isControlAppointment = false;
+    this.previousDiagnosis = '';
+    this.previousPrescription = null;
   }
 
   addMedication() {
@@ -748,12 +901,18 @@ export class AtenderComponent implements OnInit {
     this.isSaving = true;
     this.saveMessage = '';
 
+    // Si es consulta de control y no se ingresó diagnóstico nuevo, hereda el diagnóstico base automáticamente
+    let finalDiagnosis = this.attentionForm.diagnosis || null;
+    if (this.isControlAppointment && !finalDiagnosis && this.previousDiagnosis) {
+      finalDiagnosis = this.previousDiagnosis;
+    }
+
     const payload = {
       appointment_id: this.selectedAppointment.id,
       patient_id: this.selectedAppointment.patient_id,
       doctor_id: this.selectedAppointment.doctor_id,
       notes: this.attentionForm.notes || null,
-      diagnosis: this.attentionForm.diagnosis || null,
+      diagnosis: finalDiagnosis,
       treatment: this.attentionForm.treatment || null,
       vitals: this.parseVitals(),
     };

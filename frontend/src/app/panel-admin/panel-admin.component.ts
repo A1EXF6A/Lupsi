@@ -215,30 +215,7 @@ import { AuthService } from '../core/services/auth';
             </svg>
             Fichas Clínicas
           </a>
-          <a
-            *ngIf="isAdmin"
-            (click)="onLinkClick()"
-            routerLink="medicamentos"
-            routerLinkActive="bg-green-600 text-white"
-            class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition-colors font-medium"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M10.5 20.5l6-6M17 14l-6-6M8.5 8.5l6 6M14 17l-6-6" />
-              <path d="M4.5 14.5l6-6a2.12 2.12 0 013 3l-6 6a2.12 2.12 0 01-3-3z" />
-              <path d="M14.5 4.5l6 6a2.12 2.12 0 01-3 3l-6-6a2.12 2.12 0 013-3z" />
-            </svg>
-            Medicamentos
-          </a>
+
           <a
             *ngIf="isAdmin"
             (click)="onLinkClick()"
