@@ -28,4 +28,8 @@ export class UpdateUserDto {
   @IsString()
   @IsOptional()
   date_of_birth?: string | null;
+
+  @IsString()
+  @IsOptional()
+  specialty?: string;
 }
