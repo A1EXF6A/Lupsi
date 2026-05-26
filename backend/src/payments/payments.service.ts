@@ -42,7 +42,7 @@ export class PaymentsService {
     // Verificamos que la cita exista
     const { data: app, error: appErr } = await supabase
       .from('appointments')
-      .select('id, paid')
+      .select('id, paid, price')
       .eq('id', appointmentId)
       .single();
 
@@ -54,10 +54,12 @@ export class PaymentsService {
       throw new InternalServerErrorException('Esta cita ya está pagada');
     }
 
+    const finalAmount = app.price ? Number(app.price) : amount;
+
     try {
       // Creamos la intención de pago en Stripe (monto en centavos)
       const paymentIntent = await this.stripe.paymentIntents.create({
-        amount: Math.round(amount * 100),
+        amount: Math.round(finalAmount * 100),
         currency: 'usd',
         metadata: { appointmentId },
       });
@@ -65,7 +67,7 @@ export class PaymentsService {
       return {
         clientSecret: paymentIntent.client_secret,
         appointmentId,
-        amount,
+        amount: finalAmount,
       };
     } catch (stripeError: any) {
       console.error('Error de Stripe:', stripeError.message);
@@ -80,12 +82,20 @@ export class PaymentsService {
   async reportTransfer(appointmentId: string, amount: number, receiptUrl: string) {
     const supabase = this.supabaseService.getClient();
 
+    const { data: app } = await supabase
+      .from('appointments')
+      .select('price')
+      .eq('id', appointmentId)
+      .single();
+
+    const finalAmount = app?.price ? Number(app.price) : amount;
+
     const { data, error } = await supabase
       .from('appointment_payments')
       .insert([
         {
           appointment_id: appointmentId,
-          amount,
+          amount: finalAmount,
           method: 'TRANSFER',
           status: 'PENDING',
           receipt_url: receiptUrl,
@@ -139,14 +149,23 @@ export class PaymentsService {
       console.error('[ConfirmStripePayment] Error buscando recibo en Stripe charge:', e.message);
     }
 
-    // 3. Guardamos el pago como completado directamente
+    // 3. Recuperar el precio correcto
+    const { data: app } = await supabase
+      .from('appointments')
+      .select('price')
+      .eq('id', appointmentId)
+      .single();
+
+    const finalAmount = app?.price ? Number(app.price) : amount;
+
+    // Guardamos el pago como completado directamente
     console.log('[ConfirmStripePayment] 💾 Insertando registro de pago en DB...');
     const { data: payment, error: payErr } = await supabase
       .from('appointment_payments')
       .insert([
         {
           appointment_id: appointmentId,
-          amount,
+          amount: finalAmount,
           method: 'CARD',
           status: 'COMPLETED',
           paid_at: new Date().toISOString(),

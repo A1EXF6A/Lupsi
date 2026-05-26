@@ -6,7 +6,6 @@ import {
   ClinicalAttentionsService,
   ClinicalAttention,
 } from '../../core/services/clinical-attentions.service';
-import { MedicationsService, Medication } from '../../core/services/medications.service';
 import { ClinicalHistoryService } from '../../core/services/clinical-history.service';
 
 type PrescriptionMedication = {
@@ -603,7 +602,6 @@ type PrescriptionMedication = {
 export class AtenderComponent implements OnInit {
   appointmentsService = inject(AppointmentsService);
   clinicalAttentionsService = inject(ClinicalAttentionsService);
-  medicationsService = inject(MedicationsService);
   clinicalHistoryService = inject(ClinicalHistoryService);
   cdr = inject(ChangeDetectorRef);
 

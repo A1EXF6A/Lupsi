@@ -101,7 +101,8 @@ import { UsersService, User } from '../../core/services/users.service';
               <th scope="col" class="px-6 py-4">Usuario</th>
               <th scope="col" class="px-6 py-4">Correo</th>
               <th scope="col" class="px-6 py-4 text-center">Rol</th>
-              <th scope="col" class="px-6 py-4 text-right">Fecha de Registro</th>
+              <th scope="col" class="px-6 py-4 text-center">Fecha de Registro</th>
+              <th scope="col" class="px-6 py-4 text-right">Acciones</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-50">
@@ -138,12 +139,56 @@ import { UsersService, User } from '../../core/services/users.service';
                   {{ user.role }}
                 </span>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right text-slate-500">
+              <td class="px-6 py-4 whitespace-nowrap text-center text-slate-500">
                 {{ user.created_at | date: 'mediumDate' }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <button
+                  *ngIf="user.role === 'RECEPTIONIST'"
+                  (click)="openModal(user)"
+                  class="text-slate-400 hover:text-indigo-600 transition-colors mx-1"
+                  title="Editar"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                  </svg>
+                </button>
+                <button
+                  *ngIf="user.role === 'RECEPTIONIST'"
+                  (click)="triggerDelete(user.id)"
+                  class="text-slate-400 hover:text-red-500 transition-colors mx-1"
+                  title="Eliminar"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
+                  </svg>
+                </button>
               </td>
             </tr>
             <tr *ngIf="filteredUsers.length === 0">
-              <td colspan="4" class="px-6 py-8 text-center text-slate-500">
+              <td colspan="5" class="px-6 py-8 text-center text-slate-500">
                 No se encontraron usuarios en el sistema.
               </td>
             </tr>
@@ -187,7 +232,9 @@ import { UsersService, User } from '../../core/services/users.service';
         <div
           class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50"
         >
-          <h3 class="font-bold text-lg text-slate-800">Añadir Recepcionista</h3>
+          <h3 class="font-bold text-lg text-slate-800">
+            {{ isEditing ? 'Editar Recepcionista' : 'Añadir Recepcionista' }}
+          </h3>
           <button
             (click)="closeModal()"
             class="text-slate-400 hover:text-slate-600 transition-colors"
@@ -243,12 +290,14 @@ import { UsersService, User } from '../../core/services/users.service';
             />
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-500 mb-1">Contraseña</label>
+            <label class="block text-xs font-bold text-slate-500 mb-1">
+              Contraseña {{ isEditing ? '(Opcional para actualizar)' : '' }}
+            </label>
             <input
               type="password"
               [(ngModel)]="formData.password"
               name="password"
-              required
+              [required]="!isEditing"
               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
@@ -266,10 +315,61 @@ import { UsersService, User } from '../../core/services/users.service';
               [disabled]="isSaving"
               class="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 transition-colors disabled:opacity-50"
             >
-              {{ isSaving ? 'Guardando...' : 'Guardar Recepcionista' }}
+              {{ isSaving ? 'Guardando...' : (isEditing ? 'Guardar Cambios' : 'Guardar Recepcionista') }}
             </button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- Modal Confirmación Eliminar Recepcionista -->
+    <div
+      *ngIf="showDeleteConfirm"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
+    >
+      <div
+        class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col p-6 items-center text-center animate-fade-in-up border border-slate-100"
+      >
+        <!-- Icono Alerta Personalizado -->
+        <div class="h-14 w-14 bg-red-50 rounded-full flex items-center justify-center text-red-500 mb-4 border border-red-100/50 select-none">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+        </div>
+
+        <h3 class="font-black text-xl text-slate-800 mb-2">¿Confirmar Eliminación?</h3>
+        <p class="text-sm text-slate-500 mb-6 leading-relaxed">
+          Esta acción eliminará la cuenta del recepcionista permanentemente y revocará todo su acceso al sistema.
+        </p>
+
+        <div class="flex gap-3 w-full">
+          <button
+            type="button"
+            (click)="cancelDelete()"
+            class="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors focus:outline-none"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            (click)="confirmDelete()"
+            class="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold transition-colors focus:outline-none shadow-md shadow-red-100"
+          >
+            Sí, Eliminar
+          </button>
+        </div>
       </div>
     </div>
   `,
@@ -301,13 +401,31 @@ export class UsuariosListComponent implements OnInit {
     this.loadData();
   }
 
-  openModal() {
-    this.formData = {
-      first_name: '',
-      last_name: '',
-      email: '',
-      password: '',
-    };
+  isEditing = false;
+  selectedId: string | null = null;
+  showDeleteConfirm = false;
+  idToDelete: string | null = null;
+
+  openModal(item?: User) {
+    if (item) {
+      this.isEditing = true;
+      this.selectedId = item.id;
+      this.formData = {
+        first_name: item.first_name || '',
+        last_name: item.last_name || '',
+        email: item.email || '',
+        password: '',
+      };
+    } else {
+      this.isEditing = false;
+      this.selectedId = null;
+      this.formData = {
+        first_name: '',
+        last_name: '',
+        email: '',
+        password: '',
+      };
+    }
     this.errorMessage = '';
     this.showModal = true;
   }
@@ -346,20 +464,77 @@ export class UsuariosListComponent implements OnInit {
   };
 
   saveReceptionist() {
-    if (!this.formData.email || !this.formData.password) return;
+    if (!this.formData.email) return;
     this.isSaving = true;
 
-    this.usersService.createReceptionist(this.formData).subscribe({
-      next: () => {
+    if (this.isEditing && this.selectedId) {
+      const payload: any = {
+        first_name: this.formData.first_name,
+        last_name: this.formData.last_name,
+        email: this.formData.email,
+      };
+      if (this.formData.password) {
+        payload.password = this.formData.password;
+      }
+
+      this.usersService.updateUser(this.selectedId, payload).subscribe({
+        next: () => {
+          this.isSaving = false;
+          this.closeModal();
+          this.loadData();
+        },
+        error: (err) => {
+          console.error('Error updating receptionist', err);
+          this.errorMessage = err.error?.message || 'Error al actualizar el recepcionista';
+          this.isSaving = false;
+          this.cdr.detectChanges();
+        },
+      });
+    } else {
+      if (!this.formData.password) {
         this.isSaving = false;
-        this.closeModal();
+        return;
+      }
+      this.usersService.createReceptionist(this.formData).subscribe({
+        next: () => {
+          this.isSaving = false;
+          this.closeModal();
+          this.loadData();
+        },
+        error: (err) => {
+          console.error('Error saving receptionist', err);
+          this.errorMessage = err.error?.message || 'Error al guardar el recepcionista';
+          this.isSaving = false;
+          this.cdr.detectChanges();
+        },
+      });
+    }
+  }
+
+  triggerDelete(id: string) {
+    this.idToDelete = id;
+    this.showDeleteConfirm = true;
+    this.cdr.detectChanges();
+  }
+
+  cancelDelete() {
+    this.showDeleteConfirm = false;
+    this.idToDelete = null;
+  }
+
+  confirmDelete() {
+    if (!this.idToDelete) return;
+    this.usersService.deleteUser(this.idToDelete).subscribe({
+      next: () => {
+        this.showDeleteConfirm = false;
+        this.idToDelete = null;
         this.loadData();
       },
       error: (err) => {
-        console.error('Error saving receptionist', err);
-        this.errorMessage = err.error?.message || 'Error al guardar el recepcionista';
-        this.isSaving = false;
-        this.closeModal();
+        console.error('Error deleting user', err);
+        this.errorMessage = 'No se pudo eliminar el usuario.';
+        this.showDeleteConfirm = false;
+        this.idToDelete = null;
         this.cdr.detectChanges();
       },
     });

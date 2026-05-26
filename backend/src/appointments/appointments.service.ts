@@ -2,6 +2,7 @@ import {
   Injectable,
   ConflictException,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
@@ -60,6 +61,9 @@ export class AppointmentsService {
           status: 'SCHEDULED',
           arrived: false,
           paid: false,
+          appointment_type: createAppointmentDto.appointment_type || null,
+          specialty: createAppointmentDto.specialty || null,
+          price: createAppointmentDto.price || 15.00,
         },
       ])
       .select()
@@ -97,7 +101,10 @@ export class AppointmentsService {
       appointment_end_time,
       status,
       arrived,
-      paid
+      paid,
+      appointment_type,
+      specialty,
+      price
     `,
       )
       .eq('is_deleted', false);
@@ -193,6 +200,9 @@ export class AppointmentsService {
         status: app.status,
         arrived: app.arrived,
         paid: paidByAppointmentId.get(app.id) ?? app.paid ?? false,
+        appointment_type: app.appointment_type,
+        specialty: app.specialty,
+        price: app.price ? Number(app.price) : 15.00,
         patients: {
           id: app.patient_id,
           first_name: pProfile?.first_name || '',
@@ -209,6 +219,72 @@ export class AppointmentsService {
         },
       };
     });
+  }
+
+  async findOne(id: string): Promise<AppointmentWithDetails> {
+    const supabase = this.supabaseService.getClient();
+    const { data: app, error } = await supabase
+      .from('appointments')
+      .select('id, patient_id, doctor_id, appointment_time, appointment_end_time, status, arrived, paid, appointment_type, specialty, price')
+      .eq('id', id)
+      .eq('is_deleted', false)
+      .single<Appointment>();
+
+    if (error || !app) {
+      throw new NotFoundException('Cita no encontrada');
+    }
+
+    const { data: patient } = await supabase
+      .from('patients')
+      .select('id, dni')
+      .eq('id', app.patient_id)
+      .single<Patient>();
+
+    const { data: doctor } = await supabase
+      .from('doctors')
+      .select('id, specialty')
+      .eq('id', app.doctor_id)
+      .single<Doctor>();
+
+    const { data: pProfile } = await supabase
+      .from('profiles')
+      .select('id, first_name, last_name')
+      .eq('id', app.patient_id)
+      .single<Profile>();
+
+    const { data: dProfile } = await supabase
+      .from('profiles')
+      .select('id, first_name, last_name')
+      .eq('id', app.doctor_id)
+      .single<Profile>();
+
+    return {
+      id: app.id,
+      patient_id: app.patient_id,
+      doctor_id: app.doctor_id,
+      appointment_time: app.appointment_time,
+      appointment_end_time: app.appointment_end_time,
+      status: app.status,
+      arrived: app.arrived,
+      paid: app.paid || false,
+      appointment_type: app.appointment_type,
+      specialty: app.specialty,
+      price: app.price ? Number(app.price) : 15.00,
+      patients: {
+        id: app.patient_id,
+        first_name: pProfile?.first_name || '',
+        last_name: pProfile?.last_name || '',
+        dni: patient?.dni || '',
+      },
+      doctors: {
+        id: app.doctor_id,
+        specialty: doctor?.specialty || '',
+        profiles: {
+          first_name: dProfile?.first_name || '',
+          last_name: dProfile?.last_name || '',
+        },
+      },
+    };
   }
 
   async getAvailableSlots(doctorId: string, date: string) {

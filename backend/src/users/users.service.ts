@@ -113,6 +113,19 @@ export class UsersService {
       }
     }
 
+    if (dto.specialty !== undefined) {
+      const { error: doctorError } = await supabase
+        .from('doctors')
+        .update({ specialty: dto.specialty })
+        .eq('id', id);
+
+      if (doctorError) {
+        throw new InternalServerErrorException(
+          `Error updating doctor specialty: ${doctorError.message}`,
+        );
+      }
+    }
+
     return data;
   }
 

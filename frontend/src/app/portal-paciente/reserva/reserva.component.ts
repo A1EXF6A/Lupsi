@@ -31,7 +31,10 @@ import { AuthService } from '../../core/services/auth';
             stroke-linecap="round"
             stroke-linejoin="round"
           >
-            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+            <path d="M8 2v4" />
+            <path d="M16 2v4" />
+            <rect width="18" height="18" x="3" y="4" rx="2" />
+            <path d="M3 10h18" />
           </svg>
         </div>
         <div>
@@ -347,7 +350,7 @@ import { AuthService } from '../../core/services/auth';
                 [class.text-green-100]="selectedAppointmentType?.id === type.id"
                 [class.text-slate-400]="selectedAppointmentType?.id !== type.id"
               >
-                Duración: {{ type.duration_minutes }} min
+                Duración: {{ type.duration_minutes }} min | Costo: \${{ getAppointmentPrice(type.name) }}.00
               </div>
             </button>
           </div>
@@ -456,6 +459,18 @@ import { AuthService } from '../../core/services/auth';
           >
             No hay horarios disponibles para el profesional seleccionado en esta fecha. Intenta con
             otra fecha u otro horario.
+          </div>
+        </div>
+
+        <!-- Resumen de Costo y Cita -->
+        <div class="mb-4 bg-emerald-50/50 border border-emerald-100/50 p-4 rounded-2xl flex justify-between items-center" *ngIf="selectedSlot && selectedAppointmentType">
+          <div>
+            <h4 class="text-xs font-black text-emerald-800 uppercase tracking-wider mb-1">Monto a Liquidar</h4>
+            <p class="text-slate-500 text-xs font-semibold">{{ selectedSpecialty?.name }} - {{ selectedAppointmentType?.name }}</p>
+          </div>
+          <div class="text-right">
+            <span class="text-2xl font-black text-emerald-700">\${{ getAppointmentPrice(selectedAppointmentType.name) }}.00</span>
+            <span class="text-[10px] font-bold text-slate-400 block uppercase">USD</span>
           </div>
         </div>
 
@@ -614,6 +629,14 @@ export class ReservaComponent implements OnInit {
     const month = (d.getMonth() + 1).toString().padStart(2, '0');
     const day = d.getDate().toString().padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  getAppointmentPrice(typeName: string): number {
+    const name = typeName.toLowerCase();
+    if (name.includes('procedimiento') || name.includes('cirugía menor') || name.includes('cirugia menor') || name.includes('cirugía') || name.includes('cirugia')) {
+      return 30.00;
+    }
+    return 15.00;
   }
 
   selectedDate: string = this.getLocalYYYYMMDD();
@@ -780,9 +803,13 @@ export class ReservaComponent implements OnInit {
     if (!this.selectedDoctor || !this.selectedSlot) return;
 
     this.isSubmitting = true;
+    const price = this.selectedAppointmentType ? this.getAppointmentPrice(this.selectedAppointmentType.name) : 15.00;
     const payload = {
       doctor_id: this.selectedDoctor.id,
       appointment_time: this.selectedSlot.start,
+      appointment_type: this.selectedAppointmentType?.name || undefined,
+      specialty: this.selectedSpecialty?.name || undefined,
+      price: price
     };
 
     this.appointmentsService.createAppointment(payload).subscribe({

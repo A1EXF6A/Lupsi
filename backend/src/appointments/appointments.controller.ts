@@ -92,6 +92,16 @@ export class AppointmentsController {
     return { message: 'Disponibilidad eliminada' };
   }
 
+  @Get(':id')
+  @Permissions(
+    Permission.APPOINTMENTS_READ_SELF,
+    Permission.APPOINTMENTS_READ_ASSIGNED,
+    Permission.APPOINTMENTS_READ_ALL,
+  )
+  async getAppointment(@Param('id') id: string) {
+    return this.appointmentsService.findOne(id);
+  }
+
   @Put(':id')
   @Permissions(Permission.APPOINTMENTS_UPDATE)
   async updateAppointment(

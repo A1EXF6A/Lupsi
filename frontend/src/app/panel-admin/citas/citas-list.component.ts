@@ -98,6 +98,7 @@ import { AuthService } from '../../core/services/auth';
               <th scope="col" class="px-6 py-4">Doctor</th>
               <th scope="col" class="px-6 py-4 text-center">Estado</th>
               <th scope="col" class="px-6 py-4 text-center">Pago</th>
+              <th scope="col" class="px-6 py-4 text-center">Llegada</th>
               <th scope="col" class="px-6 py-4 text-right">Acciones</th>
             </tr>
           </thead>
@@ -174,6 +175,26 @@ import { AuthService } from '../../core/services/auth';
                 >
                   {{ app.paid ? 'Pagado' : 'Pendiente' }}
                 </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-center select-none">
+                <button
+                  (click)="toggleArrival(app)"
+                  [ngClass]="{
+                    'bg-emerald-100 text-emerald-800 border-emerald-200': app.arrived,
+                    'bg-slate-100 text-slate-400 border-slate-200 hover:bg-slate-200 hover:text-slate-600': !app.arrived
+                  }"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black border transition-all cursor-pointer shadow-sm hover:scale-[1.02] active:scale-[0.98]"
+                  title="Marcar llegada del paciente"
+                >
+                  <span
+                    [ngClass]="{
+                      'bg-emerald-500': app.arrived,
+                      'bg-slate-300': !app.arrived
+                    }"
+                    class="h-2 w-2 rounded-full inline-block"
+                  ></span>
+                  {{ app.arrived ? '✓ Llegó' : 'Pendiente' }}
+                </button>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <button
@@ -511,7 +532,7 @@ import { AuthService } from '../../core/services/auth';
             </div>
             <div class="flex justify-between">
               <span class="font-bold text-slate-400">Monto del Pago:</span>
-              <span class="font-black text-emerald-600 text-sm">$50.00 USD</span>
+              <span class="font-black text-emerald-600 text-sm">\${{ pendingTransfer?.amount || selectedAppForTransfer?.price || 15.00 | number:'1.2-2' }} USD</span>
             </div>
           </div>
 
@@ -854,4 +875,17 @@ export class CitasListComponent implements OnInit {
       }
     });
   }
+
+  toggleArrival(app: Appointment) {
+    if (!app.id) return;
+    const newArrivalStatus = !app.arrived;
+    this.appointmentsService.updateAppointment(app.id, { arrived: newArrivalStatus }).subscribe({
+      next: () => {
+        app.arrived = newArrivalStatus;
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Error updating arrival status', err)
+    });
+  }
 }
+

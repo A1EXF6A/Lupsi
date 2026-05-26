@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PaymentsService } from '../../core/services/payments.service';
+import { AppointmentsService } from '../../core/services/appointments.service';
 import { loadStripe, Stripe, StripeElements, StripeCardElement } from '@stripe/stripe-js';
 import { environment } from '../../../environments/environment';
 import { lastValueFrom } from 'rxjs';
@@ -22,13 +23,14 @@ import { lastValueFrom } from 'rxjs';
         <div class="bg-white/70 backdrop-blur-xl border border-white/40 shadow-2xl rounded-3xl p-8 overflow-hidden relative">
           <div class="absolute -top-24 -right-24 w-48 h-48 bg-indigo-400 rounded-full mix-blend-multiply filter blur-2xl opacity-30 animate-blob"></div>
           <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-cyan-400 rounded-full mix-blend-multiply filter blur-2xl opacity-30 animate-blob animation-delay-2000"></div>
-
+ 
           <div class="relative z-10">
-            <h2 class="text-4xl font-black mb-2 bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-500">
-              Liquidación de Consulta
+            <h2 class="text-4xl font-black mb-1 bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-500">
+              {{ appointmentType }}
             </h2>
+            <p *ngIf="specialty" class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">{{ specialty }}</p>
             <p class="text-slate-500 mb-8 font-medium">Selecciona el método de pago para la cita <span class="font-bold text-slate-700">#{{appointmentId?.substring(0,8)}}</span></p>
-
+ 
             <!-- Success View -->
             <div *ngIf="success" class="animate-fade-in-up text-center py-10">
               <div class="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-200">
@@ -40,19 +42,19 @@ import { lastValueFrom } from 'rxjs';
                 Volver a Mis Citas
               </button>
             </div>
-
+ 
             <!-- Payment Content (Hidden on Success) -->
             <div *ngIf="!success">
               <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 rounded-3xl p-8 text-white shadow-2xl mb-8 flex justify-between items-center transform transition hover:scale-[1.01] border border-white/10">
                 <div>
                   <p class="text-emerald-400/80 text-sm font-bold uppercase tracking-widest mb-1">Total a Pagar</p>
-                  <p class="text-5xl font-black tracking-tighter">$50.00 <span class="text-xl font-medium text-slate-400">USD</span></p>
+                  <p class="text-5xl font-black tracking-tighter">\${{ appointmentPrice | number:'1.2-2' }} <span class="text-xl font-medium text-slate-400">USD</span></p>
                 </div>
                 <div class="w-20 h-20 bg-white/5 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/10 shadow-inner">
                   <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-400"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
                 </div>
               </div>
-
+ 
               <!-- Error Banner -->
               <div *ngIf="errorMessage" class="mb-8 p-5 bg-rose-50 border-l-4 border-rose-500 rounded-xl flex items-center gap-4 text-rose-700 animate-fade-in-up shadow-sm">
                 <div class="bg-rose-500 text-white p-1.5 rounded-full">
@@ -60,7 +62,7 @@ import { lastValueFrom } from 'rxjs';
                 </div>
                 <p class="text-sm font-bold">{{errorMessage}}</p>
               </div>
-
+ 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
                 <button 
                   (click)="selectPaymentMethod('CARD')" 
@@ -82,7 +84,7 @@ import { lastValueFrom } from 'rxjs';
                     </div>
                   </div>
                 </button>
-
+ 
                 <button 
                   (click)="selectPaymentMethod('TRANSFER')" 
                   [class.ring-4]="paymentMethod === 'TRANSFER'"
@@ -104,7 +106,7 @@ import { lastValueFrom } from 'rxjs';
                   </div>
                 </button>
               </div>
-
+ 
               <!-- Card UI -->
               <div *ngIf="paymentMethod === 'CARD'" class="animate-fade-in-up">
                 <div class="mb-8">
@@ -112,12 +114,12 @@ import { lastValueFrom } from 'rxjs';
                   <div id="card-element" class="p-5 bg-white border-2 border-slate-100 rounded-2xl shadow-sm focus-within:border-emerald-400 transition-colors min-h-[44px]"></div>
                   <div id="card-errors" role="alert" class="text-rose-500 text-xs mt-3 font-bold flex items-center gap-1"></div>
                 </div>
-
+ 
                 <button (click)="payWithStripe()" [disabled]="loading" class="group w-full bg-emerald-600 text-white py-5 rounded-2xl font-black text-xl hover:bg-emerald-700 disabled:opacity-50 shadow-lg shadow-emerald-200 transition-all transform hover:-translate-y-1 active:scale-95">
                   <span class="flex items-center justify-center gap-3">
                     <svg *ngIf="!loading" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                     <svg *ngIf="loading" class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
-                    {{ loading ? 'Procesando Pago...' : 'Pagar $50.00 Ahora' }}
+                    {{ loading ? 'Procesando Pago...' : 'Pagar $' + (appointmentPrice | number:'1.2-2') + ' Ahora' }}
                   </span>
                 </button>
                 <p class="text-center text-slate-400 text-xs mt-6 font-medium flex items-center justify-center gap-2">
@@ -125,7 +127,7 @@ import { lastValueFrom } from 'rxjs';
                   Tus datos están protegidos con encriptación de grado bancario (AES-256)
                 </p>
               </div>
-
+ 
               <!-- Transfer UI -->
               <div *ngIf="paymentMethod === 'TRANSFER'" class="animate-fade-in-up">
                 <div class="bg-gradient-to-br from-white to-slate-50 p-8 rounded-3xl border-2 border-emerald-100 shadow-xl shadow-emerald-50/50 mb-8 relative overflow-hidden">
@@ -140,7 +142,7 @@ import { lastValueFrom } from 'rxjs';
                       <div class="inline-flex items-center px-4 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-700 uppercase tracking-widest shadow-sm">Cuenta Ahorros</div>
                     </div>
                   </div>
-
+ 
                   <div class="space-y-4 relative z-10">
                     <div class="flex justify-between items-center p-4 bg-white/50 rounded-2xl border border-white">
                       <span class="text-slate-500 font-bold text-sm">N° Cuenta Ahorros</span>
@@ -156,7 +158,7 @@ import { lastValueFrom } from 'rxjs';
                     </div>
                   </div>
                 </div>
-
+ 
                 <div class="mb-8">
                   <label class="block text-sm font-bold text-slate-700 mb-3 ml-1">Sube tu comprobante de pago</label>
                   <div class="relative group">
@@ -201,6 +203,7 @@ import { lastValueFrom } from 'rxjs';
 })
 export class PagosPacienteComponent implements OnInit {
   private paymentsService = inject(PaymentsService);
+  private appointmentsService = inject(AppointmentsService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private ngZone = inject(NgZone);
@@ -213,16 +216,24 @@ export class PagosPacienteComponent implements OnInit {
   appointmentId: string | null = null;
   errorMessage: string | null = null;
 
+  appointmentPrice = 15.00;
+  appointmentType = 'Consulta Médica';
+  specialty = '';
+ 
   stripe: Stripe | null = null;
   elements: StripeElements | null = null;
   cardElement: StripeCardElement | null = null;
-
+ 
   async ngOnInit() {
     this.route.queryParams.subscribe(params => {
       this.appointmentId = params['appointmentId'];
-      if (!this.appointmentId) this.goBack();
+      if (!this.appointmentId) {
+        this.goBack();
+        return;
+      }
+      this.loadAppointmentDetails();
     });
-
+ 
     try {
       this.stripe = await loadStripe(environment.stripePublicKey);
       if (this.stripe) {
@@ -239,6 +250,21 @@ export class PagosPacienteComponent implements OnInit {
     }
   }
 
+  async loadAppointmentDetails() {
+    if (!this.appointmentId) return;
+    try {
+      const apt = await lastValueFrom(this.appointmentsService.getAppointment(this.appointmentId));
+      this.ngZone.run(() => {
+        this.appointmentPrice = apt.price ? Number(apt.price) : 15.00;
+        this.appointmentType = apt.appointment_type || 'Consulta Médica';
+        this.specialty = apt.specialty || '';
+        this.cdr.detectChanges();
+      });
+    } catch (err) {
+      console.error('Error loading appointment details:', err);
+    }
+  }
+ 
   selectPaymentMethod(method: 'CARD' | 'TRANSFER') {
     this.paymentMethod = method;
     this.errorMessage = null;
@@ -246,23 +272,23 @@ export class PagosPacienteComponent implements OnInit {
       setTimeout(() => this.cardElement?.mount('#card-element'), 50);
     }
   }
-
+ 
   goBack() { this.router.navigate(['/portal-paciente/mis-citas']); }
-
+ 
   onFileSelected(event: any) { this.selectedFile = event.target.files[0]; }
-
+ 
   async payWithStripe() {
     if (!this.appointmentId || !this.stripe || !this.cardElement) return;
     
     this.loading = true;
     this.errorMessage = null;
-
+ 
     try {
-      const res = await lastValueFrom(this.paymentsService.createIntent(this.appointmentId, 50));
+      const res = await lastValueFrom(this.paymentsService.createIntent(this.appointmentId, this.appointmentPrice));
       const result = await this.stripe.confirmCardPayment(res.clientSecret, {
         payment_method: { card: this.cardElement }
       });
-
+ 
       if (result.error) {
         this.ngZone.run(() => {
           this.errorMessage = result.error.message || 'Error en la tarjeta';
@@ -271,9 +297,9 @@ export class PagosPacienteComponent implements OnInit {
         });
         return;
       }
-
+ 
       console.log('Pago exitoso en Stripe, confirmando en backend...');
-      const response = await lastValueFrom(this.paymentsService.confirmStripePayment(this.appointmentId, 50));
+      const response = await lastValueFrom(this.paymentsService.confirmStripePayment(this.appointmentId, this.appointmentPrice));
       console.log('🎉 Respuesta recibida del backend con éxito:', response);
       
       this.ngZone.run(() => {
@@ -293,13 +319,13 @@ export class PagosPacienteComponent implements OnInit {
       });
     }
   }
-
+ 
   async uploadReceiptAndReport() {
     if (!this.selectedFile || !this.appointmentId) return;
     this.loading = true;
     try {
       const publicUrl = await this.paymentsService.uploadReceipt(this.selectedFile);
-      await lastValueFrom(this.paymentsService.reportTransfer(this.appointmentId, 50, publicUrl));
+      await lastValueFrom(this.paymentsService.reportTransfer(this.appointmentId, this.appointmentPrice, publicUrl));
       this.ngZone.run(() => {
         this.success = true;
         this.cdr.detectChanges();

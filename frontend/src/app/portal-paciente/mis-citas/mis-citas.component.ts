@@ -164,17 +164,22 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
                 }}</span>
               </div>
               <div>
-                <h3 class="font-bold text-gray-900">
-                  Consulta con Dr/Dra. {{ apt.doctors?.profiles?.first_name || 'No especificado' }}
-                  {{ apt.doctors?.profiles?.last_name || '' }}
+                <h3 class="font-bold text-gray-900 flex flex-wrap items-center gap-2">
+                  <span>{{ apt.appointment_type || 'Consulta Médica' }}</span>
+                  <span class="text-[10px] font-black text-slate-400 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                    Dr/Dra. {{ apt.doctors?.profiles?.first_name || '?' }} {{ apt.doctors?.profiles?.last_name || '' }}
+                  </span>
                 </h3>
-                <p class="text-sm text-slate-500 font-medium mt-0.5">
+                <p class="text-xs text-slate-500 font-semibold mt-1">
                   Especialidad:
-                  <span class="text-green-700 bg-green-50 px-2 py-0.5 rounded-full text-xs ml-1">{{
-                    apt.doctors?.specialty || 'General'
+                  <span class="text-green-700 bg-green-50 px-2 py-0.5 rounded-full text-xs ml-1 border border-green-100">{{
+                    apt.specialty || apt.doctors?.specialty || 'General'
                   }}</span>
+                  <span class="text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full text-xs ml-2 border border-indigo-100">
+                    Costo: \${{ apt.price || 15 }}.00 USD
+                  </span>
                 </p>
-                <div class="flex items-center gap-2 mt-2 text-xs font-medium text-slate-400">
+                <div class="flex items-center gap-2 mt-2.5 text-xs font-medium text-slate-400">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="14"
@@ -316,7 +321,7 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
               </button>
             <button
               *ngIf="apt.status === 'SCHEDULED' && !checkIfPast(apt.appointment_time)"
-              (click)="confirmCancelAppointment(apt.id!)"
+              (click)="confirmCancelAppointment(apt)"
               class="text-xs font-bold px-3 py-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg transition-colors"
             >
               Cancelar
@@ -702,6 +707,14 @@ export class MisCitasComponent implements OnInit {
             hour: '2-digit', minute: '2-digit'
           });
           
+          const methodMap: Record<string, string> = {
+            'CARD': 'Tarjeta de Crédito (Stripe Secure)',
+            'TRANSFER': 'Transferencia Bancaria',
+            'CASH': 'Efectivo / Pago Físico'
+          };
+          const methodText = methodMap[completedPayment.method] || completedPayment.method || 'Tarjeta de Crédito (Stripe Secure)';
+          const formattedAmount = Number(completedPayment.amount || apt.price || 15.00).toFixed(2);
+          
           const receiptWindow = window.open('', '_blank');
           if (receiptWindow) {
             receiptWindow.document.write(`
@@ -1011,11 +1024,11 @@ export class MisCitasComponent implements OnInit {
                     </div>
                     <div class="summary-row">
                       <span class="summary-label">Método de Pago</span>
-                      <span class="summary-value">Tarjeta de Crédito (Stripe Secure)</span>
+                      <span class="summary-value">${methodText}</span>
                     </div>
                     <div class="summary-row amount-row">
                       <span class="amount-label">Monto Total Liquidado</span>
-                      <span class="amount-value">$50.00 USD</span>
+                      <span class="amount-value">\$${formattedAmount} USD</span>
                     </div>
                   </div>
 
@@ -1185,9 +1198,13 @@ export class MisCitasComponent implements OnInit {
     this.closeConfirmModal();
   }
 
-  confirmCancelAppointment(id: string) {
-    this.openConfirmModal('Cancelar Cita', '¿Está seguro de que desea cancelar esta cita?', () => {
-      this.cancelAppointment(id);
+  confirmCancelAppointment(apt: Appointment) {
+    let msg = '¿Está seguro de que desea cancelar esta cita?';
+    if (apt.paid || (apt as any).hasPendingPayment) {
+      msg = '¿Está seguro de que desea cancelar esta cita? Ten en cuenta que si cancelas, tu valor pagado no será reembolsado por políticas del centro médico.';
+    }
+    this.openConfirmModal('Cancelar Cita', msg, () => {
+      this.cancelAppointment(apt.id!);
     });
   }
 

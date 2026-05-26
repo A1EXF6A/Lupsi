@@ -22,6 +22,10 @@ export interface Appointment {
   hasCompletedPayment?: boolean;
   hasPendingTransfer?: boolean;
   pendingTransferPayment?: any;
+  appointment_type?: string;
+  specialty?: string;
+  price?: number;
+  arrived?: boolean;
 }
 
 @Injectable({
@@ -56,7 +60,13 @@ export class AppointmentsService {
     return this.http.delete<any>(`${this.apiUrl}/available-slots/${id}`);
   }
 
-  createAppointment(payload: { doctor_id: string; appointment_time: string }): Observable<any> {
+  createAppointment(payload: {
+    doctor_id: string;
+    appointment_time: string;
+    appointment_type?: string;
+    specialty?: string;
+    price?: number;
+  }): Observable<any> {
     return this.http.post<any>(this.apiUrl, payload);
   }
 
@@ -93,6 +103,10 @@ export class AppointmentsService {
 
   deletePrescription(appointmentId: string, prescriptionId: string): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/${appointmentId}/prescription/${prescriptionId}`);
+  }
+
+  getAppointment(appointmentId: string): Observable<Appointment> {
+    return this.http.get<Appointment>(`${this.apiUrl}/${appointmentId}`);
   }
 
   getPayments(appointmentId: string): Observable<any[]> {

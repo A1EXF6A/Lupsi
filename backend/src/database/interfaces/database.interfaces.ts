@@ -29,6 +29,9 @@ export interface Appointment {
   arrived?: boolean;
   paid?: boolean;
   is_deleted?: boolean;
+  appointment_type?: string;
+  specialty?: string;
+  price?: number;
 }
 
 export interface PatientWithProfile {
@@ -49,6 +52,8 @@ export interface DoctorWithProfile {
 
 export interface AppointmentWithDetails {
   id: string;
+  patient_id?: string;
+  doctor_id?: string;
   appointment_time: string;
   appointment_end_time: string;
   status: string;
@@ -56,6 +61,9 @@ export interface AppointmentWithDetails {
   paid?: boolean;
   patients: PatientWithProfile;
   doctors: DoctorWithProfile;
+  appointment_type?: string;
+  specialty?: string;
+  price?: number;
 }
 
 export interface AppointmentBase {
@@ -68,6 +76,9 @@ export interface AppointmentBase {
   arrived?: boolean;
   paid?: boolean;
   is_deleted?: boolean;
+  appointment_type?: string;
+  specialty?: string;
+  price?: number;
 }
 
 export interface Specialty {
