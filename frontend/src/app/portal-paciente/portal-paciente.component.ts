@@ -21,7 +21,7 @@ import { AuthService } from '../core/services/auth';
             </h1>
           </div>
 
-          <nav class="flex gap-2 items-center">
+          <nav class="flex gap-2 items-center overflow-x-auto whitespace-nowrap py-1 -mx-2 px-2 sm:mx-0 sm:px-0">
             <a
               routerLink="mis-citas"
               routerLinkActive="bg-green-50 text-green-700 font-bold border-green-200"

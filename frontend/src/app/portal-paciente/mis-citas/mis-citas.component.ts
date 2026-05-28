@@ -10,11 +10,9 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
   imports: [CommonModule, FormsModule],
   template: `
     <div class="bg-white p-4 sm:p-6 rounded-3xl shadow-xl border border-green-50/50">
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-3">
-          <div
-            class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-green-600"
-          >
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-green-600 flex-shrink-0">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"
@@ -38,9 +36,9 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
               <path d="M16 18h.01" />
             </svg>
           </div>
-          Mis Citas Médicas
-        </h2>
+          <h2 class="text-2xl font-bold text-gray-900 truncate">Mis Citas Médicas</h2>
       </div>
+
 
       <div *ngIf="isLoading" class="text-center py-10">
         <div class="inline-flex items-center gap-2 text-green-600 font-medium">
@@ -686,6 +684,7 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
   `,
 })
 export class MisCitasComponent implements OnInit {
+
   appointmentsService = inject(AppointmentsService);
   cdr = inject(ChangeDetectorRef);
   router = inject(Router);
