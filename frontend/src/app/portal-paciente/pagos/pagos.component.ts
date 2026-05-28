@@ -20,7 +20,7 @@ import { lastValueFrom } from 'rxjs';
           Volver a Mis Citas
         </button>
         
-        <div class="bg-white/70 backdrop-blur-xl border border-white/40 shadow-2xl rounded-3xl p-8 overflow-hidden relative">
+        <div class="bg-white/70 backdrop-blur-xl border border-white/40 shadow-2xl rounded-3xl p-4 sm:p-8 overflow-hidden relative">
           <div class="absolute -top-24 -right-24 w-48 h-48 bg-indigo-400 rounded-full mix-blend-multiply filter blur-2xl opacity-30 animate-blob"></div>
           <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-cyan-400 rounded-full mix-blend-multiply filter blur-2xl opacity-30 animate-blob animation-delay-2000"></div>
  
@@ -45,7 +45,7 @@ import { lastValueFrom } from 'rxjs';
  
             <!-- Payment Content (Hidden on Success) -->
             <div *ngIf="!success">
-              <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 rounded-3xl p-8 text-white shadow-2xl mb-8 flex justify-between items-center transform transition hover:scale-[1.01] border border-white/10">
+              <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 rounded-3xl p-4 sm:p-8 text-white shadow-2xl mb-8 flex flex-col md:flex-row justify-between items-center transform transition hover:scale-[1.01] border border-white/10">
                 <div>
                   <p class="text-emerald-400/80 text-sm font-bold uppercase tracking-widest mb-1">Total a Pagar</p>
                   <p class="text-5xl font-black tracking-tighter">\${{ appointmentPrice | number:'1.2-2' }} <span class="text-xl font-medium text-slate-400">USD</span></p>
@@ -130,7 +130,7 @@ import { lastValueFrom } from 'rxjs';
  
               <!-- Transfer UI -->
               <div *ngIf="paymentMethod === 'TRANSFER'" class="animate-fade-in-up">
-                <div class="bg-gradient-to-br from-white to-slate-50 p-8 rounded-3xl border-2 border-emerald-100 shadow-xl shadow-emerald-50/50 mb-8 relative overflow-hidden">
+                <div class="bg-gradient-to-br from-white to-slate-50 p-4 sm:p-8 rounded-3xl border-2 border-emerald-100 shadow-xl shadow-emerald-50/50 mb-8 relative overflow-hidden">
                   <div class="absolute -top-6 -right-6 w-32 h-32 bg-emerald-100/50 rounded-full blur-3xl"></div>
                   
                   <div class="flex items-center gap-8 mb-10">

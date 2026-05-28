@@ -9,7 +9,7 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="bg-white p-6 rounded-3xl shadow-xl border border-green-50/50">
+    <div class="bg-white p-4 sm:p-6 rounded-3xl shadow-xl border border-green-50/50">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-3">
           <div

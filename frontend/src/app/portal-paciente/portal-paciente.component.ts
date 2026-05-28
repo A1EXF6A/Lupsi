@@ -10,7 +10,7 @@ import { AuthService } from '../core/services/auth';
   template: `
     <div class="min-h-screen bg-slate-50 flex flex-col font-sans">
       <!-- Top Navigation -->
-      <header class="bg-white border-b border-slate-200 sticky top-0 z-10 px-4 py-3 shadow-sm">
+      <header class="bg-white border-b border-slate-200 sticky top-0 z-10 px-2 sm:px-4 py-2 sm:py-3 shadow-sm">
         <div
           class="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4"
         >
@@ -77,7 +77,7 @@ import { AuthService } from '../core/services/auth';
       </header>
 
       <!-- Main Content -->
-      <main class="flex-1 w-full max-w-5xl mx-auto p-4 md:p-6 py-8">
+      <main class="flex-1 w-full max-w-5xl mx-auto p-4 sm:p-6 py-6">
         <router-outlet></router-outlet>
       </main>
     </div>

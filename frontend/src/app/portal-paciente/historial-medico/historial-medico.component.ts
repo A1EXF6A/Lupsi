@@ -9,7 +9,7 @@ import { AuthService } from '../../core/services/auth';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="bg-white p-6 rounded-3xl shadow-xl border border-blue-50/50">
+    <div class="bg-white p-4 sm:p-6 rounded-3xl shadow-xl border border-blue-50/50">
       <!-- Encabezado Principal -->
       <div class="flex justify-between items-center mb-8">
         <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
@@ -96,7 +96,7 @@ import { AuthService } from '../../core/services/auth';
       <div *ngIf="!isLoading && records.length > 0" class="space-y-8 animate-fade-in">
         <div
           *ngFor="let record of records"
-          class="bg-white border border-slate-150 rounded-3xl p-6 shadow-sm hover:shadow-md transition-all space-y-6"
+          class="bg-white border border-slate-150 rounded-3xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all space-y-6"
         >
           <!-- Encabezado de la Tarjeta (Fecha y Especialista) -->
           <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-100">
@@ -171,7 +171,7 @@ import { AuthService } from '../../core/services/auth';
           </div>
 
           <!-- Receta Médica y Medicamentos -->
-          <div *ngIf="record.prescription" class="bg-blue-50/50 rounded-2xl p-5 border border-blue-100/30 space-y-4">
+          <div *ngIf="record.prescription" class="bg-blue-50/50 rounded-2xl p-4 sm:p-5 border border-blue-100/30 space-y-4">
             <div class="flex items-center gap-2 pb-2 border-b border-blue-100/50">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />

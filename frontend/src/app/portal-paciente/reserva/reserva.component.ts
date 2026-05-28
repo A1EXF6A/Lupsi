@@ -15,7 +15,7 @@ import { AuthService } from '../../core/services/auth';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="bg-white p-6 md:p-8 rounded-3xl shadow-xl border border-green-50/50">
+    <div class="bg-white p-3 sm:p-6 md:p-8 rounded-3xl shadow-xl border border-green-50/50">
       <div class="flex items-center gap-4 mb-8">
         <div
           class="w-12 h-12 bg-green-600 rounded-2xl flex items-center justify-center shadow-lg shadow-green-200 text-white flex-shrink-0"
@@ -171,7 +171,7 @@ import { AuthService } from '../../core/services/auth';
           </div>
 
           <!-- Cuadrícula (Grid) de Especialidades -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-80 overflow-y-auto pr-1 custom-scrollbar">
+          <div class="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-3 max-h-80 overflow-y-auto pr-1 custom-scrollbar">
             <button
               *ngFor="let spec of getFilteredSpecialties()"
               type="button"
@@ -431,7 +431,7 @@ import { AuthService } from '../../core/services/auth';
 
           <div
             *ngIf="!isLoadingSlots && slots.length > 0"
-            class="grid grid-cols-3 sm:grid-cols-4 gap-3"
+            class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 overflow-x-auto"
           >
             <button
               *ngFor="let slot of slots"

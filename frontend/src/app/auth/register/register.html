@@ -46,7 +46,7 @@
     </div>
 
     <!-- Right Section: Register Form -->
-    <div class="w-full md:w-1/2 flex flex-col justify-center p-8 lg:p-12 bg-white/50 backdrop-blur-md">
+    <div class="w-full md:w-1/2 flex flex-col justify-center p-4 md:p-8 lg:p-12 bg-white/50 backdrop-blur-md">
       
       <!-- PWA Install Banner -->
       <div *ngIf="pwaService.showInstallButton()" class="mb-6">
@@ -82,7 +82,7 @@
       <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-4">
         
         <!-- Nombres y Apellidos -->
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="space-y-2">
             <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest px-1">Nombres</label>
             <input type="text" formControlName="first_name" placeholder="Ej. Juan" 
