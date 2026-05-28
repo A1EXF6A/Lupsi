@@ -93,7 +93,8 @@ import { UsersService, User } from '../../core/services/users.service';
           {{ errorMessage }}
         </div>
 
-        <table *ngIf="!isLoading && !errorMessage" class="w-full text-left text-sm text-slate-600">
+         <div class="overflow-x-auto">
+           <table *ngIf="!isLoading && !errorMessage" class="min-w-full text-left text-sm text-slate-600">
           <thead
             class="bg-slate-50 border-b border-slate-100 text-slate-400 font-bold uppercase text-xs tracking-wider"
           >
@@ -192,8 +193,9 @@ import { UsersService, User } from '../../core/services/users.service';
                 No se encontraron usuarios en el sistema.
               </td>
             </tr>
-          </tbody>
-        </table>
+           </tbody>
+         </table>
+        </div>
 
         <!-- Paginación local -->
         <div

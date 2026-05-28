@@ -37,7 +37,8 @@ import { AppointmentsService, Appointment } from '../../core/services/appointmen
 
         <div *ngIf="isLoading" class="p-8 text-center text-slate-400">Cargando...</div>
 
-        <table *ngIf="!isLoading" class="w-full text-left text-sm text-slate-600">
+         <div class="overflow-x-auto">
+           <table *ngIf="!isLoading" class="min-w-full text-left text-sm text-slate-600">
           <thead class="bg-slate-50 border-b border-slate-100 text-slate-400 font-bold uppercase text-xs">
             <tr>
               <th class="px-6 py-4">Fecha</th>

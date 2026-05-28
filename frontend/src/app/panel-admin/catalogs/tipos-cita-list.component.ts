@@ -93,7 +93,8 @@ import { CatalogsService, AppointmentType } from '../../core/services/catalogs.s
           {{ errorMessage }}
         </div>
 
-        <table *ngIf="!isLoading && !errorMessage" class="w-full text-left text-sm text-slate-600">
+         <div class="overflow-x-auto">
+           <table *ngIf="!isLoading && !errorMessage" class="min-w-full text-left text-sm text-slate-600">
           <thead
             class="bg-slate-50 border-b border-slate-100 text-slate-400 font-bold uppercase text-xs tracking-wider"
           >
@@ -167,8 +168,9 @@ import { CatalogsService, AppointmentType } from '../../core/services/catalogs.s
                 No se encontraron tipos de cita.
               </td>
             </tr>
-          </tbody>
-        </table>
+           </tbody>
+         </table>
+        </div>
 
         <!-- Paginación local -->
         <div
