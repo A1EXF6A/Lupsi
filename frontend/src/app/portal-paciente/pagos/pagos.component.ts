@@ -111,8 +111,10 @@ import { lastValueFrom } from 'rxjs';
               <div *ngIf="paymentMethod === 'CARD'" class="animate-fade-in-up">
                 <div class="mb-8">
                   <label class="block text-sm font-bold text-slate-700 mb-3 ml-1">Detalles de la Tarjeta</label>
-                  <div id="card-element" class="p-5 bg-white border-2 border-slate-100 rounded-2xl shadow-sm focus-within:border-emerald-400 transition-colors min-h-[44px]"></div>
-                  <div id="card-errors" role="alert" class="text-rose-500 text-xs mt-3 font-bold flex items-center gap-1"></div>
+<div class="flex flex-col gap-4 sm:gap-6 w-full">
+                      <div id="card-element" class="p-3 xs:p-4 sm:p-5 bg-white border-2 border-slate-100 rounded-2xl shadow-sm focus-within:border-emerald-400 transition-colors min-h-[44px]"></div>
+                      <div id="card-errors" role="alert" class="text-rose-500 text-xs mt-3 font-bold flex items-center gap-1"></div>
+                    </div>
                 </div>
  
                 <button (click)="payWithStripe()" [disabled]="loading" class="group w-full bg-emerald-600 text-white py-5 rounded-2xl font-black text-xl hover:bg-emerald-700 disabled:opacity-50 shadow-lg shadow-emerald-200 transition-all transform hover:-translate-y-1 active:scale-95">
@@ -134,7 +136,7 @@ import { lastValueFrom } from 'rxjs';
                   <div class="absolute -top-6 -right-6 w-32 h-32 bg-emerald-100/50 rounded-full blur-3xl"></div>
                   
                   <div class="flex items-center gap-8 mb-10">
-                    <div class="w-44 h-24 bg-white rounded-3xl p-4 shadow-lg border border-slate-100 flex items-center justify-center overflow-hidden transform hover:scale-105 transition-transform shadow-emerald-100/20">
+                    <div class="w-36 h-24 xs:w-44 xs:h-24 sm:w-60 sm:h-32 bg-white rounded-3xl p-4 shadow-lg border border-slate-100 flex items-center justify-center overflow-hidden transform hover:scale-105 transition-transform shadow-emerald-100/20">
                       <img src="/official-pichincha-logo.png" alt="Banco Pichincha" class="w-full h-full object-contain">
                     </div>
                     <div>
