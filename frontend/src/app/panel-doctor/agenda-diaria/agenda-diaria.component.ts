@@ -178,15 +178,7 @@ export class DoctorAgendaDiariaComponent implements OnInit {
   errorMessage = '';
 
   get filteredAppointments() {
-    const filtered = this.appointments.filter((app) => {
-      const d = new Date(app.appointment_time);
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      const localDate = `${year}-${month}-${day}`;
-      return localDate === this.selectedDate;
-    });
-    return filtered.sort((a, b) => a.appointment_time.localeCompare(b.appointment_time));
+    return this.appointments.sort((a, b) => a.appointment_time.localeCompare(b.appointment_time));
   }
 
   get completedAppointments() {

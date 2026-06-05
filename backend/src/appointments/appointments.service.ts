@@ -118,11 +118,9 @@ export class AppointmentsService {
     } // RECEPTIONIST / ADMIN see all
 
     if (date) {
-      // filter by date
-      const startDate = new Date(date);
-      startDate.setHours(0, 0, 0, 0);
-      const endDate = new Date(date);
-      endDate.setHours(23, 59, 59, 999);
+      // filter by date in Ecuador time (UTC-5)
+      const startDate = new Date(`${date}T00:00:00-05:00`);
+      const endDate = new Date(`${date}T23:59:59.999-05:00`);
       query = query
         .gte('appointment_time', startDate.toISOString())
         .lte('appointment_time', endDate.toISOString());
